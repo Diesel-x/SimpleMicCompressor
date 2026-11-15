@@ -3,12 +3,12 @@
 <p align="center">
   <b>Language / Язык:</b>
   <br>
-  <a href="README.md">🇷🇺 Русский</a> &nbsp;|&nbsp; 
-  <a href="README_EN.md">🇬🇧 English</a>
+  <b>🇷🇺 Русский</b> &nbsp;|&nbsp; 
+  <a href="README.md">🇬🇧 English</a>
 </p>
 
 <p align="center">
-  <img src="assets/screenshot_main.png" alt="SimpleMicCompressor Interface" width="850" />
+  <img src="assets/screenshot_main_ru.png" alt="Интерфейс SimpleMicCompressor" width="850" />
 </p>
 
 <p align="center">
@@ -22,6 +22,8 @@
 
 **SimpleMicCompressor** — системный процессор микрофона в реальном времени для **Discord**, **стримов** и **соревновательных игр** (CS2, Valorant, Apex, Warzone). Выравнивает громкость голоса, срезает клики мыши и гул, предотвращает оглушающие крики и защищает от клиппинга с нулевым влиянием на FPS.
 
+**Автор:** [Diesel-X](https://github.com/Diesel-x)  
+**Репозиторий:** [github.com/Diesel-x/SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)  
 **Версия:** `1.0 Release`
 
 ---
@@ -63,6 +65,10 @@
    * Выберите микрофон: **CABLE Output (VB-Audio Virtual Cable)**.
    * Выключите встроенный Krisp/AGC в Discord для максимальной чистоты голоса.
 
+<p align="center">
+  <img src="assets/screenshot_modal_ru.png" alt="Окно сохранения профиля" width="650" />
+</p>
+
 ---
 
 ## ⌨️ Глобальные горячие клавиши (Hotkeys)
@@ -74,6 +80,10 @@
 | **Байпас (Bypass)** | `Ctrl + Shift + B` | Мгновенно отключает эффекты, пропуская чистый микрофон |
 | **Перегруз (Meme Mode)** | `Ctrl + Shift + M` | Включает мемный звук «уничтоженного микрофона» |
 | **Заглушить (Mute)** | `Ctrl + Shift + X` | Аппаратный мгновенный мут звука с индикацией |
+
+<p align="center">
+  <img src="assets/screenshot_hotkeys_ru.png" alt="Окно настройки горячих клавиш" width="650" />
+</p>
 
 ---
 
@@ -90,5 +100,5 @@
 ## 📄 Лицензия и авторство
 
 * **Автор:** [Diesel-X](https://github.com/Diesel-x)
-* **Проект:** [Simple_Mic_Compressor](https://github.com/Diesel-x/Simple_Mic_Compressor)
+* **Проект:** [SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)
 * **Лицензия:** [MIT License](LICENSE)
