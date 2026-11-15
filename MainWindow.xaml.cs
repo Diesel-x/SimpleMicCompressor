@@ -18,6 +18,23 @@ public partial class MainWindow : Window
         InitializeComponent();
         Loaded += OnLoaded;
         Closing += OnClosing;
+        IsVisibleChanged += (s, e) => UpdateMeterTimerState();
+        StateChanged += (s, e) => UpdateMeterTimerState();
+    }
+
+    private void UpdateMeterTimerState()
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            if (!IsVisible || WindowState == WindowState.Minimized)
+            {
+                vm.PauseMeters();
+            }
+            else
+            {
+                vm.ResumeMeters();
+            }
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)

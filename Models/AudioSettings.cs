@@ -47,6 +47,9 @@ public class AudioSettings
     public bool StartMinimized { get; set; } = false;
     public string SelectedPresetName { get; set; } = "Gaming & Discord";
 
+    // Custom Saved Profiles
+    public List<UserProfile> CustomProfiles { get; set; } = new();
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -96,6 +99,13 @@ public class AudioSettings
 
     public void ApplyPreset(string presetName)
     {
+        var custom = CustomProfiles.FirstOrDefault(p => p.Name == presetName);
+        if (custom != null)
+        {
+            custom.ApplyToSettings(this);
+            return;
+        }
+
         AudioSettings preset = presetName switch
         {
             "Default / Balanced" => CreateDefaultPreset(),
@@ -126,6 +136,33 @@ public class AudioSettings
         LimiterReleaseMs = preset.LimiterReleaseMs;
         DestroyedMicMemeMode = preset.DestroyedMicMemeMode;
         SelectedPresetName = presetName;
+    }
+
+    public void SaveCustomProfile(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return;
+        name = name.Trim();
+        var existing = CustomProfiles.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            CustomProfiles.Remove(existing);
+        }
+        var newProfile = UserProfile.FromSettings(name, this);
+        CustomProfiles.Add(newProfile);
+        SelectedPresetName = name;
+        Save();
+    }
+
+    public bool DeleteCustomProfile(string name)
+    {
+        var existing = CustomProfiles.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            CustomProfiles.Remove(existing);
+            Save();
+            return true;
+        }
+        return false;
     }
 
     public static AudioSettings CreateDefaultPreset() => new()

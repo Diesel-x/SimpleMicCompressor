@@ -429,6 +429,43 @@ public sealed class AudioEngine : IDisposable
         }
     }
 
+    private CancellationTokenSource? _autoRecoveryCts;
+
+    private void ScheduleAutoRecovery()
+    {
+        _autoRecoveryCts?.Cancel();
+        _autoRecoveryCts = new CancellationTokenSource();
+        var token = _autoRecoveryCts.Token;
+
+        Task.Run(async () =>
+        {
+            for (int attempt = 1; attempt <= 8; attempt++)
+            {
+                if (token.IsCancellationRequested) return;
+                try
+                {
+                    await Task.Delay(2500, token);
+                }
+                catch
+                {
+                    return;
+                }
+
+                if (token.IsCancellationRequested) return;
+
+                if (_state == EngineState.Error)
+                {
+                    try
+                    {
+                        Start();
+                        if (_state == EngineState.Running) return;
+                    }
+                    catch { }
+                }
+            }
+        }, token);
+    }
+
     private void OnRecordingStopped(object? sender, StoppedEventArgs e)
     {
         if (_state == EngineState.Running)
@@ -437,6 +474,7 @@ public sealed class AudioEngine : IDisposable
             {
                 _lastErrorMessage = e.Exception.Message;
                 State = EngineState.Error;
+                ScheduleAutoRecovery();
             }
             else
             {
@@ -521,6 +559,13 @@ public sealed class AudioEngine : IDisposable
 
     private void CleanUp()
     {
+        try
+        {
+            _autoRecoveryCts?.Cancel();
+            _autoRecoveryCts = null;
+        }
+        catch { }
+
         try
         {
             if (_capture != null)

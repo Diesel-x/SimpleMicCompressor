@@ -74,7 +74,9 @@ public sealed class DynamicCompressor
         // Fast RMS/Peak hybrid detector (5 ms averaging)
         const float detectorAlpha = 0.04f;
         _detectorEnvelope = (1.0f - detectorAlpha) * _detectorEnvelope + detectorAlpha * absIn;
-        float inputDb = 20.0f * MathF.Log10(MathF.Max(_detectorEnvelope, 1e-6f));
+        
+        // Fast natural log -> dB conversion: 20 * log10(x) = 8.6858896 * ln(x)
+        float inputDb = 8.6858896f * MathF.Log(MathF.Max(_detectorEnvelope, 1e-6f));
 
         // Soft-knee compression curve
         float halfKnee = _kneeDb * 0.5f;
@@ -104,8 +106,8 @@ public sealed class DynamicCompressor
             _gainReductionEnvelope = _releaseCoeff * _gainReductionEnvelope + (1.0f - _releaseCoeff) * grDb;
         }
 
-        // Convert gain reduction dB to linear multiplier + makeup gain
-        return MathF.Pow(10.0f, -_gainReductionEnvelope / 20.0f) * _makeupFactor;
+        // Fast exp: 10^(-GR/20) = exp(-GR * ln(10)/20) = exp(-GR * 0.11512925)
+        return MathF.Exp(-_gainReductionEnvelope * 0.11512925f) * _makeupFactor;
     }
 
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
