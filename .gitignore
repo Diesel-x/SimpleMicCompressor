@@ -24,3 +24,4 @@ light/target/
 # User config & logs
 mic_compressor_config.json
 *.log
+scratch/

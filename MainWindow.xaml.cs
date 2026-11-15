@@ -128,8 +128,8 @@ public partial class MainWindow : Window
     {
         try
         {
-            double width = 1060;
-            double height = 780;
+            double width = 1160;
+            double height = 840;
 
             Width = width;
             Height = height;
@@ -193,6 +193,16 @@ public partial class MainWindow : Window
             _trayManager?.Dispose();
             (DataContext as MainViewModel)?.Dispose();
         }
+    }
+
+    private void OnHyperlinkRequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
+        }
+        catch { }
     }
 
     private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

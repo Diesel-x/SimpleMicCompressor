@@ -9,8 +9,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>SimpleMicCompressor</AssemblyName>
     <RootNamespace>MicCompressor</RootNamespace>
-    <ApplicationIcon></ApplicationIcon>
+    <ApplicationIcon>assets\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="assets\app.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />

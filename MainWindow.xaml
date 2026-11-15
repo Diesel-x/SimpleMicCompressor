@@ -6,8 +6,9 @@
         xmlns:vm="clr-namespace:MicCompressor.ViewModels"
         mc:Ignorable="d"
         Title="SimpleMicCompressor"
-        Height="820" Width="1060"
-        MinHeight="760" MinWidth="980"
+        Icon="assets/app.ico"
+        Height="840" Width="1160"
+        MinHeight="780" MinWidth="1020"
         WindowStartupLocation="CenterScreen"
         Background="#131418"
         Foreground="#f1f3f7"
@@ -253,9 +254,6 @@
                 <StackPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="{Binding Loc[App_Title]}" FontSize="15" FontWeight="Bold" Foreground="#ffffff"/>
-                        <Border Background="#22242c" BorderBrush="#353846" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0">
-                            <TextBlock Text="{Binding Loc[Engine_Dsp]}" FontSize="10.5" FontWeight="Bold" Foreground="#9ba2b5"/>
-                        </Border>
                     </StackPanel>
                     
                     <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
@@ -286,9 +284,10 @@
                     <TextBlock Text="{Binding Loc[Header_Profile]}" FontSize="10" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,0,3"/>
                     <StackPanel Orientation="Horizontal">
                         <!-- Dropdown -->
-                        <ComboBox Width="165" Height="32" 
+                        <ComboBox Width="195" Height="32" 
                                   ItemsSource="{Binding Presets}" 
-                                  SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"/>
+                                  SelectedItem="{Binding SelectedPresetItem, Mode=TwoWay}"
+                                  DisplayMemberPath="DisplayName"/>
 
                         <!-- Save Button (Updates current profile or prompts for new) -->
                         <Button Command="{Binding SaveProfileCommand}" 
@@ -386,7 +385,7 @@
                 </Button>
 
                 <!-- Language Selector -->
-                <ComboBox Width="110" Height="32" Margin="0,11,6,0"
+                <ComboBox Width="140" Height="32" Margin="0,11,6,0"
                           ItemsSource="{Binding AvailableLanguages}"
                           SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
                           DisplayMemberPath="DisplayName"
@@ -812,6 +811,15 @@
                 <TextBlock Text="{Binding Loc[Footer_Engine]}" FontSize="11" Foreground="#555a6d" VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding StatusNotification}" FontSize="11" FontWeight="SemiBold" Foreground="#38bdf8" Margin="14,0,0,0" VerticalAlignment="Center"/>
             </StackPanel>
+
+            <!-- Developer Info with GitHub Link -->
+            <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="#555a6d" VerticalAlignment="Center">
+                <Run Text="{Binding Loc[Footer_Developer], Mode=OneWay}"/>
+                <Hyperlink NavigateUri="https://github.com/Diesel-x/Simple_Mic_Compressor" RequestNavigate="OnHyperlinkRequestNavigate" Foreground="#38bdf8" TextDecorations="None" Cursor="Hand">
+                    <Run Text="Diesel-X" FontWeight="Bold"/>
+                </Hyperlink>
+            </TextBlock>
+
             <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#555a6d" VerticalAlignment="Center">
                 <Run Text="{Binding Loc[Footer_Output], Mode=OneWay}"/>
                 <Run Text="{Binding SelectedOutputDevice.Name, Mode=OneWay}" Foreground="#8b92a4"/>

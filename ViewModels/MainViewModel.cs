@@ -61,7 +61,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ObservableCollection<DeviceInfo> OutputDevices { get; } = new();
     public ObservableCollection<DeviceInfo> MonitorDevices { get; } = new();
 
-    public ObservableCollection<string> Presets { get; } = new();
+    public ObservableCollection<PresetItem> Presets { get; } = new();
 
     public RelayCommand ToggleEngineCommand { get; }
     public RelayCommand RefreshDevicesCommand { get; }
@@ -549,54 +549,75 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     #region Presets & Custom Profiles
 
-    public void RefreshPresetsList()
+    private PresetItem? _selectedPresetItem;
+    public PresetItem? SelectedPresetItem
     {
-        Presets.Clear();
-        Presets.Add("Gaming & Discord");
-        Presets.Add("Default / Balanced");
-        Presets.Add("Radio / Podcast");
-        Presets.Add("Whisper / Quiet Night");
-        Presets.Add("Aggressive / Anti-Rage");
-        Presets.Add("Уничтоженный микрофон (Meme)");
-
-        string prefix = Loc["Header_Profile"] + ": ";
-        foreach (var p in _settings.CustomProfiles)
-        {
-            Presets.Add($"{prefix}{p.Name}");
-        }
-
-        Presets.Add("Пользовательский (Custom)");
-
-        string current = NormalizePresetName(_settings.SelectedPresetName);
-        if (_settings.CustomProfiles.Any(p => p.Name.Equals(current, StringComparison.OrdinalIgnoreCase)))
-        {
-            _settings.SelectedPresetName = $"{prefix}{current}";
-        }
-
-        OnPropertyChanged(nameof(SelectedPreset));
-        CheckCustomProfileSelected();
-    }
-
-    public string SelectedPreset
-    {
-        get => _settings.SelectedPresetName;
+        get => _selectedPresetItem;
         set
         {
-            if (_settings.SelectedPresetName != value && value != null)
+            if (_selectedPresetItem != value && value != null)
             {
+                _selectedPresetItem = value;
                 _isUpdatingPreset = true;
-                string cleanName = NormalizePresetName(value);
-                _settings.ApplyPreset(cleanName);
-                _settings.SelectedPresetName = value;
+                _settings.ApplyPreset(value.Id);
+                _settings.SelectedPresetName = value.Id;
                 _settings.Save();
                 UpdateEngineSettings();
                 NotifyAllDspPropertiesChanged();
                 _isUpdatingPreset = false;
                 HasUnsavedProfileChanges = false;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(SelectedPreset));
                 CheckCustomProfileSelected();
             }
         }
+    }
+
+    public string SelectedPreset
+    {
+        get => _selectedPresetItem?.Id ?? _settings.SelectedPresetName;
+        set
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                string clean = NormalizePresetName(value);
+                var match = Presets.FirstOrDefault(p => p.Id.Equals(clean, StringComparison.OrdinalIgnoreCase) || p.DisplayName.Equals(value, StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                {
+                    SelectedPresetItem = match;
+                }
+            }
+        }
+    }
+
+    public void RefreshPresetsList()
+    {
+        string currentId = _selectedPresetItem?.Id ?? NormalizePresetName(_settings.SelectedPresetName);
+        if (string.IsNullOrWhiteSpace(currentId)) currentId = "Gaming & Discord";
+
+        Presets.Clear();
+        Presets.Add(new PresetItem("Gaming & Discord", Loc["Preset_Gaming"]));
+        Presets.Add(new PresetItem("Default / Balanced", Loc["Preset_Default"]));
+        Presets.Add(new PresetItem("Radio / Podcast", Loc["Preset_Podcast"]));
+        Presets.Add(new PresetItem("Whisper / Quiet Night", Loc["Preset_Whisper"]));
+        Presets.Add(new PresetItem("Aggressive / Anti-Rage", Loc["Preset_AntiRage"]));
+        Presets.Add(new PresetItem("Уничтоженный микрофон (Meme)", Loc["Preset_Meme"]));
+
+        string prefix = Loc["Header_Profile"] + ": ";
+        foreach (var p in _settings.CustomProfiles)
+        {
+            Presets.Add(new PresetItem(p.Name, $"{prefix}{p.Name}", isCustom: true));
+        }
+
+        Presets.Add(new PresetItem("Custom", Loc["Preset_Custom"]));
+
+        _selectedPresetItem = Presets.FirstOrDefault(p => p.Id.Equals(currentId, StringComparison.OrdinalIgnoreCase))
+            ?? Presets.FirstOrDefault(p => p.Id == "Gaming & Discord")
+            ?? Presets.FirstOrDefault();
+
+        OnPropertyChanged(nameof(SelectedPresetItem));
+        OnPropertyChanged(nameof(SelectedPreset));
+        CheckCustomProfileSelected();
     }
 
     private static string NormalizePresetName(string preset)
@@ -613,17 +634,17 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private void CheckCustomProfileSelected()
     {
-        string current = NormalizePresetName(_settings.SelectedPresetName);
-        IsCustomProfileSelected = _settings.CustomProfiles.Any(p => p.Name.Equals(current, StringComparison.OrdinalIgnoreCase));
+        string currentId = _selectedPresetItem?.Id ?? NormalizePresetName(_settings.SelectedPresetName);
+        IsCustomProfileSelected = _settings.CustomProfiles.Any(p => p.Name.Equals(currentId, StringComparison.OrdinalIgnoreCase));
         OnPropertyChanged(nameof(DeleteToolTip));
         OnPropertyChanged(nameof(SaveButtonToolTip));
     }
 
     private void SaveOrOpenDialog()
     {
-        if (IsCustomProfileSelected)
+        if (IsCustomProfileSelected && _selectedPresetItem != null)
         {
-            string name = NormalizePresetName(_settings.SelectedPresetName);
+            string name = _selectedPresetItem.Id;
             _settings.SaveCustomProfile(name);
             HasUnsavedProfileChanges = false;
             ShowStatusNotification(Loc.Get("Msg_Profile_Updated", name));
@@ -648,7 +669,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         ProfileNameInput = "";
         HasUnsavedProfileChanges = false;
         RefreshPresetsList();
-        SelectedPreset = $"{Loc["Header_Profile"]}: {name}";
+        SelectedPresetItem = Presets.FirstOrDefault(p => p.Id.Equals(name, StringComparison.OrdinalIgnoreCase));
         ShowStatusNotification(Loc.Get("Msg_Profile_Saved", name));
     }
 
@@ -660,7 +681,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private void DeleteCurrentProfile()
     {
-        string name = NormalizePresetName(_settings.SelectedPresetName);
+        string name = _selectedPresetItem?.Id ?? NormalizePresetName(_settings.SelectedPresetName);
         if (string.IsNullOrWhiteSpace(name)) return;
 
         var result = System.Windows.MessageBox.Show(
@@ -674,7 +695,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             if (_settings.DeleteCustomProfile(name))
             {
                 RefreshPresetsList();
-                SelectedPreset = "Gaming & Discord";
+                SelectedPresetItem = Presets.FirstOrDefault(p => p.Id == "Gaming & Discord");
                 ShowStatusNotification(Loc.Get("Msg_Profile_Deleted", name));
             }
         }
@@ -690,9 +711,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             return;
         }
 
-        if (_settings.SelectedPresetName != "Пользовательский (Custom)")
+        if (_selectedPresetItem?.Id != "Custom")
         {
-            _settings.SelectedPresetName = "Пользовательский (Custom)";
+            _selectedPresetItem = Presets.FirstOrDefault(p => p.Id == "Custom");
+            _settings.SelectedPresetName = "Custom";
+            OnPropertyChanged(nameof(SelectedPresetItem));
             OnPropertyChanged(nameof(SelectedPreset));
             CheckCustomProfileSelected();
         }
