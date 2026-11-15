@@ -3,8 +3,7 @@
 > Ultra-low-latency real-time system microphone audio compressor and processor for Discord, streaming, and competitive games (CS2, Valorant, Apex Legends).
 
 ## Documentation
-- [Developer Guide & Architecture](DEVELOPMENT.md): Technical architecture, DSP math, thread safety, build & release pipeline, hardware nuances, and LLM guidelines.
-- [AI Architecture & Context](AI_CONTEXT.md): Full technical architecture, DSP signal chain, memory management, hotkey hook, and developer rules for LLMs.
+- [Developer Guide & AI Architecture Context](DEVELOPMENT.md): Full technical architecture, codebase map, DSP signal chain, memory management, hotkey hook, CI/CD pipeline, and guidelines for AI agents and LLMs.
 - [Project Readme (RU)](README.md): Russian user documentation, quick start, and feature comparison.
 - [Project Readme (EN)](README_EN.md): English user documentation and setup instructions.
 

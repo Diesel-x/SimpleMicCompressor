@@ -1,10 +1,10 @@
-# 🛠️ DEVELOPMENT.md — Руководство разработчика и системная архитектура
+# 🛠️ DEVELOPMENT.md — Контекст для нейросетей (AI Context) и руководство разработчика
 
 > **SimpleMicCompressor (SMC)**  
 > **Автор:** [Diesel-X](https://github.com/Diesel-x)  
 > **Репозиторий:** [github.com/Diesel-x/SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)
 
-Документ содержит исчерпывающее техническое описание кодовой базы, математику звукового тракта, модель потокобезопасности, инструкции сборки, CI/CD пайплайн, известные аппаратные нюансы звуковых карт и правила взаимодействия с нейросетями (LLM).
+Этот документ является **главным файлом архитектурного контекста** для языковых моделей (LLM), AI-ассистентов (ChatGPT, Claude, Gemini, Cursor, Copilot) и разработчиков. Здесь описаны стек технологий, полная карта кодовой базы, математика DSP, модель потокобезопасности, CI/CD, схема конфигурации, известные аппаратные нюансы звуковых карт и правила модификации кода.
 
 ---
 
@@ -24,30 +24,80 @@
 ```
 
 ### 1.1. Основная редакция (C# / .NET 8 WPF)
-* **Платформа и рантайм:** `.NET 8.0 Windows` (x64), сборка в единый переносимый файл (Single-File self-contained или framework-dependent).
+* **Платформа и рантайм:** `.NET 8.0 Windows` (x64), сборка в единый переносимый файл (Single-File).
 * **UI-фреймворк:** **WPF (Windows Presentation Foundation)** с кастомной темной темой в стиле Studio Dark & Discord Blurple, векторная графика `Path`, аппаратное сглаживание шрифтов Segoe UI Variable.
 * **Аудио-библиотека:** **NAudio 2.2.1** (`NAudio.CoreAudioApi`, `NAudio.Wave`):
-  * `WasapiCapture` — низкоуровневый перехват аудиопотока микрофона в режиме `AudioClientShareMode.Shared`.
-  * `WasapiOut` — передача обработанного аудиопотока в виртуальный кабель (`CABLE Input`) с минимальным буфером.
+  * `WasapiCapture` — перехват аудиопотока микрофона в режиме `AudioClientShareMode.Shared`.
+  * `WasapiOut` — вывод обработанного аудиопотока в виртуальный кабель (`CABLE Input`).
 * **Системные Win32 API (P/Invoke):**
-  * `user32.dll`: `SetWindowsHookEx` (`WH_KEYBOARD_LL`), `CallNextHookEx`, `UnhookWindowsHookEx`, `GetAsyncKeyState` — глобальный перехват горячих клавиш в полноэкранных играх.
-  * `psapi.dll`: `EmptyWorkingSet` — принудительный сброс неиспользуемых страниц виртуальной памяти процесса при сворачивании в трей (уменьшает потребление ОЗУ со 100 МБ до ~15–20 МБ).
+  * `user32.dll`: `SetWindowsHookEx` (`WH_KEYBOARD_LL`), `CallNextHookEx`, `UnhookWindowsHookEx`, `GetAsyncKeyState` — глобальный перехват горячих клавиш в любых полноэкранных играх.
+  * `psapi.dll`: `EmptyWorkingSet` — принудительный сброс неиспользуемых страниц виртуальной памяти процесса при сворачивании в трей (снижает ОЗУ со 100 МБ до ~15–20 МБ).
   * `System.Windows.Forms.NotifyIcon`: интеграция с системным треем Windows 10/11.
-* **Драйвер виртуального аудио:** **VB-Audio Virtual Cable** (виртуальный loopback-драйвер с поддержкой 48000 Hz, 24-bit).
+* **Драйвер виртуального аудио:** **VB-Audio Virtual Cable** (виртуальный loopback-драйвер 48000 Hz, 24-bit).
 
 ### 1.2. Легковесная редакция (Rust Light)
 * **Язык и компилятор:** **Rust 2021 Edition**, тулчейн `stable-x86_64-pc-windows-gnu` / `msvc`.
 * **Библиотеки (crates):**
-  * `cpal 0.15` — кроссплатформенный низкоуровневый аудио-бэкенд для Windows WASAPI.
-  * `ringbuf 0.3` — lock-free кольцевой буфер (SPSC — Single Producer, Single Consumer) для передачи сэмплов между потоками без блокировок.
+  * `cpal 0.15` — низкоуровневый аудио-бэкенд для Windows WASAPI.
+  * `ringbuf 0.3` — lock-free кольцевой буфер (SPSC — Single Producer, Single Consumer) без блокировок потоков.
   * `windows-sys 0.52` — прямые легковесные биндинги к Win32 API (`Win32_UI_WindowsAndMessaging`, `Win32_UI_Shell`, `Win32_Foundation`).
-  * `serde` / `serde_json 1.0` — сериализация единого конфигурационного файла `mic_compressor_config.json`.
+  * `serde` / `serde_json 1.0` — сериализация конфигурационного файла `mic_compressor_config.json`.
 
 ---
 
-## 2. 🏗️ Архитектура и логика работы
+## 2. 📁 Карта кодовой базы (Codebase Map)
 
-### 2.1. Конвейер аудиопотока (Data Flow)
+```text
+SimpleMicCompressor/
+├── Audio/                          # Аудио-движок и математика звукового тракта (DSP)
+│   ├── AudioEngine.cs              # WASAPI Capture & Render, авторекавери при отключении USB
+│   └── Dsp/
+│       ├── AudioChain.cs           # Конвейер обработки (LowCut -> Gate -> Comp -> Limiter -> Meme)
+│       ├── AudioMetrics.cs         # Метрики пиков в dB, Gain Reduction и статус гейта
+│       ├── BiquadHighPassFilter.cs # Фильтр среза гула 80 Hz (2-полюсный Butterworth)
+│       ├── DynamicCompressor.cs    # Студийный компрессор с мягким коленом (Soft Knee)
+│       ├── FastLimiter.cs          # Кирпичный лимитер пиков (-1.0 dBFS) с tanh-сатурацией
+│       └── NoiseGate.cs            # Шумоподавитель с гистерезисом 2.5 dB и удержанием 60 мс
+├── Localization/
+│   └── LocalizationService.cs      # Мультиязычность (RU, EN, DE, ES) с автодетектом языка ОС
+├── Models/
+│   ├── AudioSettings.cs            # Модель настроек (сериализуется в mic_compressor_config.json)
+│   ├── DeviceInfo.cs               # WASAPI устройство ввода / вывода (ID, имя, статус)
+│   ├── HotkeySetting.cs            # Модель горячих клавиш (Ctrl, Shift, Alt, Key, VK коды)
+│   ├── PresetItem.cs               # Модель элементов выпадающего списка пресетов
+│   └── UserProfile.cs              # Модель сохранения пользовательских профилей
+├── Tray/
+│   └── TrayManager.cs              # Управление треем, balloon-нотификации, EmptyWorkingSet
+├── Utils/
+│   ├── GlobalHotkeyService.cs      # Низкоуровневый хук клавиатуры (WH_KEYBOARD_LL)
+│   ├── RelayCommand.cs             # Базовая реализация ICommand для MVVM
+│   └── VbCableInstaller.cs         # Автоскачивание и тихая установка VB-Audio Virtual Cable
+├── ViewModels/
+│   ├── BaseViewModel.cs            # Базовый класс с реализацией INotifyPropertyChanged
+│   └── MainViewModel.cs            # Главный презентер (маршрутизация, команды, профили)
+├── light/                          # ⚡ Автономная редакция на Rust (экспериментальная / без GUI)
+│   ├── Cargo.toml                  # Зависимости cpal, ringbuf, serde, windows-sys
+│   └── src/
+│       ├── main.rs                 # Точка входа #![windows_subsystem = "windows"]
+│       ├── audio.rs                # cpal WASAPI input/output потоки через ring buffer
+│       ├── config.rs               # Совместимый парсер mic_compressor_config.json
+│       ├── dsp.rs                  # Математика Low-Cut, Gate, Compressor, Limiter, Meme
+│       └── tray.rs                 # Win32 системный трей, меню и WH_KEYBOARD_LL хук
+├── assets/                         # Скриншоты и иконка приложения app.ico
+├── .github/workflows/build.yml     # GitHub Actions CI/CD (сборка C# и Rust)
+├── App.xaml / App.xaml.cs          # Инициализация WPF, мьютекс одиночного экземпляра
+├── MainWindow.xaml / .cs           # Разметка окна, модальные диалоги, темная тема
+├── README.md / README_EN.md        # Документация для пользователей (RU / EN)
+├── DEVELOPMENT.md                  # Данный файл архитектурного контекста
+├── llms.txt                        # Индекс документации по стандарту llmstxt.org
+└── SimpleMicCompressor.csproj      # Конфигурация сборки .NET 8 WPF Single-File
+```
+
+---
+
+## 3. 🏗️ Архитектура и логика работы
+
+### 3.1. Конвейер аудиопотока (Data Flow)
 
 ```
 [Физический Микрофон]
@@ -73,22 +123,22 @@
 [Discord / Telegram / CS2 / OBS Studio]
 ```
 
-### 2.2. Потокобезопасность и устранение артефактов (Zero Glitch / Zero Latency)
+### 3.2. Потокобезопасность и устранение артефактов (Zero Glitch / Zero Latency)
 
 1. **Zero Allocations в цикле обработки (Zero GC Pressure):**
    * В реальном времени сборщик мусора (.NET GC) — главный источник задержек и аудио-дропов («хрипов» и «заиканий»).
    * В `AudioEngine.cs` все промежуточные буферы (`_inputFloatBuffer`, `_outputFloatBuffer`, `_outputBytes`) выделены **однократно** в конструкторе.
    * Во время вызова `OnDataAvailable` не создается ни одного нового объекта, не вызывается `LINQ`, не происходит упаковки (boxing).
 2. **Разделение потоков (Producer-Consumer):**
-   * **Поток 1 (Capture Thread):** WASAPI аппаратный поток захвата сэмплов с микрофона. Вызывает `AudioChain.ProcessBlock` и помещает готовые сэмплы в кольцевой буфер.
-   * **Поток 2 (Render Thread):** WASAPI поток воспроизведения в виртуальный кабель. Читает сэмплы из кольцевого буфера.
+   * **Поток 1 (Capture Thread):** WASAPI аппаратный поток захвата сэмплов с микрофона. Вызывает `AudioChain.ProcessBlock` и помещает готовые сэмплы в буфер.
+   * **Поток 2 (Render Thread):** WASAPI поток воспроизведения в виртуальный кабель. Читает сэмплы из буфера.
    * **Поток 3 (UI Thread):** Работает на 30 FPS через `DispatcherTimer`. Только читает готовые метрики пиков (`AudioMetrics`) для отрисовки VU-метров. При сворачивании окна в трей таймер **полностью замораживается**, снижая нагрузку на CPU до **0.0%**.
 3. **Безопасное обновление настроек на лету:**
    * При перемещении ползунков пользователем настройки копируются в легковесную структуру и передаются в DSP-тракт через быстрый `lock (_lock)`. Поток обработки удерживает блокировку всего на доли микросекунды (пересчет коэффициентов фильтров).
 4. **USB Watchdog (Авторекавери микрофона):**
    * Если USB-микрофон случайно отключается или перезагружается, движок не крашится, а переходит в статус `EngineState.Starting` и раз в секунду пытается автоматически восстановить сессию без участия пользователя.
 
-### 2.3. Глобальные горячие клавиши (Low-Level Keyboard Hook)
+### 3.3. Глобальные горячие клавиши (Low-Level Keyboard Hook)
 * Традиционный `RegisterHotKey` часто отклонялся Windows с кодом `1409 (ERROR_HOTKEY_ALREADY_REGISTERED)`, так как браузеры Chrome/Edge и другие приложения регистрируют схожие комбинации (`Ctrl+Shift+B`, `Ctrl+Shift+M`).
 * В SMC применен **`WH_KEYBOARD_LL` (SetWindowsHookEx)**:
   * Перехват происходит до того, как игра или браузер поглотят событие.
@@ -97,9 +147,48 @@
 
 ---
 
-## 3. 📦 Схема сборки и релиза
+## 4. ⚙️ Конфигурация (Configuration Schema)
 
-### 3.1. Локальная сборка
+Конфигурация сохраняется в файл `mic_compressor_config.json` в корневой директории приложения и разделяется между C# версией и версией на Rust:
+
+```json
+{
+  "InputDeviceId": null,
+  "OutputDeviceId": null,
+  "HighPassEnabled": true,
+  "HighPassCutoffHz": 80.0,
+  "GateEnabled": true,
+  "GateThresholdDb": -42.0,
+  "GateAttackMs": 4.0,
+  "GateReleaseMs": 120.0,
+  "GateHoldMs": 60.0,
+  "CompressorEnabled": true,
+  "CompressorThresholdDb": -20.0,
+  "CompressorRatio": 4.0,
+  "CompressorAttackMs": 10.0,
+  "CompressorReleaseMs": 150.0,
+  "CompressorMakeupGainDb": 5.0,
+  "CompressorKneeDb": 4.0,
+  "LimiterEnabled": true,
+  "LimiterCeilingDb": -1.0,
+  "LimiterReleaseMs": 40.0,
+  "BypassAll": false,
+  "DestroyedMicMemeMode": false,
+  "IsMuted": false,
+  "HotkeysEnabled": true,
+  "HotkeyBypass": { "Enabled": true, "Ctrl": true, "Shift": true, "Alt": false, "Key": "B" },
+  "HotkeyMeme": { "Enabled": true, "Ctrl": true, "Shift": true, "Alt": false, "Key": "M" },
+  "HotkeyMute": { "Enabled": true, "Ctrl": true, "Shift": true, "Alt": false, "Key": "X" },
+  "Language": "ru",
+  "CustomProfiles": []
+}
+```
+
+---
+
+## 5. 📦 Схема сборки и релиза
+
+### 5.1. Локальная сборка
 
 #### Требования:
 * ОС: **Windows 10 / 11 (x64)**
@@ -125,7 +214,7 @@ cargo build --release
 
 ---
 
-### 3.2. Автоматизация сборки через GitHub Actions (CI/CD)
+### 5.2. Автоматизация сборки через GitHub Actions (CI/CD)
 
 В репозитории настроен автоматический рабочий процесс `.github/workflows/build.yml`.
 
@@ -145,9 +234,9 @@ cargo build --release
 
 ---
 
-## 4. 🗺️ План развития (Roadmap) и известные проблемы
+## 6. 🗺️ План развития (Roadmap) и известные проблемы
 
-### 4.1. Известные аппаратные нюансы и решения
+### 6.1. Известные аппаратные нюансы и решения
 
 | Проблема / Симптом | Причина | Реализованное решение / Статус |
 | :--- | :--- | :--- |
@@ -156,7 +245,7 @@ cargo build --release
 | **USB Power Suspend (Засыпание микрофона)** | Windows отключает питание USB-порта при отсутствии звука. | Фоновый поток Watchdog проверяет активность буфера и восстанавливает поток за 1 секунду. |
 | **Высокое потребление ОЗУ в фоне** | Рантайм WPF и DirectX кэшируют страницы в памяти. | Вызов `EmptyWorkingSet` при скрытии окна в трей — снижает ОЗУ со 100 МБ до 15 МБ. |
 
-### 4.2. План развития (Roadmap)
+### 6.2. План развития (Roadmap)
 
 - [ ] **Встроенный 3-полосный параметрический эквалайзер (EQ):**
   - High Shelf (сглаживание шипящих 'С' и 'Ц').
@@ -168,11 +257,11 @@ cargo build --release
 
 ---
 
-## 5. 🤖 Рекомендации и промпты для работы с ИИ (LLM Guidelines)
+## 7. 🤖 Рекомендации и промпты для работы с ИИ (LLM Guidelines)
 
 Если вы модифицируете проект с помощью AI-ассистентов (Claude, ChatGPT, Gemini, Cursor), используйте следующие формулировки и правила для поддержания чистоты кода:
 
-### 5.1. Ключевые архитектурные правила для промптов
+### 7.1. Ключевые архитектурные правила для промптов
 1. **Правило Zero Allocations:**
    > *"Внеси изменения в класс AudioChain.cs / DynamicCompressor.cs. Помни, что метод Process выполняется в реальном времени внутри аудиопотока 48000 раз в секунду. Запрещено использовать `new`, вызовы LINQ, замыкания или боксинг. Все переменные должны быть локальными примитивами или полями класса."*
 2. **Правило WPF Локализации:**
@@ -180,7 +269,7 @@ cargo build --release
 3. **Правило работы с памятью процесса:**
    > *"При добавлении фоновых задач не удерживай ссылки на закрытые окна. Для освобождения страниц рабочего множества при сворачивании используй вызов `EmptyWorkingSet`."*
 
-### 5.2. Пример удачного промпта для добавления DSP-модуля
+### 7.2. Пример удачного промпта для добавления DSP-модуля
 ```text
 Задача: Добавить в AudioChain.cs простой De-Esser (фильтр свистящих звуков) на основе Biquad Bandpass + Compressor.
 Требования:
