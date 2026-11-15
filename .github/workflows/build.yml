@@ -1,0 +1,56 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Binaries (Windows x64)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Build C# WPF GUI Release
+        run: |
+          dotnet publish -c Release -r win-x64 --no-self-contained -p:PublishSingleFile=true -o ./publish
+
+      - name: Build Rust Light Release
+        working-directory: ./light
+        run: |
+          cargo build --release
+          copy target\release\SimpleMicCompressor_Light.exe ..\publish\SimpleMicCompressor_Light.exe
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimpleMicCompressor-Binaries
+          path: |
+            publish/SimpleMicCompressor.exe
+            publish/SimpleMicCompressor_Light.exe
+
+      - name: Create GitHub Release on Tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            publish/SimpleMicCompressor.exe
+            publish/SimpleMicCompressor_Light.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
