@@ -21,7 +21,7 @@ public sealed class AudioEngine : IDisposable
     private WasapiOut? _output;
     private BufferedWaveProvider? _outputBuffer;
 
-    private WasapiOut? _monitor;
+    private IWavePlayer? _monitor;
     private BufferedWaveProvider? _monitorBuffer;
 
     private AudioChain? _chain;
@@ -30,13 +30,14 @@ public sealed class AudioEngine : IDisposable
     private EngineState _state = EngineState.Stopped;
     private string? _lastErrorMessage;
 
-    // Output target format parameters
+    // Target formats
     private WaveFormat? _outputMixFormat;
     private WaveFormat? _monitorMixFormat;
 
     // Scratch buffers
-    private float[] _inputFloatBuffer = new float[8192];
+    private float[] _inputFloatBuffer = new float[16384];
     private float[] _outputFloatBuffer = new float[16384];
+    private float[] _monitorFloatBuffer = new float[16384];
     private byte[] _outputBytes = new byte[65536];
     private byte[] _monitorBytes = new byte[65536];
 
@@ -97,14 +98,13 @@ public sealed class AudioEngine : IDisposable
             {
                 using var enumerator = new MMDeviceEnumerator();
 
-                // 1. Resolve Capture Device
+                // 1. Capture Device
                 MMDevice? captureDevice = ResolveCaptureDevice(enumerator, _settings.InputDeviceId);
                 if (captureDevice == null)
                 {
-                    throw new InvalidOperationException("Микрофон не найден. Подключите микрофон и нажмите 'Обновить'.");
+                    throw new InvalidOperationException("Микрофон не найден. Проверьте подключение.");
                 }
 
-                // Try event-driven capture first, fallback to timer
                 try
                 {
                     _capture = new WasapiCapture(captureDevice, useEventSync: true, audioBufferMillisecondsLength: 20);
@@ -117,7 +117,7 @@ public sealed class AudioEngine : IDisposable
                 var capFormat = _capture.WaveFormat;
                 _chain = new AudioChain(_settings, capFormat.SampleRate);
 
-                // 2. Resolve Output Device (Virtual Cable or Default Render)
+                // 2. Output Device
                 MMDevice? outputDevice = ResolveRenderDevice(enumerator, _settings.OutputDeviceId);
                 if (outputDevice == null)
                 {
@@ -126,7 +126,6 @@ public sealed class AudioEngine : IDisposable
 
                 _outputMixFormat = outputDevice.AudioClient.MixFormat;
 
-                // Try timer-driven WASAPI first for output (most compatible with virtual cables like VB-Cable)
                 try
                 {
                     _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: false, latency: 25);
@@ -145,13 +144,13 @@ public sealed class AudioEngine : IDisposable
                 _output.Init(_outputBuffer);
                 _output.Play();
 
-                // 3. Optional Headphone Monitor
+                // 3. Monitor
                 if (_settings.MonitorEnabled && !string.IsNullOrEmpty(_settings.MonitorDeviceId))
                 {
                     StartMonitorInternal();
                 }
 
-                // 4. Hook capture event & start recording
+                // 4. Hook events and start
                 _capture.DataAvailable += OnCaptureDataAvailable;
                 _capture.RecordingStopped += OnRecordingStopped;
                 _capture.StartRecording();
@@ -189,19 +188,35 @@ public sealed class AudioEngine : IDisposable
             StopMonitorInternal();
             if (string.IsNullOrEmpty(_settings.MonitorDeviceId)) return;
 
+            // If monitor device is the exact same as output device, output is already playing there!
+            // But if user wants to use separate monitor output:
             using var enumerator = new MMDeviceEnumerator();
             var monDevice = ResolveDeviceById(enumerator, DataFlow.Render, _settings.MonitorDeviceId);
             if (monDevice == null) return;
 
             _monitorMixFormat = monDevice.AudioClient.MixFormat;
-            _monitor = new WasapiOut(monDevice, AudioClientShareMode.Shared, useEventSync: false, latency: 30);
             _monitorBuffer = new BufferedWaveProvider(_monitorMixFormat)
             {
                 BufferDuration = TimeSpan.FromMilliseconds(150),
                 DiscardOnBufferOverflow = true
             };
-            _monitor.Init(_monitorBuffer);
-            _monitor.Play();
+
+            // Try WasapiOut first
+            try
+            {
+                var wasapiMon = new WasapiOut(monDevice, AudioClientShareMode.Shared, useEventSync: false, latency: 30);
+                wasapiMon.Init(_monitorBuffer);
+                wasapiMon.Play();
+                _monitor = wasapiMon;
+            }
+            catch
+            {
+                // Fallback to WaveOutEvent to avoid WASAPI exclusive/device conflicts
+                var waveOut = new WaveOutEvent { DesiredLatency = 40 };
+                waveOut.Init(_monitorBuffer);
+                waveOut.Play();
+                _monitor = waveOut;
+            }
         }
         catch
         {
@@ -231,7 +246,8 @@ public sealed class AudioEngine : IDisposable
 
         var capFormat = _capture.WaveFormat;
         int inChannels = capFormat.Channels;
-        int inBytesPerSample = capFormat.BitsPerSample / 8;
+        int inBits = capFormat.BitsPerSample;
+        int inBytesPerSample = inBits / 8;
         if (inBytesPerSample <= 0 || inChannels <= 0) return;
 
         int inTotalSamples = e.BytesRecorded / inBytesPerSample;
@@ -241,35 +257,29 @@ public sealed class AudioEngine : IDisposable
         EnsureInputBuffer(inTotalSamples);
 
         // 1. Convert input bytes to float samples
-        if (capFormat.Encoding == WaveFormatEncoding.IeeeFloat)
+        // Check BitsPerSample == 32 (works for both IeeeFloat and WaveFormatExtensible!)
+        if (inBits == 32)
         {
             var byteSpan = e.Buffer.AsSpan(0, e.BytesRecorded);
             var floatSpan = MemoryMarshal.Cast<byte, float>(byteSpan);
             floatSpan.CopyTo(_inputFloatBuffer.AsSpan(0, inTotalSamples));
         }
-        else if (capFormat.Encoding == WaveFormatEncoding.Pcm)
+        else if (inBits == 16)
         {
-            if (capFormat.BitsPerSample == 16)
+            int sampleIdx = 0;
+            for (int i = 0; i < e.BytesRecorded; i += 2)
             {
-                int sampleIdx = 0;
-                for (int i = 0; i < e.BytesRecorded; i += 2)
-                {
-                    short val = (short)(e.Buffer[i] | (e.Buffer[i + 1] << 8));
-                    _inputFloatBuffer[sampleIdx++] = val / 32768.0f;
-                }
+                short val = (short)(e.Buffer[i] | (e.Buffer[i + 1] << 8));
+                _inputFloatBuffer[sampleIdx++] = val / 32768.0f;
             }
-            else if (capFormat.BitsPerSample == 24)
+        }
+        else if (inBits == 24)
+        {
+            int sampleIdx = 0;
+            for (int i = 0; i < e.BytesRecorded; i += 3)
             {
-                int sampleIdx = 0;
-                for (int i = 0; i < e.BytesRecorded; i += 3)
-                {
-                    int val = (e.Buffer[i] << 8) | (e.Buffer[i + 1] << 16) | (e.Buffer[i + 2] << 24);
-                    _inputFloatBuffer[sampleIdx++] = val / 2147483648.0f;
-                }
-            }
-            else
-            {
-                return;
+                int val = (e.Buffer[i] << 8) | (e.Buffer[i + 1] << 16) | (e.Buffer[i + 2] << 24);
+                _inputFloatBuffer[sampleIdx++] = val / 2147483648.0f;
             }
         }
         else
@@ -277,20 +287,48 @@ public sealed class AudioEngine : IDisposable
             return;
         }
 
-        // 2. Process DSP Chain (HighPass -> Gate -> Compressor -> Limiter)
+        // 2. DSP chain processing (High-Pass -> Gate -> Compressor -> Limiter)
         _chain.ProcessInterleaved(_inputFloatBuffer, 0, inTotalSamples, inChannels);
 
-        // 3. Resample / channel-map to Output MixFormat
+        // 3. Send to Output Buffer (resampled and channel-mapped)
+        int inSampleRate = capFormat.SampleRate;
         int outSampleRate = _outputMixFormat.SampleRate;
         int outChannels = _outputMixFormat.Channels;
-        int inSampleRate = capFormat.SampleRate;
-
         int outFrames = (int)Math.Round((double)inFrames * outSampleRate / inSampleRate);
         int outTotalSamples = outFrames * outChannels;
         EnsureOutputBuffer(outTotalSamples);
 
-        // High quality linear interpolation + channel mapping
-        double rateRatio = (double)inSampleRate / outSampleRate;
+        ResampleAndMapChannels(_inputFloatBuffer, inFrames, inChannels, inSampleRate,
+                               _outputFloatBuffer, outFrames, outChannels, outSampleRate, 1.0f);
+
+        int outBytesWritten = WriteFloatToBytes(_outputFloatBuffer, outTotalSamples, _outputMixFormat, ref _outputBytes);
+        _outputBuffer.AddSamples(_outputBytes, 0, outBytesWritten);
+
+        // 4. Send to Monitor Buffer (independent resampling and volume control)
+        if (_monitorBuffer != null && _monitorMixFormat != null && _settings.MonitorEnabled)
+        {
+            int monSampleRate = _monitorMixFormat.SampleRate;
+            int monChannels = _monitorMixFormat.Channels;
+            int monFrames = (int)Math.Round((double)inFrames * monSampleRate / inSampleRate);
+            int monTotalSamples = monFrames * monChannels;
+            EnsureMonitorBuffer(monTotalSamples);
+
+            float monVol = _settings.MonitorVolume;
+            ResampleAndMapChannels(_inputFloatBuffer, inFrames, inChannels, inSampleRate,
+                                   _monitorFloatBuffer, monFrames, monChannels, monSampleRate, monVol);
+
+            int monBytesWritten = WriteFloatToBytes(_monitorFloatBuffer, monTotalSamples, _monitorMixFormat, ref _monitorBytes);
+            _monitorBuffer.AddSamples(_monitorBytes, 0, monBytesWritten);
+        }
+    }
+
+    private static void ResampleAndMapChannels(
+        float[] inBuffer, int inFrames, int inChannels, int inRate,
+        float[] outBuffer, int outFrames, int outChannels, int outRate,
+        float volumeMultiplier)
+    {
+        double rateRatio = (double)inRate / outRate;
+
         for (int outFrame = 0; outFrame < outFrames; outFrame++)
         {
             double inPos = outFrame * rateRatio;
@@ -298,60 +336,39 @@ public sealed class AudioEngine : IDisposable
             int inFrame1 = Math.Min(inFrame0 + 1, inFrames - 1);
             float frac = (float)(inPos - inFrame0);
 
-            // Compute mono or stereo processed sample
-            float s0 = _inputFloatBuffer[inFrame0 * inChannels];
-            float s1 = _inputFloatBuffer[inFrame1 * inChannels];
-            float interpolatedLeft = s0 + frac * (s1 - s0);
+            float left0 = inBuffer[inFrame0 * inChannels];
+            float left1 = inBuffer[inFrame1 * inChannels];
+            float leftSample = (left0 + frac * (left1 - left0)) * volumeMultiplier;
 
-            float interpolatedRight;
+            float rightSample;
             if (inChannels >= 2)
             {
-                float sr0 = _inputFloatBuffer[inFrame0 * inChannels + 1];
-                float sr1 = _inputFloatBuffer[inFrame1 * inChannels + 1];
-                interpolatedRight = sr0 + frac * (sr1 - sr0);
+                float right0 = inBuffer[inFrame0 * inChannels + 1];
+                float right1 = inBuffer[inFrame1 * inChannels + 1];
+                rightSample = (right0 + frac * (right1 - right0)) * volumeMultiplier;
             }
             else
             {
-                interpolatedRight = interpolatedLeft; // Duplicate mono to stereo
+                rightSample = leftSample;
             }
 
-            int outIdx = outFrame * outChannels;
-            _outputFloatBuffer[outIdx] = interpolatedLeft;
+            int outBase = outFrame * outChannels;
+            outBuffer[outBase] = Math.Clamp(leftSample, -1.0f, 1.0f);
             if (outChannels >= 2)
             {
-                _outputFloatBuffer[outIdx + 1] = interpolatedRight;
-                // If more than 2 channels (e.g. 5.1/7.1 virtual endpoints), clear remaining
+                outBuffer[outBase + 1] = Math.Clamp(rightSample, -1.0f, 1.0f);
                 for (int c = 2; c < outChannels; c++)
                 {
-                    _outputFloatBuffer[outIdx + c] = 0f;
+                    outBuffer[outBase + c] = 0f;
                 }
             }
-        }
-
-        // 4. Send to Output Buffer (IEEE Float or 16-bit PCM depending on mix format)
-        int outByteCount = WriteFloatToBytes(_outputFloatBuffer, outTotalSamples, _outputMixFormat, ref _outputBytes);
-        _outputBuffer.AddSamples(_outputBytes, 0, outByteCount);
-
-        // 5. Send to Monitor if enabled
-        if (_monitorBuffer != null && _monitorMixFormat != null && _settings.MonitorEnabled)
-        {
-            float monVol = _settings.MonitorVolume;
-            if (Math.Abs(monVol - 1.0f) > 0.02f)
-            {
-                // Scale volume for monitor
-                for (int i = 0; i < outTotalSamples; i++)
-                {
-                    _outputFloatBuffer[i] *= monVol;
-                }
-            }
-            int monByteCount = WriteFloatToBytes(_outputFloatBuffer, outTotalSamples, _monitorMixFormat, ref _monitorBytes);
-            _monitorBuffer.AddSamples(_monitorBytes, 0, monByteCount);
         }
     }
 
     private static int WriteFloatToBytes(float[] floatBuf, int sampleCount, WaveFormat format, ref byte[] byteBuf)
     {
-        if (format.Encoding == WaveFormatEncoding.IeeeFloat)
+        // Check BitsPerSample: 32 = IEEE float in WASAPI shared mode
+        if (format.BitsPerSample == 32)
         {
             int bytesNeeded = sampleCount * sizeof(float);
             if (byteBuf.Length < bytesNeeded) byteBuf = new byte[bytesNeeded];
@@ -360,7 +377,7 @@ public sealed class AudioEngine : IDisposable
             byteSpan.CopyTo(byteBuf.AsSpan(0, bytesNeeded));
             return bytesNeeded;
         }
-        else // 16-bit PCM fallback
+        else if (format.BitsPerSample == 16)
         {
             int bytesNeeded = sampleCount * 2;
             if (byteBuf.Length < bytesNeeded) byteBuf = new byte[bytesNeeded];
@@ -372,6 +389,20 @@ public sealed class AudioEngine : IDisposable
             }
             return bytesNeeded;
         }
+        else if (format.BitsPerSample == 24)
+        {
+            int bytesNeeded = sampleCount * 3;
+            if (byteBuf.Length < bytesNeeded) byteBuf = new byte[bytesNeeded];
+            for (int i = 0; i < sampleCount; i++)
+            {
+                int sample = (int)Math.Clamp(floatBuf[i] * 8388607.0f, -8388608f, 8388607f);
+                byteBuf[i * 3] = (byte)(sample & 0xFF);
+                byteBuf[i * 3 + 1] = (byte)((sample >> 8) & 0xFF);
+                byteBuf[i * 3 + 2] = (byte)((sample >> 16) & 0xFF);
+            }
+            return bytesNeeded;
+        }
+        return 0;
     }
 
     private void EnsureInputBuffer(int samples)
@@ -387,6 +418,14 @@ public sealed class AudioEngine : IDisposable
         if (_outputFloatBuffer.Length < samples)
         {
             _outputFloatBuffer = new float[Math.Max(samples, _outputFloatBuffer.Length * 2)];
+        }
+    }
+
+    private void EnsureMonitorBuffer(int samples)
+    {
+        if (_monitorFloatBuffer.Length < samples)
+        {
+            _monitorFloatBuffer = new float[Math.Max(samples, _monitorFloatBuffer.Length * 2)];
         }
     }
 
@@ -418,10 +457,7 @@ public sealed class AudioEngine : IDisposable
                 return dev;
             }
         }
-        catch
-        {
-            // Device removed / invalid
-        }
+        catch { }
         return null;
     }
 
@@ -444,7 +480,6 @@ public sealed class AudioEngine : IDisposable
         }
         catch { }
 
-        // Pick first active with valid name
         var all = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
         foreach (var d in all)
         {
@@ -459,7 +494,6 @@ public sealed class AudioEngine : IDisposable
         var dev = ResolveDeviceById(enumerator, DataFlow.Render, deviceId);
         if (dev != null) return dev;
 
-        // Try to automatically find a virtual cable
         var all = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
         foreach (var d in all)
         {

@@ -381,27 +381,77 @@
                                   DisplayMemberPath="Name" Height="36"/>
                     </StackPanel>
 
-                    <!-- Virtual Cable Warning / Download Helper -->
-                    <Border Grid.Row="3" Background="#282a33" BorderBrush="#3f4250" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#e2e4e9">
-                                <Run Text="💡 Для Discord и игр требуется виртуальный кабель (например, VB-Cable)." Foreground="#e2e4e9"/>
-                            </TextBlock>
-                            <Button Grid.Column="1" Content="📥 Скачать VB-Cable (Бесплатно)" 
-                                    Command="{Binding OpenVbCableWebsiteCommand}"
-                                    Background="#5865f2" Foreground="#ffffff" BorderThickness="0"
-                                    Cursor="Hand" FontSize="12" FontWeight="Bold" Padding="10,6" Margin="10,0,0,0">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="6"/>
+                    <!-- Virtual Cable Helper (Auto-Install & Reinstall) -->
+                    <Border Grid.Row="3" Background="#282a33" BorderBrush="#3f4250" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="⚠️ Виртуальный кабель не установлен. Установите в 1 клик для Discord:"/>
+                                            <Setter Property="Foreground" Value="#fee75c"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
+                                                    <Setter Property="Text" Value="✅ Виртуальный кабель активен. В Discord выберите CABLE Output."/>
+                                                    <Setter Property="Foreground" Value="#57f287"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
+                                    <Button Cursor="Hand" FontSize="12" FontWeight="Bold" Padding="12,6" Foreground="#ffffff" BorderThickness="0">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="6"/>
+                                            </Style>
+                                        </Button.Resources>
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="#5865f2"/>
+                                                <Setter Property="Content" Value="⚡ Установить кабель (1 клик)"/>
+                                                <Setter Property="Command" Value="{Binding InstallVbCableCommand}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
+                                                        <Setter Property="Background" Value="#3a3d4a"/>
+                                                        <Setter Property="Content" Value="🔄 Переустановить кабель"/>
+                                                        <Setter Property="Command" Value="{Binding ReinstallVbCableCommand}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsInstalling}" Value="True">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                        <Setter Property="Content" Value="Выполняется..."/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Live Installer Status Banner -->
+                            <TextBlock Text="{Binding InstallerStatus}" 
+                                       FontSize="11.5" FontWeight="SemiBold" Foreground="#fee75c" 
+                                       Margin="0,6,0,0" TextWrapping="Wrap">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </Trigger>
+                                            <Trigger Property="Text" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </Trigger>
+                                        </Style.Triggers>
                                     </Style>
-                                </Button.Resources>
-                            </Button>
-                        </Grid>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
                     </Border>
 
                     <!-- Headphone Monitor -->
