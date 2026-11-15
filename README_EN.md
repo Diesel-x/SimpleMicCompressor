@@ -39,7 +39,7 @@
 | **Preset Management**| Sliders, graphs, 1-click custom profile creation | Shared `mic_compressor_config.json` |
 | **VB-Cable Setup** | 1-click built-in installer & repair tool | Uses existing virtual cable |
 | **Binary Size** | ~850 KB (Single-File) | **~529 KB** (Standalone binary) |
-| **Download** | [`publish/SimpleMicCompressor.exe`](publish/SimpleMicCompressor.exe) | [`publish/SimpleMicCompressor_Light.exe`](publish/SimpleMicCompressor_Light.exe) |
+| **Download Release** | [📥 **Download SimpleMicCompressor.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor.exe) | [⚡ **Download Light (Rust)**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor_Light.exe) |
 
 ---
 
@@ -54,9 +54,9 @@
 
 ## 🚀 Quick Start in 1 Minute
 
-1. Download your preferred edition:
-   * **[SimpleMicCompressor.exe](publish/SimpleMicCompressor.exe)** (recommended: with full GUI)
-   * **[SimpleMicCompressor_Light.exe](publish/SimpleMicCompressor_Light.exe)** (experimental headless build — controlled via tray and hotkeys)
+1. Download either edition from the [Releases page (v1.0)](https://github.com/Diesel-x/SimpleMicCompressor/releases/tag/v1.0):
+   * [**SimpleMicCompressor.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor.exe) (recommended: with full dark GUI)
+   * [**SimpleMicCompressor_Light.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor_Light.exe) (experimental headless build — controlled via tray and hotkeys)
 2. Launch the application:
    * **Input:** Select your physical microphone.
    * **Output:** Select **CABLE Input (VB-Audio Virtual Cable)**.
