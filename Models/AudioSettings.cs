@@ -47,6 +47,18 @@ public class AudioSettings
     public bool StartMinimized { get; set; } = false;
     public string SelectedPresetName { get; set; } = "Gaming & Discord";
 
+    // Localization
+    public string? Language { get; set; } = null; // null => auto-detected
+
+    // Mute state
+    public bool IsMuted { get; set; } = false;
+
+    // Configurable Global Hotkeys
+    public bool HotkeysEnabled { get; set; } = true;
+    public HotkeySetting HotkeyBypass { get; set; } = new() { Enabled = true, Ctrl = true, Shift = true, Alt = false, Key = "B" };
+    public HotkeySetting HotkeyMeme { get; set; } = new() { Enabled = true, Ctrl = true, Shift = true, Alt = false, Key = "M" };
+    public HotkeySetting HotkeyMute { get; set; } = new() { Enabled = true, Ctrl = true, Shift = true, Alt = false, Key = "X" };
+
     // Custom Saved Profiles
     public List<UserProfile> CustomProfiles { get; set; } = new();
 
@@ -76,21 +88,31 @@ public class AudioSettings
 
     public static AudioSettings Load()
     {
+        AudioSettings? settings = null;
         try
         {
             string path = GetConfigFilePath();
             if (File.Exists(path))
             {
                 string json = File.ReadAllText(path);
-                var loaded = JsonSerializer.Deserialize<AudioSettings>(json, JsonOptions);
-                if (loaded != null) return loaded;
+                settings = JsonSerializer.Deserialize<AudioSettings>(json, JsonOptions);
             }
         }
         catch
         {
             // Fallback to default
         }
-        return CreateGamingPreset();
+
+        settings ??= CreateGamingPreset();
+
+        // Auto-detect language if first run
+        if (string.IsNullOrWhiteSpace(settings.Language))
+        {
+            settings.Language = Localization.LocalizationService.DetectSystemLanguage();
+            settings.Save();
+        }
+
+        return settings;
     }
 
     public void Save()

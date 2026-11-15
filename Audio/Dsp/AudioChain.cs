@@ -99,6 +99,15 @@ public sealed class AudioChain
             float absRaw = MathF.Abs(rawMono);
             if (absRaw > blockInputPeak) blockInputPeak = absRaw;
 
+            if (_settings.IsMuted)
+            {
+                for (int ch = 0; ch < channels; ch++)
+                {
+                    buffer[baseIdx + ch] = 0f;
+                }
+                continue;
+            }
+
             if (bypass)
             {
                 if (absRaw > blockOutputPeak) blockOutputPeak = absRaw;
