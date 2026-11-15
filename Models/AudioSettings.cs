@@ -59,9 +59,19 @@ public class AudioSettings
     public static string GetConfigFilePath()
     {
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        string folder = Path.Combine(appData, "MicCompressor");
+        string folder = Path.Combine(appData, "SimpleMicCompressor");
         Directory.CreateDirectory(folder);
-        return Path.Combine(folder, "config.json");
+        string newPath = Path.Combine(folder, "config.json");
+
+        // Migrate from old path if present
+        string oldFolder = Path.Combine(appData, "MicCompressor");
+        string oldPath = Path.Combine(oldFolder, "config.json");
+        if (!File.Exists(newPath) && File.Exists(oldPath))
+        {
+            try { File.Copy(oldPath, newPath); } catch { }
+        }
+
+        return newPath;
     }
 
     public static AudioSettings Load()

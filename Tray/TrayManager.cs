@@ -25,13 +25,13 @@ public sealed class TrayManager : IDisposable
 
         var contextMenu = new System.Windows.Forms.ContextMenuStrip();
 
-        var openItem = new System.Windows.Forms.ToolStripMenuItem("🎙️ Открыть MicCompressor", null, (s, e) => ShowWindow());
+        var openItem = new System.Windows.Forms.ToolStripMenuItem("Открыть SimpleMicCompressor", null, (s, e) => ShowWindow());
         openItem.Font = new Font(openItem.Font, System.Drawing.FontStyle.Bold);
         contextMenu.Items.Add(openItem);
 
         contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
-        var bypassItem = new System.Windows.Forms.ToolStripMenuItem("⚡ Режим Bypass (Оригинал)", null, (s, e) =>
+        var bypassItem = new System.Windows.Forms.ToolStripMenuItem("Режим Bypass (Оригинал)", null, (s, e) =>
         {
             _viewModel.BypassAll = !_viewModel.BypassAll;
         });
@@ -41,7 +41,7 @@ public sealed class TrayManager : IDisposable
         };
         contextMenu.Items.Add(bypassItem);
 
-        var toggleEngineItem = new System.Windows.Forms.ToolStripMenuItem("▶️ Запустить / Остановить", null, (s, e) =>
+        var toggleEngineItem = new System.Windows.Forms.ToolStripMenuItem("Запустить / Остановить", null, (s, e) =>
         {
             _viewModel.ToggleEngine();
         });
@@ -49,7 +49,7 @@ public sealed class TrayManager : IDisposable
 
         contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
-        var exitItem = new System.Windows.Forms.ToolStripMenuItem("❌ Закрыть приложение", null, (s, e) =>
+        var exitItem = new System.Windows.Forms.ToolStripMenuItem("Закрыть приложение", null, (s, e) =>
         {
             _notifyIcon!.Visible = false;
             System.Windows.Application.Current.Shutdown();
@@ -59,7 +59,7 @@ public sealed class TrayManager : IDisposable
         _notifyIcon = new System.Windows.Forms.NotifyIcon
         {
             Icon = _customIcon,
-            Text = "MicCompressor — Компрессор микрофона в фоне",
+            Text = "SimpleMicCompressor — Компрессор микрофона",
             Visible = true,
             ContextMenuStrip = contextMenu
         };

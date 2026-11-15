@@ -9,14 +9,18 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(System.Windows.StartupEventArgs e)
     {
-        const string mutexName = "MicCompressor_SingleInstance_Mutex_2026";
-        _singleInstanceMutex = new System.Threading.Mutex(true, mutexName, out bool isNewInstance);
-
-        if (!isNewInstance)
+        bool isScreenshot = e.Args.Any(a => a.StartsWith("--screenshot", StringComparison.OrdinalIgnoreCase));
+        if (!isScreenshot)
         {
-            // Another instance is already running!
-            Shutdown();
-            return;
+            const string mutexName = "SimpleMicCompressor_SingleInstance_Mutex_2026";
+            _singleInstanceMutex = new System.Threading.Mutex(true, mutexName, out bool isNewInstance);
+
+            if (!isNewInstance)
+            {
+                // Another instance is already running!
+                Shutdown();
+                return;
+            }
         }
 
         base.OnStartup(e);
