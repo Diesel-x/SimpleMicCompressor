@@ -40,6 +40,7 @@ public class AudioSettings
 
     // General & UI
     public bool BypassAll { get; set; } = false;
+    public bool DestroyedMicMemeMode { get; set; } = false; // Meme / joke destroyed mic mode
     public bool AutoStartEngine { get; set; } = true;
     public bool AutoStartWithWindows { get; set; } = false;
     public bool MinimizeToTrayOnClose { get; set; } = true;
@@ -102,6 +103,7 @@ public class AudioSettings
             "Radio / Podcast" => CreatePodcastPreset(),
             "Whisper / Quiet Night" => CreateWhisperPreset(),
             "Aggressive / Anti-Rage" => CreateAntiRagePreset(),
+            "🎙️ Уничтоженный микрофон (Meme)" => CreateDestroyedMicPreset(),
             _ => this
         };
 
@@ -122,6 +124,7 @@ public class AudioSettings
         LimiterEnabled = preset.LimiterEnabled;
         LimiterCeilingDb = preset.LimiterCeilingDb;
         LimiterReleaseMs = preset.LimiterReleaseMs;
+        DestroyedMicMemeMode = preset.DestroyedMicMemeMode;
         SelectedPresetName = presetName;
     }
 
@@ -223,5 +226,23 @@ public class AudioSettings
         CompressorKneeDb = 3f,
         LimiterEnabled = true,
         LimiterCeilingDb = -2.0f
+    };
+
+    public static AudioSettings CreateDestroyedMicPreset() => new()
+    {
+        SelectedPresetName = "🎙️ Уничтоженный микрофон (Meme)",
+        DestroyedMicMemeMode = true,
+        HighPassEnabled = true,
+        HighPassCutoffHz = 80f,
+        GateEnabled = false,
+        CompressorEnabled = true,
+        CompressorThresholdDb = -24f,
+        CompressorRatio = 8.0f,
+        CompressorAttackMs = 5f,
+        CompressorReleaseMs = 100f,
+        CompressorMakeupGainDb = 8f,
+        CompressorKneeDb = 4f,
+        LimiterEnabled = true,
+        LimiterCeilingDb = -0.5f
     };
 }

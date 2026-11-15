@@ -52,9 +52,9 @@ public sealed class NoiseGate
     }
 
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    public float Process(float input)
+    public float ComputeGain(float detectorSample)
     {
-        float absIn = MathF.Abs(input);
+        float absIn = MathF.Abs(detectorSample);
 
         // Fast RMS / peak tracker for detection
         const float detectorAlpha = 0.05f;
@@ -85,18 +85,22 @@ public sealed class NoiseGate
         float targetGain = _isOpen ? 1.0f : 0.0f;
         if (targetGain > _currentGain)
         {
-            // Attack (opening)
             _currentGain = _attackCoeff * _currentGain + (1.0f - _attackCoeff) * targetGain;
         }
         else
         {
-            // Release (closing)
             _currentGain = _releaseCoeff * _currentGain + (1.0f - _releaseCoeff) * targetGain;
         }
 
         if (_currentGain < 0.0001f) _currentGain = 0f;
         if (_currentGain > 0.9999f) _currentGain = 1f;
 
-        return input * _currentGain;
+        return _currentGain;
+    }
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public float Process(float input)
+    {
+        return input * ComputeGain(input);
     }
 }

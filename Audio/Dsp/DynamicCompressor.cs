@@ -67,9 +67,9 @@ public sealed class DynamicCompressor
     }
 
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    public float Process(float input)
+    public float ComputeGain(float detectorSample)
     {
-        float absIn = MathF.Abs(input);
+        float absIn = MathF.Abs(detectorSample);
 
         // Fast RMS/Peak hybrid detector (5 ms averaging)
         const float detectorAlpha = 0.04f;
@@ -82,17 +82,14 @@ public sealed class DynamicCompressor
 
         if (inputDb <= _thresholdDb - halfKnee)
         {
-            // Below knee, no reduction
             grDb = 0f;
         }
         else if (inputDb > _thresholdDb + halfKnee)
         {
-            // Above knee: full linear compression
             grDb = (inputDb - _thresholdDb) * (1.0f - 1.0f / _ratio);
         }
         else
         {
-            // In knee region: quadratic interpolation
             float delta = inputDb - _thresholdDb + halfKnee;
             grDb = ((delta * delta) / (2.0f * _kneeDb)) * (1.0f - 1.0f / _ratio);
         }
@@ -100,18 +97,20 @@ public sealed class DynamicCompressor
         // Apply attack and release ballistics to the gain reduction
         if (grDb > _gainReductionEnvelope)
         {
-            // Attack (reducing volume)
             _gainReductionEnvelope = _attackCoeff * _gainReductionEnvelope + (1.0f - _attackCoeff) * grDb;
         }
         else
         {
-            // Release (recovering volume)
             _gainReductionEnvelope = _releaseCoeff * _gainReductionEnvelope + (1.0f - _releaseCoeff) * grDb;
         }
 
         // Convert gain reduction dB to linear multiplier + makeup gain
-        float linearGain = MathF.Pow(10.0f, -_gainReductionEnvelope / 20.0f) * _makeupFactor;
+        return MathF.Pow(10.0f, -_gainReductionEnvelope / 20.0f) * _makeupFactor;
+    }
 
-        return input * linearGain;
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    public float Process(float input)
+    {
+        return input * ComputeGain(input);
     }
 }
