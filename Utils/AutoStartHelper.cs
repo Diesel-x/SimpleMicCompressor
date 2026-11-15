@@ -5,7 +5,7 @@ namespace MicCompressor.Utils;
 public static class AutoStartHelper
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string AppName = "MicCompressor";
+    private const string AppName = "SimpleMicCompressor";
 
     public static bool IsAutoStartEnabled()
     {
