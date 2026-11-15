@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Threading;
 using MicCompressor.Audio;
 using MicCompressor.Audio.Dsp;
@@ -45,6 +46,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public RelayCommand InstallVbCableCommand { get; }
     public RelayCommand ReinstallVbCableCommand { get; }
     public RelayCommand SaveProfileCommand { get; }
+    public RelayCommand OpenNewProfileDialogCommand { get; }
+    public RelayCommand ConfirmSaveProfileCommand { get; }
+    public RelayCommand CancelSaveProfileCommand { get; }
     public RelayCommand DeleteProfileCommand { get; }
     public Action? RequestMinimizeToTray { get; set; }
 
@@ -52,6 +56,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private bool _isInstalling = false;
     private string _profileNameInput = "";
     private bool _isCustomProfileSelected = false;
+    private bool _isSaveProfileDialogVisible = false;
+    private bool _hasUnsavedProfileChanges = false;
+    private string _statusNotification = "";
+    private DispatcherTimer? _statusNotificationTimer;
 
     public string? InstallerStatus
     {
@@ -71,10 +79,58 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         set => SetField(ref _profileNameInput, value);
     }
 
+    public bool IsSaveProfileDialogVisible
+    {
+        get => _isSaveProfileDialogVisible;
+        set => SetField(ref _isSaveProfileDialogVisible, value);
+    }
+
     public bool IsCustomProfileSelected
     {
         get => _isCustomProfileSelected;
         private set => SetField(ref _isCustomProfileSelected, value);
+    }
+
+    public bool HasUnsavedProfileChanges
+    {
+        get => _hasUnsavedProfileChanges;
+        set
+        {
+            if (SetField(ref _hasUnsavedProfileChanges, value))
+            {
+                OnPropertyChanged(nameof(SaveButtonToolTip));
+            }
+        }
+    }
+
+    public string SaveButtonToolTip
+    {
+        get
+        {
+            if (IsCustomProfileSelected)
+            {
+                string name = NormalizePresetName(_settings.SelectedPresetName);
+                return _hasUnsavedProfileChanges
+                    ? $"Сохранить изменения в профиль «{name}»"
+                    : $"Профиль «{name}» сохранен. Нажмите для обновления";
+            }
+            return "Сохранить текущие настройки как профиль...";
+        }
+    }
+
+    public string DeleteToolTip
+    {
+        get
+        {
+            string name = NormalizePresetName(_settings.SelectedPresetName);
+            return $"Удалить профиль «{name}»";
+        }
+    }
+
+    public string StatusNotification
+    {
+        get => _statusNotification;
+        private set => SetField(ref _statusNotification, value);
     }
 
     public bool HasVirtualCable => OutputDevices.Any(d => d.IsVirtualCable);
@@ -90,7 +146,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         OpenVbCableWebsiteCommand = new RelayCommand(OpenVbCableWebsite);
         InstallVbCableCommand = new RelayCommand(InstallVbCable);
         ReinstallVbCableCommand = new RelayCommand(ReinstallVbCable);
-        SaveProfileCommand = new RelayCommand(SaveCurrentProfile);
+        SaveProfileCommand = new RelayCommand(SaveOrOpenDialog);
+        OpenNewProfileDialogCommand = new RelayCommand(OpenNewProfileDialog);
+        ConfirmSaveProfileCommand = new RelayCommand(ConfirmSaveProfile);
+        CancelSaveProfileCommand = new RelayCommand(CancelSaveProfile);
         DeleteProfileCommand = new RelayCommand(DeleteCurrentProfile);
 
         RefreshPresetsList();
@@ -352,19 +411,19 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         Presets.Add("Radio / Podcast");
         Presets.Add("Whisper / Quiet Night");
         Presets.Add("Aggressive / Anti-Rage");
-        Presets.Add("🎙️ Уничтоженный микрофон (Meme)");
+        Presets.Add("Уничтоженный микрофон (Meme)");
 
         foreach (var p in _settings.CustomProfiles)
         {
-            Presets.Add($"⭐ {p.Name}");
+            Presets.Add($"Профиль: {p.Name}");
         }
 
         Presets.Add("Пользовательский (Custom)");
 
-        string current = _settings.SelectedPresetName;
-        if (_settings.CustomProfiles.Any(p => p.Name == current))
+        string current = NormalizePresetName(_settings.SelectedPresetName);
+        if (_settings.CustomProfiles.Any(p => p.Name.Equals(current, StringComparison.OrdinalIgnoreCase)))
         {
-            _settings.SelectedPresetName = $"⭐ {current}";
+            _settings.SelectedPresetName = $"Профиль: {current}";
         }
 
         OnPropertyChanged(nameof(SelectedPreset));
@@ -386,6 +445,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 UpdateEngineSettings();
                 NotifyAllDspPropertiesChanged();
                 _isUpdatingPreset = false;
+                HasUnsavedProfileChanges = false;
                 OnPropertyChanged();
                 CheckCustomProfileSelected();
             }
@@ -394,7 +454,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private static string NormalizePresetName(string preset)
     {
+        if (string.IsNullOrWhiteSpace(preset)) return "";
+        if (preset.StartsWith("Профиль: ")) return preset["Профиль: ".Length..].Trim();
+        if (preset.StartsWith("[Профиль] ")) return preset["[Профиль] ".Length..].Trim();
         if (preset.StartsWith("⭐ ")) return preset[2..].Trim();
+        if (preset.StartsWith("🎙️ ")) return preset["🎙️ ".Length..].Trim();
         return preset;
     }
 
@@ -402,36 +466,103 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         string current = NormalizePresetName(_settings.SelectedPresetName);
         IsCustomProfileSelected = _settings.CustomProfiles.Any(p => p.Name.Equals(current, StringComparison.OrdinalIgnoreCase));
+        OnPropertyChanged(nameof(DeleteToolTip));
+        OnPropertyChanged(nameof(SaveButtonToolTip));
     }
 
-    private void SaveCurrentProfile()
+    private void SaveOrOpenDialog()
+    {
+        if (IsCustomProfileSelected)
+        {
+            string name = NormalizePresetName(_settings.SelectedPresetName);
+            _settings.SaveCustomProfile(name);
+            HasUnsavedProfileChanges = false;
+            ShowStatusNotification($"✓ Настройки сохранены в профиль «{name}»");
+        }
+        else
+        {
+            OpenNewProfileDialog();
+        }
+    }
+
+    private void OpenNewProfileDialog()
+    {
+        ProfileNameInput = "";
+        IsSaveProfileDialogVisible = true;
+    }
+
+    private void ConfirmSaveProfile()
     {
         string name = string.IsNullOrWhiteSpace(_profileNameInput) ? "Мой профиль" : _profileNameInput.Trim();
         _settings.SaveCustomProfile(name);
+        IsSaveProfileDialogVisible = false;
         ProfileNameInput = "";
+        HasUnsavedProfileChanges = false;
         RefreshPresetsList();
-        SelectedPreset = $"⭐ {name}";
+        SelectedPreset = $"Профиль: {name}";
+        ShowStatusNotification($"✓ Профиль «{name}» успешно сохранен");
+    }
+
+    private void CancelSaveProfile()
+    {
+        IsSaveProfileDialogVisible = false;
+        ProfileNameInput = "";
     }
 
     private void DeleteCurrentProfile()
     {
         string name = NormalizePresetName(_settings.SelectedPresetName);
-        if (_settings.DeleteCustomProfile(name))
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        var result = System.Windows.MessageBox.Show(
+            $"Вы уверены, что хотите удалить профиль «{name}»?",
+            "Удаление профиля",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
         {
-            RefreshPresetsList();
-            SelectedPreset = "Gaming & Discord";
+            if (_settings.DeleteCustomProfile(name))
+            {
+                RefreshPresetsList();
+                SelectedPreset = "Gaming & Discord";
+                ShowStatusNotification($"Профиль «{name}» удален");
+            }
         }
     }
 
     private void MarkPresetCustom()
     {
         if (_isUpdatingPreset) return;
+
+        if (IsCustomProfileSelected)
+        {
+            HasUnsavedProfileChanges = true;
+            return;
+        }
+
         if (_settings.SelectedPresetName != "Пользовательский (Custom)")
         {
             _settings.SelectedPresetName = "Пользовательский (Custom)";
             OnPropertyChanged(nameof(SelectedPreset));
             CheckCustomProfileSelected();
         }
+    }
+
+    public void ShowStatusNotification(string message)
+    {
+        StatusNotification = message;
+        _statusNotificationTimer?.Stop();
+        _statusNotificationTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(3.5)
+        };
+        _statusNotificationTimer.Tick += (s, e) =>
+        {
+            StatusNotification = "";
+            _statusNotificationTimer?.Stop();
+        };
+        _statusNotificationTimer.Start();
     }
 
     #endregion
