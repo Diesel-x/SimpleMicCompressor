@@ -6,11 +6,11 @@
         xmlns:vm="clr-namespace:MicCompressor.ViewModels"
         mc:Ignorable="d"
         Title="MicCompressor — Компрессор звука микрофона для Discord и Игр"
-        Height="840" Width="1080"
-        MinHeight="760" MinWidth="940"
+        Height="850" Width="1080"
+        MinHeight="780" MinWidth="960"
         WindowStartupLocation="CenterScreen"
-        Background="#111214"
-        Foreground="#e3e5e8"
+        Background="#131417"
+        Foreground="#ffffff"
         FontFamily="Segoe UI, Segoe UI Variable, Arial">
 
     <Window.DataContext>
@@ -19,17 +19,17 @@
 
     <Window.Resources>
         <!-- Colors -->
-        <SolidColorBrush x:Key="BgDark" Color="#111214"/>
-        <SolidColorBrush x:Key="BgCard" Color="#18191d"/>
-        <SolidColorBrush x:Key="BgInput" Color="#232428"/>
-        <SolidColorBrush x:Key="BorderCard" Color="#2e3036"/>
+        <SolidColorBrush x:Key="BgDark" Color="#131417"/>
+        <SolidColorBrush x:Key="BgCard" Color="#1e2026"/>
+        <SolidColorBrush x:Key="BgInput" Color="#282a33"/>
+        <SolidColorBrush x:Key="BorderCard" Color="#353742"/>
         <SolidColorBrush x:Key="Accent" Color="#5865f2"/>
-        <SolidColorBrush x:Key="AccentHover" Color="#4752c4"/>
         <SolidColorBrush x:Key="GreenActive" Color="#57f287"/>
         <SolidColorBrush x:Key="RedDanger" Color="#ed4245"/>
         <SolidColorBrush x:Key="AmberMeter" Color="#fee75c"/>
-        <SolidColorBrush x:Key="TextPrimary" Color="#f2f3f5"/>
-        <SolidColorBrush x:Key="TextMuted" Color="#949ba4"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#ffffff"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#e2e4e9"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#9da4b0"/>
 
         <!-- Custom Dark ScrollBar -->
         <Style TargetType="ScrollBar">
@@ -44,7 +44,7 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate>
-                                                <Border Background="#35373c" CornerRadius="4"/>
+                                                <Border Background="#484b56" CornerRadius="4"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -56,22 +56,22 @@
             </Setter>
         </Style>
 
-        <!-- Custom Dark ComboBox Style -->
+        <!-- Custom Dark ComboBox Style with Crystal-Clear Contrast -->
         <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
-                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="32" />
                 </Grid.ColumnDefinitions>
                 <Border x:Name="Border" Grid.ColumnSpan="2" CornerRadius="6"
-                        Background="#232428" BorderBrush="#383a40" BorderThickness="1" />
-                <Path x:Name="Arrow" Grid.Column="1" Fill="#949ba4" HorizontalAlignment="Center"
-                      VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z" />
+                        Background="#282a33" BorderBrush="#404350" BorderThickness="1.5" />
+                <Path x:Name="Arrow" Grid.Column="1" Fill="#ffffff" HorizontalAlignment="Center"
+                      VerticalAlignment="Center" Data="M 0 0 L 5 5 L 10 0 Z" StrokeThickness="1" />
             </Grid>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="true">
                     <Setter TargetName="Border" Property="BorderBrush" Value="#5865f2" />
-                    <Setter TargetName="Arrow" Property="Fill" Value="#ffffff" />
+                    <Setter TargetName="Border" Property="Background" Value="#31333e" />
                 </Trigger>
                 <Trigger Property="IsChecked" Value="true">
                     <Setter TargetName="Border" Property="BorderBrush" Value="#5865f2" />
@@ -80,23 +80,27 @@
         </ControlTemplate>
 
         <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="#f2f3f5"/>
-            <Setter Property="Background" Value="#232428"/>
-            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="Background" Value="#24262e"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBoxItem">
                         <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" 
                                 Padding="{TemplateBinding Padding}" CornerRadius="4" Margin="2,1">
-                            <ContentPresenter />
+                            <ContentPresenter TextBlock.Foreground="#ffffff" 
+                                              TextBlock.FontSize="13" 
+                                              TextBlock.FontWeight="SemiBold"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="#35373c"/>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#3a3d4a"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="#404249"/>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#5865f2"/>
                                 <Setter Property="Foreground" Value="#ffffff"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -107,11 +111,12 @@
 
         <Style TargetType="ComboBox">
             <Setter Property="Foreground" Value="#ffffff"/>
-            <Setter Property="Background" Value="#232428"/>
-            <Setter Property="BorderBrush" Value="#383a40"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="#282a33"/>
+            <Setter Property="BorderBrush" Value="#404350"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
@@ -126,15 +131,21 @@
                                               Content="{TemplateBinding SelectionBoxItem}" 
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" 
                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" 
-                                              Margin="10,0,28,0" 
+                                              TextBlock.Foreground="#ffffff"
+                                              TextBlock.FontSize="13"
+                                              TextBlock.FontWeight="SemiBold"
+                                              Margin="12,0,32,0" 
                                               VerticalAlignment="Center" 
                                               HorizontalAlignment="Left" />
                             <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" 
                                    AllowsTransparency="true" Focusable="false" PopupAnimation="Slide">
                                 <Grid x:Name="DropDown" SnapsToDevicePixels="true" 
-                                      MinWidth="{TemplateBinding ActualWidth}" MaxHeight="260">
-                                    <Border x:Name="DropDownBorder" Background="#2b2d31" 
-                                            BorderBrush="#383a40" BorderThickness="1" CornerRadius="6" Margin="0,3,0,0">
+                                      MinWidth="{TemplateBinding ActualWidth}" MaxHeight="280">
+                                    <Border x:Name="DropDownBorder" Background="#24262e" 
+                                            BorderBrush="#484c5a" BorderThickness="1.5" CornerRadius="8" Margin="0,4,0,0">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.5"/>
+                                        </Border.Effect>
                                         <ScrollViewer SnapsToDevicePixels="true" Margin="4">
                                             <StackPanel IsItemsHost="true" KeyboardNavigation.DirectionalNavigation="Contained" />
                                         </ScrollViewer>
@@ -150,7 +161,7 @@
         <!-- Custom Dark Slider -->
         <Style TargetType="Slider">
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Height" Value="24"/>
+            <Setter Property="Height" Value="26"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Slider">
@@ -169,7 +180,7 @@
                                     <RepeatButton Command="{x:Static Slider.IncreaseLarge}">
                                         <RepeatButton.Template>
                                             <ControlTemplate>
-                                                <Border Background="#2b2d31" Height="6" CornerRadius="0,3,3,0"/>
+                                                <Border Background="#353742" Height="6" CornerRadius="0,3,3,0"/>
                                             </ControlTemplate>
                                         </RepeatButton.Template>
                                     </RepeatButton>
@@ -178,9 +189,9 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate>
-                                                <Ellipse Width="18" Height="18" Fill="#f2f3f5" Stroke="#5865f2" StrokeThickness="2.5">
+                                                <Ellipse Width="20" Height="20" Fill="#ffffff" Stroke="#5865f2" StrokeThickness="3">
                                                     <Ellipse.Effect>
-                                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
+                                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.4"/>
                                                     </Ellipse.Effect>
                                                 </Ellipse>
                                             </ControlTemplate>
@@ -194,19 +205,20 @@
             </Setter>
         </Style>
 
-        <!-- Custom CheckBox -->
+        <!-- Custom CheckBox with High Contrast -->
         <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="#e3e5e8"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
         <!-- Card Container Style -->
         <Style x:Key="CardPanel" TargetType="Border">
-            <Setter Property="Background" Value="#18191d"/>
-            <Setter Property="BorderBrush" Value="#2b2d31"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background" Value="#1e2026"/>
+            <Setter Property="BorderBrush" Value="#353742"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="16"/>
         </Style>
     </Window.Resources>
@@ -232,19 +244,19 @@
 
             <!-- App Title & Status Indicator -->
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Background="#5865f2" Width="42" Height="42" CornerRadius="10" Margin="0,0,14,0">
-                    <TextBlock Text="🎙️" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border Background="#5865f2" Width="44" Height="44" CornerRadius="12" Margin="0,0,14,0">
+                    <TextBlock Text="🎙️" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="MicCompressor" FontSize="20" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
-                        <Border Background="#232428" CornerRadius="6" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Low-Latency DSP • Background" FontSize="11" Foreground="#949ba4"/>
+                        <TextBlock Text="MicCompressor" FontSize="21" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                        <Border Background="#282a33" BorderBrush="#3f4250" BorderThickness="1" CornerRadius="6" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Low-Latency DSP • Background" FontSize="11.5" FontWeight="SemiBold" Foreground="#d1d5db"/>
                         </Border>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                         <Ellipse Width="10" Height="10" Fill="{Binding EngineStatusColor}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding EngineStatusText}" FontSize="12" Foreground="{Binding EngineStatusColor}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding EngineStatusText}" FontSize="13" Foreground="{Binding EngineStatusColor}" FontWeight="Bold"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
@@ -253,8 +265,8 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Preset Dropdown -->
                 <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
-                    <TextBlock Text="Пресет звучания:" FontSize="11" Foreground="#949ba4" Margin="0,0,0,3"/>
-                    <ComboBox Width="190" Height="32" 
+                    <TextBlock Text="Пресет звучания:" FontSize="12" FontWeight="SemiBold" Foreground="#e2e4e9" Margin="0,0,0,4"/>
+                    <ComboBox Width="200" Height="36" 
                               ItemsSource="{Binding Presets}" 
                               SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"/>
                 </StackPanel>
@@ -262,19 +274,19 @@
                 <!-- Bypass Toggle -->
                 <CheckBox Content="Оригинал (Bypass)" 
                           IsChecked="{Binding BypassAll, Mode=TwoWay}"
-                          VerticalAlignment="Center" Margin="0,12,18,0"
+                          VerticalAlignment="Center" Margin="0,14,18,0"
                           ToolTip="Отключает всю обработку, пропуская чистый исходный звук"/>
 
                 <!-- Minimize to Tray Button -->
                 <Button Content="Свернуть в трей" 
                         Click="OnMinimizeToTrayClicked"
-                        Width="125" Height="38" 
+                        Width="130" Height="40" 
                         Margin="0,10,12,0"
-                        FontSize="12" FontWeight="SemiBold" Cursor="Hand"
-                        Foreground="#f2f3f5" BorderThickness="0">
+                        FontSize="12.5" FontWeight="Bold" Cursor="Hand"
+                        Foreground="#ffffff" BorderThickness="0">
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="Background" Value="#2b2d31"/>
+                            <Setter Property="Background" Value="#32353f"/>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="Button">
@@ -286,7 +298,7 @@
                             </Setter>
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#35373c"/>
+                                    <Setter Property="Background" Value="#404350"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -296,9 +308,9 @@
                 <!-- Start / Stop Power Button -->
                 <Button Content="{Binding StartStopButtonText}" 
                         Command="{Binding ToggleEngineCommand}"
-                        Width="130" Height="38" 
+                        Width="135" Height="40" 
                         Margin="0,10,0,0"
-                        FontSize="13" FontWeight="Bold" Cursor="Hand"
+                        FontSize="13.5" FontWeight="Bold" Cursor="Hand"
                         Foreground="#ffffff" BorderThickness="0">
                     <Button.Style>
                         <Style TargetType="Button">
@@ -346,61 +358,67 @@
                     </Grid.RowDefinitions>
 
                     <!-- Card Header -->
-                    <Grid Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock Text="🎧 Аудиоустройства и маршрутизация" FontSize="14" FontWeight="Bold" Foreground="#ffffff"/>
-                        <Button Content="🔄 Обновить устройства" Command="{Binding RefreshDevicesCommand}" 
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="🎧 Аудиоустройства и маршрутизация" FontSize="15" FontWeight="Bold" Foreground="#ffffff"/>
+                        <Button Content="🔄 Обновить" Command="{Binding RefreshDevicesCommand}" 
                                 HorizontalAlignment="Right" Background="Transparent" Foreground="#5865f2" 
-                                BorderThickness="0" Cursor="Hand" FontSize="11" Padding="4,0"/>
+                                BorderThickness="0" Cursor="Hand" FontSize="12" FontWeight="Bold" Padding="4,0"/>
                     </Grid>
 
                     <!-- Mic Input -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,8">
-                        <TextBlock Text="Вход (Ваш физический микрофон):" FontSize="12" Foreground="#949ba4" Margin="0,0,0,3"/>
+                    <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                        <TextBlock Text="Вход (Ваш физический микрофон):" FontSize="13" FontWeight="SemiBold" Foreground="#ffffff" Margin="0,0,0,4"/>
                         <ComboBox ItemsSource="{Binding InputDevices}" 
                                   SelectedItem="{Binding SelectedInputDevice, Mode=TwoWay}"
-                                  DisplayMemberPath="Name" Height="32"/>
+                                  DisplayMemberPath="Name" Height="36"/>
                     </StackPanel>
 
                     <!-- Output (Cable or Speakers) -->
-                    <StackPanel Grid.Row="2" Margin="0,0,0,8">
-                        <TextBlock Text="Выход (Виртуальный кабель для Discord/Игр):" FontSize="12" Foreground="#949ba4" Margin="0,0,0,3"/>
+                    <StackPanel Grid.Row="2" Margin="0,0,0,10">
+                        <TextBlock Text="Выход (Виртуальный кабель для Discord/Игр):" FontSize="13" FontWeight="SemiBold" Foreground="#ffffff" Margin="0,0,0,4"/>
                         <ComboBox ItemsSource="{Binding OutputDevices}" 
                                   SelectedItem="{Binding SelectedOutputDevice, Mode=TwoWay}"
-                                  DisplayMemberPath="Name" Height="32"/>
+                                  DisplayMemberPath="Name" Height="36"/>
                     </StackPanel>
 
                     <!-- Virtual Cable Warning / Download Helper -->
-                    <Border Grid.Row="3" Background="#232428" CornerRadius="6" Padding="10,6" Margin="0,0,0,8">
+                    <Border Grid.Row="3" Background="#282a33" BorderBrush="#3f4250" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap">
-                                <Run Text="💡 Для Discord и игр требуется виртуальный кабель (например, VB-Cable)." Foreground="#949ba4"/>
+                            <TextBlock Grid.Column="0" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="#e2e4e9">
+                                <Run Text="💡 Для Discord и игр требуется виртуальный кабель (например, VB-Cable)." Foreground="#e2e4e9"/>
                             </TextBlock>
                             <Button Grid.Column="1" Content="📥 Скачать VB-Cable (Бесплатно)" 
                                     Command="{Binding OpenVbCableWebsiteCommand}"
-                                    Background="#313338" Foreground="#5865f2" BorderThickness="0"
-                                    Cursor="Hand" FontSize="11" FontWeight="SemiBold" Padding="8,4" Margin="8,0,0,0"/>
+                                    Background="#5865f2" Foreground="#ffffff" BorderThickness="0"
+                                    Cursor="Hand" FontSize="12" FontWeight="Bold" Padding="10,6" Margin="10,0,0,0">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="6"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
                         </Grid>
                     </Border>
 
                     <!-- Headphone Monitor -->
-                    <Border Grid.Row="4" Background="#1f2024" CornerRadius="6" Padding="10,8">
+                    <Border Grid.Row="4" Background="#23252d" BorderBrush="#353742" BorderThickness="1" CornerRadius="8" Padding="12,10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="100"/>
                             </Grid.ColumnDefinitions>
                             <CheckBox Grid.Column="0" Content="Самопрослушивание" 
                                       IsChecked="{Binding MonitorEnabled, Mode=TwoWay}" 
-                                      VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                      VerticalAlignment="Center" Margin="0,0,12,0"/>
                             <ComboBox Grid.Column="1" ItemsSource="{Binding MonitorDevices}" 
                                       SelectedItem="{Binding SelectedMonitorDevice, Mode=TwoWay}"
-                                      DisplayMemberPath="Name" Height="28" FontSize="11"
-                                      IsEnabled="{Binding MonitorEnabled}" Margin="0,0,10,0"/>
+                                      DisplayMemberPath="Name" Height="32" FontSize="12"
+                                      IsEnabled="{Binding MonitorEnabled}" Margin="0,0,12,0"/>
                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                 <Slider Minimum="0.0" Maximum="1.0" Value="{Binding MonitorVolume, Mode=TwoWay}" 
                                         IsEnabled="{Binding MonitorEnabled}"/>
@@ -420,74 +438,74 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Grid Grid.Row="0" Margin="0,0,0,12">
-                        <TextBlock Text="📊 Индикаторы уровней (VU Meters)" FontSize="14" FontWeight="Bold" Foreground="#ffffff"/>
-                        <Border HorizontalAlignment="Right" Background="#232428" CornerRadius="4" Padding="6,2">
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <TextBlock Text="📊 Индикаторы уровней (VU Meters)" FontSize="15" FontWeight="Bold" Foreground="#ffffff"/>
+                        <Border HorizontalAlignment="Right" Background="#282a33" BorderBrush="#3f4250" BorderThickness="1" CornerRadius="6" Padding="8,3">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Гейт: " FontSize="11" Foreground="#949ba4"/>
-                                <TextBlock Text="{Binding GateStatusText}" FontSize="11" FontWeight="Bold" Foreground="{Binding GateStatusColor}"/>
+                                <TextBlock Text="Гейт: " FontSize="12" FontWeight="SemiBold" Foreground="#e2e4e9"/>
+                                <TextBlock Text="{Binding GateStatusText}" FontSize="12" FontWeight="Bold" Foreground="{Binding GateStatusColor}"/>
                             </StackPanel>
                         </Border>
                     </Grid>
 
                     <!-- Input Level Meter -->
-                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                    <Grid Grid.Row="1" Margin="0,0,0,12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="0,0,0,3">
-                            <TextBlock Text="Вход (Микрофон)" FontSize="11" Foreground="#949ba4"/>
-                            <TextBlock Text="{Binding InputPeakDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="11" Foreground="#ffffff"/>
+                        <Grid Grid.Row="0" Margin="0,0,0,4">
+                            <TextBlock Text="Вход (Микрофон)" FontSize="12.5" FontWeight="SemiBold" Foreground="#ffffff"/>
+                            <TextBlock Text="{Binding InputPeakDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12.5" FontWeight="Bold" Foreground="#57f287"/>
                         </Grid>
-                        <Border Grid.Row="1" Background="#232428" Height="10" CornerRadius="5">
+                        <Border Grid.Row="1" Background="#282a33" Height="14" CornerRadius="7">
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding InputMeterPercent, Mode=OneWay}" 
-                                         Height="10" Foreground="#57f287" Background="Transparent" BorderThickness="0"/>
+                                         Height="14" Foreground="#57f287" Background="Transparent" BorderThickness="0"/>
                         </Border>
                     </Grid>
 
                     <!-- Gain Reduction Meter (Amber) -->
-                    <Grid Grid.Row="2" Margin="0,0,0,10">
+                    <Grid Grid.Row="2" Margin="0,0,0,12">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="0,0,0,3">
-                            <TextBlock Text="Сжатие компрессора (Gain Reduction)" FontSize="11" Foreground="#fee75c"/>
-                            <TextBlock Text="{Binding GainReductionDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="11" Foreground="#fee75c" FontWeight="SemiBold"/>
+                        <Grid Grid.Row="0" Margin="0,0,0,4">
+                            <TextBlock Text="Сжатие компрессора (Gain Reduction)" FontSize="12.5" FontWeight="SemiBold" Foreground="#fee75c"/>
+                            <TextBlock Text="{Binding GainReductionDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12.5" FontWeight="Bold" Foreground="#fee75c"/>
                         </Grid>
-                        <Border Grid.Row="1" Background="#232428" Height="10" CornerRadius="5">
+                        <Border Grid.Row="1" Background="#282a33" Height="14" CornerRadius="7">
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding GainReductionMeterPercent, Mode=OneWay}" 
-                                         Height="10" Foreground="#fee75c" Background="Transparent" BorderThickness="0"/>
+                                         Height="14" Foreground="#fee75c" Background="Transparent" BorderThickness="0"/>
                         </Border>
                     </Grid>
 
                     <!-- Output Level Meter -->
-                    <Grid Grid.Row="3" Margin="0,0,0,2">
+                    <Grid Grid.Row="3" Margin="0,0,0,4">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="0,0,0,3">
-                            <TextBlock Text="Выход в Discord/Игры" FontSize="11" Foreground="#949ba4"/>
-                            <TextBlock Text="{Binding OutputPeakDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="11" Foreground="#57f287"/>
+                        <Grid Grid.Row="0" Margin="0,0,0,4">
+                            <TextBlock Text="Выход в Discord/Игры" FontSize="12.5" FontWeight="SemiBold" Foreground="#ffffff"/>
+                            <TextBlock Text="{Binding OutputPeakDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12.5" FontWeight="Bold" Foreground="#5865f2"/>
                         </Grid>
-                        <Border Grid.Row="1" Background="#232428" Height="10" CornerRadius="5">
+                        <Border Grid.Row="1" Background="#282a33" Height="14" CornerRadius="7">
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding OutputMeterPercent, Mode=OneWay}" 
-                                         Height="10" Foreground="#5865f2" Background="Transparent" BorderThickness="0"/>
+                                         Height="14" Foreground="#5865f2" Background="Transparent" BorderThickness="0"/>
                         </Border>
                     </Grid>
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- 3. DSP CONTROLS CARDS (No ugly scrollbars) -->
+        <!-- 3. DSP CONTROLS CARDS -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="16"/>
                 <ColumnDefinition Width="1.35*"/>
-                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="16"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
 
@@ -496,31 +514,31 @@
                 <StackPanel>
                     <!-- Header -->
                     <Grid Margin="0,0,0,10">
-                        <TextBlock Text="🔇 Шумоподавитель" FontSize="14" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                        <TextBlock Text="🔇 Шумоподавитель" FontSize="15" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
                         <CheckBox IsChecked="{Binding GateEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
 
                     <TextBlock Text="Отсекает клики мыши, клавиатуру, дыхание и шум кулеров между фразами." 
-                               FontSize="11" Foreground="#949ba4" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                               FontSize="12" Foreground="#e2e4e9" TextWrapping="Wrap" Margin="0,0,0,16"/>
 
                     <!-- Threshold -->
-                    <StackPanel Margin="0,0,0,12">
-                        <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Порог (Threshold)" FontSize="12" Foreground="#e3e5e8"/>
-                            <TextBlock Text="{Binding GateThresholdDb, StringFormat={}{0:F0} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="SemiBold" Foreground="#5865f2"/>
+                    <StackPanel Margin="0,0,0,14">
+                        <Grid Margin="0,0,0,3">
+                            <TextBlock Text="Порог (Threshold)" FontSize="13" FontWeight="SemiBold" Foreground="#ffffff"/>
+                            <TextBlock Text="{Binding GateThresholdDb, StringFormat={}{0:F0} dB}" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#5865f2"/>
                         </Grid>
                         <Slider Minimum="-60" Maximum="-20" Value="{Binding GateThresholdDb, Mode=TwoWay}" IsEnabled="{Binding GateEnabled}"/>
-                        <TextBlock Text="Ниже этого порога фоновый шум глушится" FontSize="10" Foreground="#72767d"/>
+                        <TextBlock Text="Ниже этого порога фоновый шум глушится" FontSize="11.5" Foreground="#9da4b0" Margin="0,2,0,0"/>
                     </StackPanel>
 
                     <!-- Release -->
                     <StackPanel Margin="0,0,0,10">
-                        <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Затухание (Release)" FontSize="12" Foreground="#e3e5e8"/>
-                            <TextBlock Text="{Binding GateReleaseMs, StringFormat={}{0:F0} ms}" HorizontalAlignment="Right" FontSize="12" FontWeight="SemiBold" Foreground="#5865f2"/>
+                        <Grid Margin="0,0,0,3">
+                            <TextBlock Text="Затухание (Release)" FontSize="13" FontWeight="SemiBold" Foreground="#ffffff"/>
+                            <TextBlock Text="{Binding GateReleaseMs, StringFormat={}{0:F0} ms}" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#5865f2"/>
                         </Grid>
                         <Slider Minimum="20" Maximum="400" Value="{Binding GateReleaseMs, Mode=TwoWay}" IsEnabled="{Binding GateEnabled}"/>
-                        <TextBlock Text="Плавность закрытия гейта (сохраняет окончания слов)" FontSize="10" Foreground="#72767d"/>
+                        <TextBlock Text="Плавность закрытия (сохраняет окончания слов)" FontSize="11.5" Foreground="#9da4b0" Margin="0,2,0,0"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -530,36 +548,36 @@
                 <StackPanel>
                     <!-- Header -->
                     <Grid Margin="0,0,0,10">
-                        <TextBlock Text="🎚️ Компрессор динамики" FontSize="14" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                        <TextBlock Text="🎚️ Компрессор динамики" FontSize="15" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
                         <CheckBox IsChecked="{Binding CompressorEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
 
                     <TextBlock Text="Выравнивает громкость: шепот звучит разборчиво, а громкая речь сдерживается на одном комфортном уровне." 
-                               FontSize="11" Foreground="#949ba4" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                               FontSize="12" Foreground="#e2e4e9" TextWrapping="Wrap" Margin="0,0,0,14"/>
 
                     <!-- Threshold -->
                     <StackPanel Margin="0,0,0,10">
-                        <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Порог сжатия (Threshold)" FontSize="12" Foreground="#e3e5e8"/>
-                            <TextBlock Text="{Binding CompressorThresholdDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="SemiBold" Foreground="#5865f2"/>
+                        <Grid Margin="0,0,0,3">
+                            <TextBlock Text="Порог сжатия (Threshold)" FontSize="13" FontWeight="SemiBold" Foreground="#ffffff"/>
+                            <TextBlock Text="{Binding CompressorThresholdDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#5865f2"/>
                         </Grid>
                         <Slider Minimum="-40" Maximum="0" Value="{Binding CompressorThresholdDb, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
                     </StackPanel>
 
                     <!-- Ratio -->
                     <StackPanel Margin="0,0,0,10">
-                        <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Степень сжатия (Ratio)" FontSize="12" Foreground="#e3e5e8"/>
-                            <TextBlock Text="{Binding CompressorRatio, StringFormat={}{0:F1}:1}" HorizontalAlignment="Right" FontSize="12" FontWeight="SemiBold" Foreground="#5865f2"/>
+                        <Grid Margin="0,0,0,3">
+                            <TextBlock Text="Степень сжатия (Ratio)" FontSize="13" FontWeight="SemiBold" Foreground="#ffffff"/>
+                            <TextBlock Text="{Binding CompressorRatio, StringFormat={}{0:F1}:1}" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#5865f2"/>
                         </Grid>
                         <Slider Minimum="1.5" Maximum="10.0" Value="{Binding CompressorRatio, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
                     </StackPanel>
 
                     <!-- Makeup Gain -->
                     <StackPanel Margin="0,0,0,10">
-                        <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Усиление громкости (Makeup Gain)" FontSize="12" Foreground="#e3e5e8"/>
-                            <TextBlock Text="{Binding CompressorMakeupGainDb, StringFormat=+{0:F1} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="SemiBold" Foreground="#57f287"/>
+                        <Grid Margin="0,0,0,3">
+                            <TextBlock Text="Усиление громкости (Makeup Gain)" FontSize="13" FontWeight="SemiBold" Foreground="#ffffff"/>
+                            <TextBlock Text="{Binding CompressorMakeupGainDb, StringFormat=+{0:F1} dB}" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#57f287"/>
                         </Grid>
                         <Slider Minimum="0" Maximum="18" Value="{Binding CompressorMakeupGainDb, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
                     </StackPanel>
@@ -568,22 +586,22 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <Grid Margin="0,0,0,2">
-                                <TextBlock Text="Атака" FontSize="11" Foreground="#e3e5e8"/>
-                                <TextBlock Text="{Binding CompressorAttackMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11" Foreground="#949ba4"/>
+                            <Grid Margin="0,0,0,3">
+                                <TextBlock Text="Атака" FontSize="12.5" FontWeight="SemiBold" Foreground="#ffffff"/>
+                                <TextBlock Text="{Binding CompressorAttackMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="12.5" FontWeight="Bold" Foreground="#d1d5db"/>
                             </Grid>
                             <Slider Minimum="1" Maximum="40" Value="{Binding CompressorAttackMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
-                            <Grid Margin="0,0,0,2">
-                                <TextBlock Text="Спад" FontSize="11" Foreground="#e3e5e8"/>
-                                <TextBlock Text="{Binding CompressorReleaseMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11" Foreground="#949ba4"/>
+                            <Grid Margin="0,0,0,3">
+                                <TextBlock Text="Спад" FontSize="12.5" FontWeight="SemiBold" Foreground="#ffffff"/>
+                                <TextBlock Text="{Binding CompressorReleaseMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="12.5" FontWeight="Bold" Foreground="#d1d5db"/>
                             </Grid>
                             <Slider Minimum="30" Maximum="400" Value="{Binding CompressorReleaseMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
                         </StackPanel>
@@ -594,63 +612,63 @@
             <!-- CARD 3: PROTECTION & BACKGROUND OPTIONS -->
             <Border Grid.Column="4" Style="{StaticResource CardPanel}">
                 <StackPanel>
-                    <TextBlock Text="🛡️ Защита звука" FontSize="14" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,10"/>
+                    <TextBlock Text="🛡️ Защита звука" FontSize="15" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,12"/>
 
                     <!-- High-pass Filter -->
-                    <Border Background="#232428" CornerRadius="8" Padding="10,8" Margin="0,0,0,10">
+                    <Border Background="#24262e" BorderBrush="#3a3d4a" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
                         <StackPanel>
-                            <Grid Margin="0,0,0,3">
-                                <TextBlock Text="Срез гула (Low-Cut 80 Hz)" FontWeight="SemiBold" FontSize="12" Foreground="#ffffff"/>
+                            <Grid Margin="0,0,0,4">
+                                <TextBlock Text="Срез гула (Low-Cut 80 Hz)" FontWeight="Bold" FontSize="13" Foreground="#ffffff"/>
                                 <CheckBox IsChecked="{Binding HighPassEnabled, Mode=TwoWay}" HorizontalAlignment="Right"/>
                             </Grid>
                             <TextBlock Text="Удаляет вибрации стола, гул кулеров и хлопки дыхания." 
-                                       FontSize="11" Foreground="#949ba4" TextWrapping="Wrap"/>
+                                       FontSize="11.5" Foreground="#e2e4e9" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Limiter -->
-                    <Border Background="#232428" CornerRadius="8" Padding="10,8" Margin="0,0,0,12">
+                    <Border Background="#24262e" BorderBrush="#3a3d4a" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
                         <StackPanel>
-                            <Grid Margin="0,0,0,3">
-                                <TextBlock Text="Лимитер (Пик-блокер)" FontWeight="SemiBold" FontSize="12" Foreground="#ffffff"/>
+                            <Grid Margin="0,0,0,4">
+                                <TextBlock Text="Лимитер (Пик-блокер)" FontWeight="Bold" FontSize="13" Foreground="#ffffff"/>
                                 <CheckBox IsChecked="{Binding LimiterEnabled, Mode=TwoWay}" HorizontalAlignment="Right"/>
                             </Grid>
                             <TextBlock Text="Мягко срезает резкие эмоциональные крики без хрипа." 
-                                       FontSize="11" Foreground="#949ba4" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                       FontSize="11.5" Foreground="#e2e4e9" TextWrapping="Wrap" Margin="0,0,0,4"/>
                             <Grid>
-                                <TextBlock Text="Потолок:" FontSize="11" Foreground="#949ba4"/>
-                                <TextBlock Text="{Binding LimiterCeilingDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="11" Foreground="#5865f2"/>
+                                <TextBlock Text="Потолок:" FontSize="12" FontWeight="SemiBold" Foreground="#e2e4e9"/>
+                                <TextBlock Text="{Binding LimiterCeilingDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12.5" FontWeight="Bold" Foreground="#5865f2"/>
                             </Grid>
                         </StackPanel>
                     </Border>
 
                     <!-- Background / Tray Options -->
-                    <TextBlock Text="⚙️ Фоновый режим (Автозапуск)" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff" Margin="0,4,0,8"/>
-                    <CheckBox Content="Автозапуск вместе с Windows" 
+                    <TextBlock Text="⚙️ Фоновый режим" FontSize="13" FontWeight="Bold" Foreground="#ffffff" Margin="0,2,0,10"/>
+                    <CheckBox Content="Автозапуск с Windows" 
                               IsChecked="{Binding AutoStartWithWindows, Mode=TwoWay}" 
-                              Margin="0,0,0,8" FontSize="11"
+                              Margin="0,0,0,10" FontSize="12"
                               ToolTip="Программа будет автоматически стартовать в фоне при включении компьютера"/>
-                    <CheckBox Content="Сворачивать в трей при закрытии [X]" 
+                    <CheckBox Content="Сворачивать в трей на [X]" 
                               IsChecked="{Binding MinimizeToTrayOnClose, Mode=TwoWay}" 
-                              Margin="0,0,0,8" FontSize="11"/>
+                              Margin="0,0,0,10" FontSize="12"/>
                     <CheckBox Content="Автозапуск обработки звука" 
                               IsChecked="{Binding AutoStartEngine, Mode=TwoWay}" 
-                              Margin="0,0,0,6" FontSize="11"/>
+                              Margin="0,0,0,4" FontSize="12"/>
                 </StackPanel>
             </Border>
         </Grid>
 
         <!-- 4. FOOTER / HELP TIP -->
-        <Border Grid.Row="3" Background="#18191d" BorderBrush="#2b2d31" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,14,0,0">
+        <Border Grid.Row="3" Background="#1e2026" BorderBrush="#353742" BorderThickness="1.5" CornerRadius="10" Padding="14,10" Margin="0,16,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="💡" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1" FontSize="11" Foreground="#949ba4" VerticalAlignment="Center" TextWrapping="Wrap">
-                    <Run Text="Как работает в фоне для Discord и игр:" FontWeight="SemiBold" Foreground="#ffffff"/>
-                    <Run Text=" 1) В поле «Выход» выберите виртуальный кабель (CABLE Input). 2) В Discord или игре выберите CABLE Output в качестве микрофона. 3) Нажмите «Свернуть в трей» или просто закройте окно крестиком [X] — программа тихо работает в трее Windows, кушает &lt; 0.2% CPU и сохраняет все ваши настройки."/>
+                <TextBlock Grid.Column="0" Text="💡" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" FontSize="12" Foreground="#e2e4e9" VerticalAlignment="Center" TextWrapping="Wrap">
+                    <Run Text="Как это работает:" FontWeight="Bold" Foreground="#ffffff"/>
+                    <Run Text=" 1) В поле «Выход» выберите виртуальный кабель (CABLE Input). 2) В Discord выберите CABLE Output как микрофон. 3) Закройте окно на крестик [X] или нажмите «Свернуть в трей» — компрессор останется работать в фоновом режиме в трее Windows."/>
                 </TextBlock>
             </Grid>
         </Border>
