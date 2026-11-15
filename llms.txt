@@ -1,0 +1,16 @@
+# SimpleMicCompressor
+
+> Ultra-low-latency real-time system microphone audio compressor and processor for Discord, streaming, and competitive games (CS2, Valorant, Apex Legends).
+
+## Documentation
+- [AI Architecture & Context](AI_CONTEXT.md): Full technical architecture, DSP signal chain, memory management, hotkey hook, and developer rules for LLMs.
+- [Project Readme (RU)](README.md): Russian user documentation, quick start, and feature comparison.
+- [Project Readme (EN)](README_EN.md): English user documentation and setup instructions.
+
+## Key Facts
+- Stack: C# (.NET 8 WPF GUI) + Rust (Light headless tray service).
+- Latency: ~20-25 ms WASAPI Shared Mode.
+- RAM: ~15-20 MB (GUI) / ~3-5 MB (Rust Light).
+- Hotkeys: Low-level system hook (`WH_KEYBOARD_LL`) functional in fullscreen games.
+- Repository: https://github.com/Diesel-x/SimpleMicCompressor
+- License: MIT
