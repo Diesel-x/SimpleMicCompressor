@@ -28,6 +28,59 @@ static mut GLOBAL_BYPASS: Option<Arc<AtomicBool>> = None;
 static mut GLOBAL_MEME: Option<Arc<AtomicBool>> = None;
 #[allow(static_mut_refs)]
 static mut GLOBAL_MUTE: Option<Arc<AtomicBool>> = None;
+static mut GLOBAL_HWND: HWND = 0;
+static mut GLOBAL_HOOK: HHOOK = 0;
+
+unsafe extern "system" fn keyboard_hook_proc(n_code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    if n_code >= 0 && (wparam as u32 == WM_KEYDOWN || wparam as u32 == WM_SYSKEYDOWN) {
+        let kbd = *(lparam as *const KBDLLHOOKSTRUCT);
+        let vk = kbd.vkCode;
+        let is_ctrl = (GetAsyncKeyState(VK_CONTROL as i32) as u16 & 0x8000) != 0;
+        let is_shift = (GetAsyncKeyState(VK_SHIFT as i32) as u16 & 0x8000) != 0;
+        let is_alt = (GetAsyncKeyState(VK_MENU as i32) as u16 & 0x8000) != 0;
+
+        if is_ctrl && is_shift && !is_alt {
+            if vk == 'B' as u32 {
+                if let Some(ref b) = GLOBAL_BYPASS {
+                    let cur = b.load(Ordering::Relaxed);
+                    b.store(!cur, Ordering::Relaxed);
+                    if GLOBAL_HWND != 0 {
+                        show_tray_notification(
+                            GLOBAL_HWND,
+                            "SimpleMicCompressor (Light)",
+                            if !cur { "Байпас: ВКЛЮЧЕН (Оригинал)" } else { "Байпас: ВЫКЛЮЧЕН (Обработка)" },
+                        );
+                    }
+                }
+            } else if vk == 'M' as u32 {
+                if let Some(ref m) = GLOBAL_MEME {
+                    let cur = m.load(Ordering::Relaxed);
+                    m.store(!cur, Ordering::Relaxed);
+                    if GLOBAL_HWND != 0 {
+                        show_tray_notification(
+                            GLOBAL_HWND,
+                            "SimpleMicCompressor (Light)",
+                            if !cur { "Мемный режим: ВКЛЮЧЕН" } else { "Мемный режим: ВЫКЛЮЧЕН" },
+                        );
+                    }
+                }
+            } else if vk == 'X' as u32 {
+                if let Some(ref mute) = GLOBAL_MUTE {
+                    let cur = mute.load(Ordering::Relaxed);
+                    mute.store(!cur, Ordering::Relaxed);
+                    if GLOBAL_HWND != 0 {
+                        show_tray_notification(
+                            GLOBAL_HWND,
+                            "SimpleMicCompressor (Light)",
+                            if !cur { "🔇 МИКРОФОН ЗАГЛУШЕН" } else { "🎙️ Микрофон активен" },
+                        );
+                    }
+                }
+            }
+        }
+    }
+    CallNextHookEx(GLOBAL_HOOK, n_code, wparam, lparam)
+}
 
 fn to_wide(s: &str) -> Vec<u16> {
     use std::os::windows::ffi::OsStrExt;
@@ -257,8 +310,10 @@ pub fn run_tray_loop(
             return Err("Failed to create message window".to_string());
         }
 
-        // Register Global Hotkeys (MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT)
-        // MOD_NOREPEAT = 0x4000
+        GLOBAL_HWND = hwnd;
+        GLOBAL_HOOK = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook_proc), 0, 0);
+
+        // Register Global Hotkeys as fallback
         let mod_keys = MOD_CONTROL | MOD_SHIFT | 0x4000;
         RegisterHotKey(hwnd, HOTKEY_BYPASS_ID, mod_keys, 'B' as u32);
         RegisterHotKey(hwnd, HOTKEY_MEME_ID, mod_keys, 'M' as u32);
@@ -299,6 +354,10 @@ pub fn run_tray_loop(
         }
 
         // Clean up
+        if GLOBAL_HOOK != 0 {
+            UnhookWindowsHookEx(GLOBAL_HOOK);
+            GLOBAL_HOOK = 0;
+        }
         UnregisterHotKey(hwnd, HOTKEY_BYPASS_ID);
         UnregisterHotKey(hwnd, HOTKEY_MEME_ID);
         UnregisterHotKey(hwnd, HOTKEY_MUTE_ID);
