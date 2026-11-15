@@ -39,7 +39,7 @@
 | **Настройка пресетов** | Слайдеры, графики, создание профилей в 1 клик | Через единый `mic_compressor_config.json` |
 | **Автоустановка кабеля** | Встроена в окно (1 клик) | Использует установленный кабель |
 | **Размер файла** | ~850 КБ (Single-File) | **~529 КБ** (Standalone binary) |
-| **Скачать** | [`publish/SimpleMicCompressor.exe`](publish/SimpleMicCompressor.exe) | [`publish/SimpleMicCompressor_Light.exe`](publish/SimpleMicCompressor_Light.exe) |
+| **Скачать релиз** | [📥 **Скачать SimpleMicCompressor.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor.exe) | [⚡ **Скачать Light (Rust)**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor_Light.exe) |
 
 ---
 
@@ -54,9 +54,9 @@
 
 ## 🚀 Быстрый старт за 1 минуту
 
-1. Скачайте любую из редакций:
-   * **[SimpleMicCompressor.exe](publish/SimpleMicCompressor.exe)** (рекомендуется: с графическим интерфейсом)
-   * **[SimpleMicCompressor_Light.exe](publish/SimpleMicCompressor_Light.exe)** (экспериментальная версия без интерфейса — управляется через системный трей и хоткеи)
+1. Скачайте любую из редакций из [раздела релизов (v1.0)](https://github.com/Diesel-x/SimpleMicCompressor/releases/tag/v1.0):
+   * [**SimpleMicCompressor.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor.exe) (рекомендуется: с графическим интерфейсом)
+   * [**SimpleMicCompressor_Light.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor_Light.exe) (экспериментальная версия без интерфейса — управляется через системный трей и хоткеи)
 2. Запустите программу:
    * **Вход:** выберите ваш физический микрофон.
    * **Выход:** выберите **CABLE Input (VB-Audio Virtual Cable)**.
