@@ -18,6 +18,8 @@ x64/
 x86/
 [Aa]rchive/
 [Ff]inal/
+target/
+light/target/
 
 # User config & logs
 mic_compressor_config.json
