@@ -47,14 +47,9 @@ public partial class MainWindow : Window
             _trayManager = new TrayManager(this, vm);
             vm.RequestMinimizeToTray = MinimizeToTray;
 
-            // Initialize Global Hotkeys
-            var helper = new WindowInteropHelper(this);
-            _hotkeyService = new GlobalHotkeyService();
-            _hotkeyService.Initialize(helper.Handle);
-            _hotkeyService.UpdateHotkeys(vm.Settings);
-
-            var source = HwndSource.FromHwnd(helper.Handle);
-            source?.AddHook(HwndHook);
+            // Initialize Global Hotkeys (Low-level system hook, works in all fullscreen games)
+            _hotkeyService = new GlobalHotkeyService(id => vm.HandleHotkey(id));
+            _hotkeyService.Start(vm.Settings);
 
             vm.RequestUpdateHotkeys = () =>
             {
@@ -203,21 +198,6 @@ public partial class MainWindow : Window
             e.Handled = true;
         }
         catch { }
-    }
-
-    private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-    {
-        const int WM_HOTKEY = 0x0312;
-        if (msg == WM_HOTKEY)
-        {
-            int id = wParam.ToInt32();
-            if (DataContext is MainViewModel vm)
-            {
-                vm.HandleHotkey(id);
-                handled = true;
-            }
-        }
-        return IntPtr.Zero;
     }
 
     protected override void OnClosed(EventArgs e)
