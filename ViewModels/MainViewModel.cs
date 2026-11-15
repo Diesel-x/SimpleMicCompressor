@@ -37,26 +37,21 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ObservableCollection<DeviceInfo> OutputDevices { get; } = new();
     public ObservableCollection<DeviceInfo> MonitorDevices { get; } = new();
 
-    public ObservableCollection<string> Presets { get; } = new()
-    {
-        "Gaming & Discord",
-        "Default / Balanced",
-        "Radio / Podcast",
-        "Whisper / Quiet Night",
-        "Aggressive / Anti-Rage",
-        "🎙️ Уничтоженный микрофон (Meme)",
-        "Пользовательский (Custom)"
-    };
+    public ObservableCollection<string> Presets { get; } = new();
 
     public RelayCommand ToggleEngineCommand { get; }
     public RelayCommand RefreshDevicesCommand { get; }
     public RelayCommand OpenVbCableWebsiteCommand { get; }
     public RelayCommand InstallVbCableCommand { get; }
     public RelayCommand ReinstallVbCableCommand { get; }
+    public RelayCommand SaveProfileCommand { get; }
+    public RelayCommand DeleteProfileCommand { get; }
     public Action? RequestMinimizeToTray { get; set; }
 
     private string? _installerStatus;
     private bool _isInstalling = false;
+    private string _profileNameInput = "";
+    private bool _isCustomProfileSelected = false;
 
     public string? InstallerStatus
     {
@@ -68,6 +63,18 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _isInstalling;
         set => SetField(ref _isInstalling, value);
+    }
+
+    public string ProfileNameInput
+    {
+        get => _profileNameInput;
+        set => SetField(ref _profileNameInput, value);
+    }
+
+    public bool IsCustomProfileSelected
+    {
+        get => _isCustomProfileSelected;
+        private set => SetField(ref _isCustomProfileSelected, value);
     }
 
     public bool HasVirtualCable => OutputDevices.Any(d => d.IsVirtualCable);
@@ -83,7 +90,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         OpenVbCableWebsiteCommand = new RelayCommand(OpenVbCableWebsite);
         InstallVbCableCommand = new RelayCommand(InstallVbCable);
         ReinstallVbCableCommand = new RelayCommand(ReinstallVbCable);
+        SaveProfileCommand = new RelayCommand(SaveCurrentProfile);
+        DeleteProfileCommand = new RelayCommand(DeleteCurrentProfile);
 
+        RefreshPresetsList();
         RefreshDevices();
 
         // 30 FPS UI timer for meters
@@ -329,7 +339,34 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     #endregion
 
-    #region Presets
+    #region Presets & Custom Profiles
+
+    public void RefreshPresetsList()
+    {
+        Presets.Clear();
+        Presets.Add("Gaming & Discord");
+        Presets.Add("Default / Balanced");
+        Presets.Add("Radio / Podcast");
+        Presets.Add("Whisper / Quiet Night");
+        Presets.Add("Aggressive / Anti-Rage");
+        Presets.Add("🎙️ Уничтоженный микрофон (Meme)");
+
+        foreach (var p in _settings.CustomProfiles)
+        {
+            Presets.Add($"⭐ {p.Name}");
+        }
+
+        Presets.Add("Пользовательский (Custom)");
+
+        string current = _settings.SelectedPresetName;
+        if (_settings.CustomProfiles.Any(p => p.Name == current))
+        {
+            _settings.SelectedPresetName = $"⭐ {current}";
+        }
+
+        OnPropertyChanged(nameof(SelectedPreset));
+        CheckCustomProfileSelected();
+    }
 
     public string SelectedPreset
     {
@@ -339,13 +376,47 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             if (_settings.SelectedPresetName != value && value != null)
             {
                 _isUpdatingPreset = true;
-                _settings.ApplyPreset(value);
+                string cleanName = NormalizePresetName(value);
+                _settings.ApplyPreset(cleanName);
+                _settings.SelectedPresetName = value;
                 _settings.Save();
                 UpdateEngineSettings();
                 NotifyAllDspPropertiesChanged();
                 _isUpdatingPreset = false;
                 OnPropertyChanged();
+                CheckCustomProfileSelected();
             }
+        }
+    }
+
+    private static string NormalizePresetName(string preset)
+    {
+        if (preset.StartsWith("⭐ ")) return preset[2..].Trim();
+        return preset;
+    }
+
+    private void CheckCustomProfileSelected()
+    {
+        string current = NormalizePresetName(_settings.SelectedPresetName);
+        IsCustomProfileSelected = _settings.CustomProfiles.Any(p => p.Name.Equals(current, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void SaveCurrentProfile()
+    {
+        string name = string.IsNullOrWhiteSpace(_profileNameInput) ? "Мой профиль" : _profileNameInput.Trim();
+        _settings.SaveCustomProfile(name);
+        ProfileNameInput = "";
+        RefreshPresetsList();
+        SelectedPreset = $"⭐ {name}";
+    }
+
+    private void DeleteCurrentProfile()
+    {
+        string name = NormalizePresetName(_settings.SelectedPresetName);
+        if (_settings.DeleteCustomProfile(name))
+        {
+            RefreshPresetsList();
+            SelectedPreset = "Gaming & Discord";
         }
     }
 
@@ -356,6 +427,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         {
             _settings.SelectedPresetName = "Пользовательский (Custom)";
             OnPropertyChanged(nameof(SelectedPreset));
+            CheckCustomProfileSelected();
         }
     }
 
@@ -732,6 +804,19 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public string GateStatusText => _isGateOpen ? "ОТКРЫТ" : "ЗАКРЫТ";
     public string GateStatusColor => _isGateOpen ? "#57f287" : "#585b62";
+
+    public void PauseMeters()
+    {
+        _meterTimer.Stop();
+    }
+
+    public void ResumeMeters()
+    {
+        if (!_meterTimer.IsEnabled)
+        {
+            _meterTimer.Start();
+        }
+    }
 
     private void OnMeterTick(object? sender, EventArgs e)
     {

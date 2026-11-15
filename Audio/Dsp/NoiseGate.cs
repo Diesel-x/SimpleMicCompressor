@@ -59,7 +59,7 @@ public sealed class NoiseGate
         // Fast RMS / peak tracker for detection
         const float detectorAlpha = 0.05f;
         _envelope = (1.0f - detectorAlpha) * _envelope + detectorAlpha * absIn;
-        float envDb = 20.0f * MathF.Log10(MathF.Max(_envelope, 1e-6f));
+        float envDb = 8.6858896f * MathF.Log(MathF.Max(_envelope, 1e-6f));
 
         float closeThresholdDb = _thresholdDb - _hysteresisDb;
 

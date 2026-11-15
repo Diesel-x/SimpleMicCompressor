@@ -6,8 +6,8 @@
         xmlns:vm="clr-namespace:MicCompressor.ViewModels"
         mc:Ignorable="d"
         Title="MicCompressor — Компрессор звука микрофона для Discord и Игр"
-        Height="850" Width="1080"
-        MinHeight="780" MinWidth="960"
+        Height="860" Width="1120"
+        MinHeight="780" MinWidth="1020"
         WindowStartupLocation="CenterScreen"
         Background="#131417"
         Foreground="#ffffff"
@@ -261,28 +261,67 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Top Controls (Preset, Bypass, Power, Minimize) -->
+            <!-- Top Controls (Preset, Custom Profiles, Bypass, Power, Minimize) -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <!-- Preset Dropdown -->
-                <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
-                    <TextBlock Text="Пресет звучания:" FontSize="12" FontWeight="SemiBold" Foreground="#e2e4e9" Margin="0,0,0,4"/>
-                    <ComboBox Width="200" Height="36" 
-                              ItemsSource="{Binding Presets}" 
-                              SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"/>
+                <!-- Preset Dropdown with Delete button -->
+                <StackPanel Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock Text="Пресет / Профиль:" FontSize="12" FontWeight="SemiBold" Foreground="#e2e4e9" Margin="0,0,0,4"/>
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox Width="180" Height="36" 
+                                  ItemsSource="{Binding Presets}" 
+                                  SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"/>
+                        <Button Content="🗑️" Command="{Binding DeleteProfileCommand}" 
+                                IsEnabled="{Binding IsCustomProfileSelected}"
+                                Width="34" Height="36" Margin="4,0,0,0"
+                                ToolTip="Удалить выбранный кастомный профиль"
+                                Background="#2e303c" Foreground="#ed4245" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Save Profile Field -->
+                <StackPanel Margin="0,0,14,0" VerticalAlignment="Center">
+                    <TextBlock Text="Имя нового профиля:" FontSize="12" FontWeight="SemiBold" Foreground="#e2e4e9" Margin="0,0,0,4"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox Width="125" Height="36" 
+                                 Text="{Binding ProfileNameInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Background="#282a33" Foreground="#ffffff" BorderBrush="#404350" BorderThickness="1.5"
+                                 Padding="8,6" FontSize="12" FontWeight="SemiBold" VerticalContentAlignment="Center">
+                            <TextBox.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+                        <Button Content="💾 Сохранить" Command="{Binding SaveProfileCommand}"
+                                Height="36" Padding="10,0" Margin="4,0,0,0"
+                                Background="#3a3d4c" Foreground="#ffffff" FontWeight="Bold" FontSize="11.5" BorderThickness="0" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
 
                 <!-- Bypass Toggle -->
-                <CheckBox Content="Оригинал (Bypass)" 
+                <CheckBox Content="Bypass" 
                           IsChecked="{Binding BypassAll, Mode=TwoWay}"
-                          VerticalAlignment="Center" Margin="0,14,18,0"
+                          VerticalAlignment="Center" Margin="0,14,14,0"
                           ToolTip="Отключает всю обработку, пропуская чистый исходный звук"/>
 
                 <!-- Minimize to Tray Button -->
-                <Button Content="Свернуть в трей" 
+                <Button Content="В трей" 
                         Click="OnMinimizeToTrayClicked"
-                        Width="130" Height="40" 
-                        Margin="0,10,12,0"
-                        FontSize="12.5" FontWeight="Bold" Cursor="Hand"
+                        Width="85" Height="38" 
+                        Margin="0,10,10,0"
+                        FontSize="12" FontWeight="Bold" Cursor="Hand"
                         Foreground="#ffffff" BorderThickness="0">
                     <Button.Style>
                         <Style TargetType="Button">
@@ -308,9 +347,9 @@
                 <!-- Start / Stop Power Button -->
                 <Button Content="{Binding StartStopButtonText}" 
                         Command="{Binding ToggleEngineCommand}"
-                        Width="135" Height="40" 
+                        Width="125" Height="38" 
                         Margin="0,10,0,0"
-                        FontSize="13.5" FontWeight="Bold" Cursor="Hand"
+                        FontSize="13" FontWeight="Bold" Cursor="Hand"
                         Foreground="#ffffff" BorderThickness="0">
                     <Button.Style>
                         <Style TargetType="Button">
@@ -693,14 +732,23 @@
                     </Border>
 
                     <!-- Meme Mode (Destroyed Mic Joke) -->
-                    <Border Background="#272124" BorderBrush="#4a3038" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,10">
+                    <Border Background="#272124" BorderBrush="#4a3038" BorderThickness="1.5" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
                         <StackPanel>
                             <Grid Margin="0,0,0,3">
-                                <TextBlock Text="🎙️ Уничтоженный микро (Meme)" FontWeight="Bold" FontSize="12.5" Foreground="#ff7b72"/>
+                                <TextBlock Text="🎙️ Уничтоженный микро (Meme)" FontWeight="Bold" FontSize="13" Foreground="#ff7b72"/>
                                 <CheckBox IsChecked="{Binding DestroyedMicMemeMode, Mode=TwoWay}" HorizontalAlignment="Right"/>
                             </Grid>
                             <TextBlock Text="Тот самый прикольный разрушенный звук для троллинга в Discord." 
-                                       FontSize="11" Foreground="#e3b341" TextWrapping="Wrap"/>
+                                       FontSize="11.5" Foreground="#e3b341" TextWrapping="Wrap" Margin="0,0,0,6"/>
+
+                            <!-- Important Discord Krisp Tip -->
+                            <Border Background="#352418" BorderBrush="#6e461b" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                <StackPanel>
+                                    <TextBlock Text="⚠️ Важно для Discord:" FontWeight="Bold" FontSize="11" Foreground="#fee75c"/>
+                                    <TextBlock Text="Обязательно отключите шумоподавление Krisp в Discord (Настройки -> Голос и видео -> Шумоподавление: Откл), иначе Discord заглушит мемный перегруз как шум!" 
+                                               FontSize="10.5" FontWeight="SemiBold" Foreground="#ffd166" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
 
