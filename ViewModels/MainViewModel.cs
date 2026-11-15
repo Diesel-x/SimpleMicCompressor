@@ -44,6 +44,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         "Radio / Podcast",
         "Whisper / Quiet Night",
         "Aggressive / Anti-Rage",
+        "🎙️ Уничтоженный микрофон (Meme)",
         "Пользовательский (Custom)"
     };
 
@@ -406,6 +407,21 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public bool DestroyedMicMemeMode
+    {
+        get => _settings.DestroyedMicMemeMode;
+        set
+        {
+            if (_settings.DestroyedMicMemeMode != value)
+            {
+                _settings.DestroyedMicMemeMode = value;
+                MarkPresetCustom();
+                OnSettingChanged();
+                OnPropertyChanged();
+            }
+        }
+    }
+
     // Noise Gate
     public bool GateEnabled
     {
@@ -657,6 +673,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private void NotifyAllDspPropertiesChanged()
     {
+        OnPropertyChanged(nameof(DestroyedMicMemeMode));
         OnPropertyChanged(nameof(HighPassEnabled));
         OnPropertyChanged(nameof(HighPassCutoffHz));
         OnPropertyChanged(nameof(GateEnabled));

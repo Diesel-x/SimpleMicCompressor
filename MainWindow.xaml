@@ -665,9 +665,9 @@
                     <TextBlock Text="🛡️ Защита звука" FontSize="15" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,12"/>
 
                     <!-- High-pass Filter -->
-                    <Border Background="#24262e" BorderBrush="#3a3d4a" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
+                    <Border Background="#24262e" BorderBrush="#3a3d4a" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
                         <StackPanel>
-                            <Grid Margin="0,0,0,4">
+                            <Grid Margin="0,0,0,3">
                                 <TextBlock Text="Срез гула (Low-Cut 80 Hz)" FontWeight="Bold" FontSize="13" Foreground="#ffffff"/>
                                 <CheckBox IsChecked="{Binding HighPassEnabled, Mode=TwoWay}" HorizontalAlignment="Right"/>
                             </Grid>
@@ -677,18 +677,30 @@
                     </Border>
 
                     <!-- Limiter -->
-                    <Border Background="#24262e" BorderBrush="#3a3d4a" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                    <Border Background="#24262e" BorderBrush="#3a3d4a" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
                         <StackPanel>
-                            <Grid Margin="0,0,0,4">
+                            <Grid Margin="0,0,0,3">
                                 <TextBlock Text="Лимитер (Пик-блокер)" FontWeight="Bold" FontSize="13" Foreground="#ffffff"/>
                                 <CheckBox IsChecked="{Binding LimiterEnabled, Mode=TwoWay}" HorizontalAlignment="Right"/>
                             </Grid>
                             <TextBlock Text="Мягко срезает резкие эмоциональные крики без хрипа." 
-                                       FontSize="11.5" Foreground="#e2e4e9" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                       FontSize="11.5" Foreground="#e2e4e9" TextWrapping="Wrap" Margin="0,0,0,3"/>
                             <Grid>
                                 <TextBlock Text="Потолок:" FontSize="12" FontWeight="SemiBold" Foreground="#e2e4e9"/>
                                 <TextBlock Text="{Binding LimiterCeilingDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12.5" FontWeight="Bold" Foreground="#5865f2"/>
                             </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Meme Mode (Destroyed Mic Joke) -->
+                    <Border Background="#272124" BorderBrush="#4a3038" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,10">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,3">
+                                <TextBlock Text="🎙️ Уничтоженный микро (Meme)" FontWeight="Bold" FontSize="12.5" Foreground="#ff7b72"/>
+                                <CheckBox IsChecked="{Binding DestroyedMicMemeMode, Mode=TwoWay}" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <TextBlock Text="Тот самый прикольный разрушенный звук для троллинга в Discord." 
+                                       FontSize="11" Foreground="#e3b341" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
