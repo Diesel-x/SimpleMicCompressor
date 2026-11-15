@@ -44,6 +44,18 @@ public partial class MainWindow : Window
             _trayManager = new TrayManager(this, vm);
             vm.RequestMinimizeToTray = MinimizeToTray;
 
+            vm.PropertyChanged += (s, args) =>
+            {
+                if (args.PropertyName == nameof(MainViewModel.IsSaveProfileDialogVisible) && vm.IsSaveProfileDialogVisible)
+                {
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        NewProfileTextBox.Focus();
+                        NewProfileTextBox.SelectAll();
+                    }));
+                }
+            };
+
             // Check command line arguments for --minimized
             string[] args = Environment.GetCommandLineArgs();
             bool startMinimized = vm.Settings.StartMinimized || args.Any(a => a.Equals("--minimized", StringComparison.OrdinalIgnoreCase));

@@ -113,7 +113,7 @@ public class AudioSettings
             "Radio / Podcast" => CreatePodcastPreset(),
             "Whisper / Quiet Night" => CreateWhisperPreset(),
             "Aggressive / Anti-Rage" => CreateAntiRagePreset(),
-            "🎙️ Уничтоженный микрофон (Meme)" => CreateDestroyedMicPreset(),
+            "Уничтоженный микрофон (Meme)" or "🎙️ Уничтоженный микрофон (Meme)" => CreateDestroyedMicPreset(),
             _ => this
         };
 
