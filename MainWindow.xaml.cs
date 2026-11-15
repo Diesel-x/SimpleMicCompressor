@@ -71,11 +71,22 @@ public partial class MainWindow : Window
             // Check command line arguments
             string[] args = Environment.GetCommandLineArgs();
 
+            int langIdx = Array.FindIndex(args, a => a.Equals("--lang", StringComparison.OrdinalIgnoreCase));
+            if (langIdx != -1 && langIdx + 1 < args.Length)
+            {
+                string langCode = args[langIdx + 1].ToLowerInvariant();
+                var opt = vm.AvailableLanguages.FirstOrDefault(l => l.Code.Equals(langCode, StringComparison.OrdinalIgnoreCase));
+                if (opt != null)
+                {
+                    vm.SelectedLanguage = opt;
+                }
+            }
+
             if (args.Any(a => a.Equals("--screenshot", StringComparison.OrdinalIgnoreCase)))
             {
                 int idx = Array.FindIndex(args, a => a.Equals("--screenshot", StringComparison.OrdinalIgnoreCase));
                 string path = (idx + 1 < args.Length && !args[idx + 1].StartsWith("--")) ? args[idx + 1] : "assets/screenshot.png";
-                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, new Action(() =>
                 {
                     CaptureAndSave(path);
                     System.Windows.Application.Current.Shutdown();
@@ -87,9 +98,9 @@ public partial class MainWindow : Window
             {
                 int idx = Array.FindIndex(args, a => a.Equals("--screenshot-modal", StringComparison.OrdinalIgnoreCase));
                 string path = (idx + 1 < args.Length && !args[idx + 1].StartsWith("--")) ? args[idx + 1] : "assets/screenshot_modal.png";
-                vm.ProfileNameInput = "Стрим и Discord";
+                vm.ProfileNameInput = vm.SelectedLanguage?.Code == "en" ? "Streaming & Discord" : "Стрим и Discord";
                 vm.IsSaveProfileDialogVisible = true;
-                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, new Action(() =>
                 {
                     CaptureAndSave(path);
                     System.Windows.Application.Current.Shutdown();
@@ -102,7 +113,7 @@ public partial class MainWindow : Window
                 int idx = Array.FindIndex(args, a => a.Equals("--screenshot-hotkeys", StringComparison.OrdinalIgnoreCase));
                 string path = (idx + 1 < args.Length && !args[idx + 1].StartsWith("--")) ? args[idx + 1] : "assets/screenshot_hotkeys.png";
                 vm.IsHotkeysDialogVisible = true;
-                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, new Action(() =>
                 {
                     CaptureAndSave(path);
                     System.Windows.Application.Current.Shutdown();

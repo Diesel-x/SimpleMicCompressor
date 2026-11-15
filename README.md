@@ -3,12 +3,12 @@
 <p align="center">
   <b>Language / Язык:</b>
   <br>
-  <a href="README.md">🇷🇺 Русский</a> &nbsp;|&nbsp; 
-  <a href="README_EN.md">🇬🇧 English</a>
+  <a href="README_RU.md">🇷🇺 Русский</a> &nbsp;|&nbsp; 
+  <b>🇬🇧 English</b>
 </p>
 
 <p align="center">
-  <img src="assets/screenshot_main.png" alt="SimpleMicCompressor Interface" width="850" />
+  <img src="assets/screenshot_main_en.png" alt="SimpleMicCompressor Interface" width="850" />
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 **SimpleMicCompressor** is an ultra-fast real-time system microphone audio processor designed for **Discord**, **streaming**, and **competitive games** (CS2, Valorant, Apex Legends, Warzone). It evens out voice volume dynamics, removes mouse clicks and background hum, dampens loud screaming, and protects against digital clipping with zero impact on gaming FPS.
 
 **Author:** [Diesel-X](https://github.com/Diesel-x)  
-**Repository:** [github.com/Diesel-x/Simple_Mic_Compressor](https://github.com/Diesel-x/Simple_Mic_Compressor)  
+**Repository:** [github.com/Diesel-x/SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)  
 **Version:** `1.0 Release`
 
 ---
@@ -65,6 +65,10 @@
    * Select your input device: **CABLE Output (VB-Audio Virtual Cable)**.
    * Disable Discord's Krisp / Automatic Gain Control (AGC) for pristine natural sound.
 
+<p align="center">
+  <img src="assets/screenshot_modal_en.png" alt="Save Custom Profile Dialog" width="650" />
+</p>
+
 ---
 
 ## ⌨️ Global Hotkeys
@@ -76,6 +80,10 @@ Operates seamlessly across fullscreen games without needing to `Alt+Tab`:
 | **Bypass** | `Ctrl + Shift + B` | Instantly bypasses DSP chain and transmits dry audio |
 | **Meme Mode** | `Ctrl + Shift + M` | Toggles the infamous distorted mic overdrive sound |
 | **Mute** | `Ctrl + Shift + X` | Instant zero-latency DSP hardware mute with tray badge |
+
+<p align="center">
+  <img src="assets/screenshot_hotkeys_en.png" alt="Hotkey Configuration Window" width="650" />
+</p>
 
 ---
 
@@ -92,5 +100,5 @@ Operates seamlessly across fullscreen games without needing to `Alt+Tab`:
 ## 📄 License & Credits
 
 * **Author:** [Diesel-X](https://github.com/Diesel-x)
-* **Project:** [Simple_Mic_Compressor](https://github.com/Diesel-x/Simple_Mic_Compressor)
+* **Project:** [SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)
 * **License:** [MIT License](LICENSE)
