@@ -50,7 +50,24 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public RelayCommand ToggleEngineCommand { get; }
     public RelayCommand RefreshDevicesCommand { get; }
     public RelayCommand OpenVbCableWebsiteCommand { get; }
+    public RelayCommand InstallVbCableCommand { get; }
+    public RelayCommand ReinstallVbCableCommand { get; }
     public Action? RequestMinimizeToTray { get; set; }
+
+    private string? _installerStatus;
+    private bool _isInstalling = false;
+
+    public string? InstallerStatus
+    {
+        get => _installerStatus;
+        set => SetField(ref _installerStatus, value);
+    }
+
+    public bool IsInstalling
+    {
+        get => _isInstalling;
+        set => SetField(ref _isInstalling, value);
+    }
 
     public bool HasVirtualCable => OutputDevices.Any(d => d.IsVirtualCable);
 
@@ -63,6 +80,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         ToggleEngineCommand = new RelayCommand(ToggleEngine);
         RefreshDevicesCommand = new RelayCommand(RefreshDevices);
         OpenVbCableWebsiteCommand = new RelayCommand(OpenVbCableWebsite);
+        InstallVbCableCommand = new RelayCommand(InstallVbCable);
+        ReinstallVbCableCommand = new RelayCommand(ReinstallVbCable);
 
         RefreshDevices();
 
@@ -164,6 +183,50 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 _settings.Save();
                 UpdateEngineSettings();
             }
+        }
+    }
+
+    private async void InstallVbCable()
+    {
+        if (_isInstalling) return;
+        IsInstalling = true;
+        InstallerStatus = "Подготовка к установке...";
+
+        var (success, message) = await VbCableInstallerService.InstallOrReinstallAsync(false, msg =>
+        {
+            App.Current?.Dispatcher.Invoke(() => InstallerStatus = msg);
+        });
+
+        IsInstalling = false;
+        InstallerStatus = message;
+
+        RefreshDevices();
+        var cable = OutputDevices.FirstOrDefault(d => d.IsVirtualCable);
+        if (cable != null)
+        {
+            SelectedOutputDevice = cable;
+        }
+    }
+
+    private async void ReinstallVbCable()
+    {
+        if (_isInstalling) return;
+        IsInstalling = true;
+        InstallerStatus = "Подготовка к переустановке...";
+
+        var (success, message) = await VbCableInstallerService.InstallOrReinstallAsync(true, msg =>
+        {
+            App.Current?.Dispatcher.Invoke(() => InstallerStatus = msg);
+        });
+
+        IsInstalling = false;
+        InstallerStatus = message;
+
+        RefreshDevices();
+        var cable = OutputDevices.FirstOrDefault(d => d.IsVirtualCable);
+        if (cable != null)
+        {
+            SelectedOutputDevice = cable;
         }
     }
 
