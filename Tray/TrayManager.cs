@@ -31,17 +31,13 @@ public sealed class TrayManager : IDisposable
 
         contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
-        var bypassItem = new System.Windows.Forms.ToolStripMenuItem("Режим Bypass (Оригинал)", null, (s, e) =>
+        var bypassItem = new System.Windows.Forms.ToolStripMenuItem(Localization.LocalizationService.Instance["Tray_Bypass"], null, (s, e) =>
         {
             _viewModel.BypassAll = !_viewModel.BypassAll;
         });
-        contextMenu.Opening += (s, e) =>
-        {
-            bypassItem.Checked = _viewModel.BypassAll;
-        };
         contextMenu.Items.Add(bypassItem);
 
-        var toggleEngineItem = new System.Windows.Forms.ToolStripMenuItem("Запустить / Остановить", null, (s, e) =>
+        var toggleEngineItem = new System.Windows.Forms.ToolStripMenuItem(Localization.LocalizationService.Instance["Tray_ToggleEngine"], null, (s, e) =>
         {
             _viewModel.ToggleEngine();
         });
@@ -49,12 +45,21 @@ public sealed class TrayManager : IDisposable
 
         contextMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
-        var exitItem = new System.Windows.Forms.ToolStripMenuItem("Закрыть приложение", null, (s, e) =>
+        var exitItem = new System.Windows.Forms.ToolStripMenuItem(Localization.LocalizationService.Instance["Tray_Exit"], null, (s, e) =>
         {
             _notifyIcon!.Visible = false;
             System.Windows.Application.Current.Shutdown();
         });
         contextMenu.Items.Add(exitItem);
+
+        contextMenu.Opening += (s, e) =>
+        {
+            openItem.Text = Localization.LocalizationService.Instance["Tray_Open"];
+            bypassItem.Text = Localization.LocalizationService.Instance["Tray_Bypass"];
+            bypassItem.Checked = _viewModel.BypassAll;
+            toggleEngineItem.Text = Localization.LocalizationService.Instance["Tray_ToggleEngine"];
+            exitItem.Text = Localization.LocalizationService.Instance["Tray_Exit"];
+        };
 
         _notifyIcon = new System.Windows.Forms.NotifyIcon
         {

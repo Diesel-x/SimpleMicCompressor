@@ -252,49 +252,55 @@
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="SIMPLE MIC COMPRESSOR" FontSize="15" FontWeight="Bold" Foreground="#ffffff"/>
+                        <TextBlock Text="{Binding Loc[App_Title]}" FontSize="15" FontWeight="Bold" Foreground="#ffffff"/>
                         <Border Background="#22242c" BorderBrush="#353846" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0">
-                            <TextBlock Text="WASAPI DSP" FontSize="10.5" FontWeight="Bold" Foreground="#9ba2b5"/>
+                            <TextBlock Text="{Binding Loc[Engine_Dsp]}" FontSize="10.5" FontWeight="Bold" Foreground="#9ba2b5"/>
                         </Border>
                     </StackPanel>
                     
                     <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                         <Ellipse Width="8" Height="8" Fill="{Binding EngineStatusColor}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding EngineStatusText}" FontSize="11.5" Foreground="{Binding EngineStatusColor}" FontWeight="Bold" Margin="0,0,12,0"/>
+                        <TextBlock Text="{Binding EngineStatusText}" FontSize="11.5" Foreground="{Binding EngineStatusColor}" FontWeight="Bold" Margin="0,0,8,0"/>
 
                         <!-- Real-time Latency Indicator -->
                         <Border Background="#1f2129" BorderBrush="#323542" BorderThickness="1" CornerRadius="4" Padding="6,1">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="LATENCY: " FontSize="10.5" FontWeight="SemiBold" Foreground="#8b92a4"/>
+                                <TextBlock Text="{Binding Loc[Telemetry_Latency]}" FontSize="10.5" FontWeight="SemiBold" Foreground="#8b92a4" Margin="0,0,3,0"/>
                                 <TextBlock Text="{Binding LatencyDisplay}" FontSize="10.5" FontWeight="Bold" Foreground="#38bdf8"/>
                             </StackPanel>
+                        </Border>
+
+                        <!-- Mute Badge (visible when muted) -->
+                        <Border Background="#dc2626" CornerRadius="4" Padding="6,1" Margin="8,0,0,0"
+                                Visibility="{Binding IsMuted, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="{Binding Loc[Badge_Muted]}" FontSize="10" FontWeight="Bold" Foreground="#ffffff"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
 
-            <!-- Top Right: Profiles, Bypass, Power -->
+            <!-- Top Right: Profiles, Hotkeys, Language, Bypass, Tray, Power -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Preset / Profile Selector & Actions -->
-                <StackPanel Margin="0,0,14,0" VerticalAlignment="Center">
-                    <TextBlock Text="ПРОФИЛЬ" FontSize="10" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,0,3"/>
+                <StackPanel Margin="0,0,10,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Loc[Header_Profile]}" FontSize="10" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,0,3"/>
                     <StackPanel Orientation="Horizontal">
                         <!-- Dropdown -->
-                        <ComboBox Width="185" Height="32" 
+                        <ComboBox Width="165" Height="32" 
                                   ItemsSource="{Binding Presets}" 
                                   SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"/>
 
                         <!-- Save Button (Updates current profile or prompts for new) -->
                         <Button Command="{Binding SaveProfileCommand}" 
                                 ToolTip="{Binding SaveButtonToolTip}"
-                                Height="32" Padding="10,0" Margin="5,0,0,0"
+                                Height="32" Padding="8,0" Margin="4,0,0,0"
                                 Background="#2563eb" Foreground="#ffffff" FontSize="11.5" FontWeight="SemiBold"
                                 BorderThickness="0" Cursor="Hand">
                             <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="5"/></Style></Button.Resources>
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="M 2 2 L 10 2 L 12 4 L 12 12 L 2 12 Z M 4 2 L 4 5 L 9 5 L 9 2 Z M 4 8 L 10 8 L 10 11 L 4 11 Z" 
-                                      Stroke="#ffffff" StrokeThickness="1.2" Fill="Transparent" Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Сохранить" VerticalAlignment="Center"/>
+                                      Stroke="#ffffff" StrokeThickness="1.2" Fill="Transparent" Width="13" Height="13" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Loc[Action_Save]}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Button.Style>
                                 <Style TargetType="Button">
@@ -309,16 +315,16 @@
 
                         <!-- New Profile Button (+) -->
                         <Button Command="{Binding OpenNewProfileDialogCommand}" 
-                                ToolTip="Создать новый профиль из текущих настроек..."
-                                Height="32" Padding="8,0" Margin="4,0,0,0"
+                                ToolTip="{Binding Loc[Modal_NewProfile_Title]}"
+                                Height="32" Padding="7,0" Margin="4,0,0,0"
                                 Background="#252731" Foreground="#c5cad6" FontSize="11.5" FontWeight="SemiBold"
                                 BorderThickness="0" Cursor="Hand">
                             <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="5"/></Style></Button.Resources>
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="M 6 2 L 6 10 M 2 6 L 10 6" 
                                       Stroke="#c5cad6" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                      Fill="Transparent" Width="12" Height="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Новый" VerticalAlignment="Center"/>
+                                      Fill="Transparent" Width="12" Height="12" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Loc[Action_New]}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <Button.Style>
                                 <Style TargetType="Button">
@@ -336,7 +342,7 @@
                         <Button Command="{Binding DeleteProfileCommand}" 
                                 Visibility="{Binding IsCustomProfileSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 ToolTip="{Binding DeleteToolTip}"
-                                Height="32" Width="32" Margin="4,0,0,0"
+                                Height="32" Width="30" Margin="4,0,0,0"
                                 Background="#252731" BorderThickness="0" Cursor="Hand">
                             <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="5"/></Style></Button.Resources>
                             <Path Data="M 3 4 L 11 4 M 4.5 4 L 4.5 11 C 4.5 11.5 5 12 5.5 12 L 8.5 12 C 9 12 9.5 11.5 9.5 11 L 9.5 4 M 5.5 4 L 5.5 2.5 C 5.5 2 6 2 6.5 2 L 7.5 2 C 8 2 8.5 2 8.5 2.5 L 8.5 4" 
@@ -355,17 +361,48 @@
                     </StackPanel>
                 </StackPanel>
 
+                <!-- Hotkeys Button -->
+                <Button Command="{Binding OpenHotkeysDialogCommand}"
+                        ToolTip="{Binding Loc[Modal_Hotkeys_Title]}"
+                        Height="32" Padding="8,0" Margin="0,11,6,0"
+                        Background="#252731" Foreground="#c5cad6" FontSize="11.5" FontWeight="SemiBold"
+                        BorderThickness="0" Cursor="Hand">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="5"/></Style></Button.Resources>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="M 1 3 L 13 3 C 13.5 3 14 3.5 14 4 L 14 10 C 14 10.5 13.5 11 13 11 L 1 11 C 0.5 11 0 10.5 0 10 L 0 4 C 0 3.5 0.5 3 1 3 Z M 2 5 L 3.5 5 M 5 5 L 6.5 5 M 8 5 L 9.5 5 M 11 5 L 12.5 5 M 2 7 L 3.5 7 M 5 7 L 6.5 7 M 8 7 L 9.5 7 M 11 7 L 12.5 7 M 4 9 L 10 9" 
+                              Stroke="#c5cad6" StrokeThickness="1.1" Width="14" Height="14" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Loc[Action_Hotkeys]}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#323543"/>
+                                    <Setter Property="Foreground" Value="#ffffff"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Language Selector -->
+                <ComboBox Width="110" Height="32" Margin="0,11,6,0"
+                          ItemsSource="{Binding AvailableLanguages}"
+                          SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                          DisplayMemberPath="DisplayName"
+                          ToolTip="{Binding Loc[Action_Language]}"/>
+
                 <!-- Bypass Toggle -->
-                <CheckBox Content="Bypass" 
+                <CheckBox Content="{Binding Loc[Action_Bypass]}" 
                           IsChecked="{Binding BypassAll, Mode=TwoWay}"
-                          VerticalAlignment="Center" Margin="0,12,12,0"
-                          ToolTip="Отключить всю обработку (исходный звук микрофона)"/>
+                          VerticalAlignment="Center" Margin="0,11,8,0"
+                          ToolTip="Bypass"/>
 
                 <!-- Minimize to Tray Button -->
-                <Button Content="В трей" 
+                <Button Content="{Binding Loc[Action_ToTray]}" 
                         Click="OnMinimizeToTrayClicked"
-                        Width="70" Height="32" 
-                        Margin="0,10,8,0"
+                        Width="65" Height="32" 
+                        Margin="0,11,6,0"
                         FontSize="11.5" FontWeight="SemiBold" Cursor="Hand"
                         Foreground="#c5cad6" BorderThickness="0">
                     <Button.Style>
@@ -374,7 +411,7 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="8,4">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="6,4">
                                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                     </ControlTemplate>
@@ -392,9 +429,9 @@
                 <!-- Start / Stop Engine Button -->
                 <Button Content="{Binding StartStopButtonText}" 
                         Command="{Binding ToggleEngineCommand}"
-                        Width="115" Height="32" 
-                        Margin="0,10,0,0"
-                        FontSize="12" FontWeight="Bold" Cursor="Hand"
+                        Width="105" Height="32" 
+                        Margin="0,11,0,0"
+                        FontSize="11.5" FontWeight="Bold" Cursor="Hand"
                         Foreground="#ffffff" BorderThickness="0">
                     <Button.Style>
                         <Style TargetType="Button">
@@ -442,8 +479,8 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,0,0,8">
-                        <TextBlock Text="МАРШРУТИЗАЦИЯ ЗВУКА" FontSize="11" FontWeight="Bold" Foreground="#8b92a4"/>
-                        <Button Content="Обновить" Command="{Binding RefreshDevicesCommand}" 
+                        <TextBlock Text="{Binding Loc[Card_Routing]}" FontSize="11" FontWeight="Bold" Foreground="#8b92a4"/>
+                        <Button Content="{Binding Loc[Routing_Refresh]}" Command="{Binding RefreshDevicesCommand}" 
                                 HorizontalAlignment="Right" Background="Transparent" Foreground="#3b82f6" 
                                 BorderThickness="0" Cursor="Hand" FontSize="11" FontWeight="Bold"/>
                     </Grid>
@@ -454,7 +491,7 @@
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Вход:" FontSize="12" FontWeight="SemiBold" Foreground="#8b92a4" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="0" Text="{Binding Loc[Routing_Input]}" FontSize="12" FontWeight="SemiBold" Foreground="#8b92a4" VerticalAlignment="Center"/>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding InputDevices}" 
                                   SelectedItem="{Binding SelectedInputDevice, Mode=TwoWay}"
                                   DisplayMemberPath="Name" Height="30"/>
@@ -466,7 +503,7 @@
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Выход:" FontSize="12" FontWeight="SemiBold" Foreground="#8b92a4" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="0" Text="{Binding Loc[Routing_Output]}" FontSize="12" FontWeight="SemiBold" Foreground="#8b92a4" VerticalAlignment="Center"/>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding OutputDevices}" 
                                   SelectedItem="{Binding SelectedOutputDevice, Mode=TwoWay}"
                                   DisplayMemberPath="Name" Height="30"/>
@@ -483,11 +520,11 @@
                             <TextBlock Grid.Column="0" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="Виртуальный кабель не обнаружен (нужен для Discord)"/>
+                                        <Setter Property="Text" Value="{Binding Loc[Cable_NotFound]}"/>
                                         <Setter Property="Foreground" Value="#f59e0b"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
-                                                <Setter Property="Text" Value="Виртуальный кабель активен. В Discord выберите CABLE Output"/>
+                                                <Setter Property="Text" Value="{Binding Loc[Cable_Active]}"/>
                                                 <Setter Property="Foreground" Value="#10b981"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -500,17 +537,17 @@
                                 <Button.Style>
                                     <Style TargetType="Button">
                                         <Setter Property="Background" Value="#2563eb"/>
-                                        <Setter Property="Content" Value="Установить кабель"/>
+                                        <Setter Property="Content" Value="{Binding Loc[Cable_Install]}"/>
                                         <Setter Property="Command" Value="{Binding InstallVbCableCommand}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
                                                 <Setter Property="Background" Value="#2b2d38"/>
-                                                <Setter Property="Content" Value="Переустановить"/>
+                                                <Setter Property="Content" Value="{Binding Loc[Cable_Reinstall]}"/>
                                                 <Setter Property="Command" Value="{Binding ReinstallVbCableCommand}"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding IsInstalling}" Value="True">
                                                 <Setter Property="IsEnabled" Value="False"/>
-                                                <Setter Property="Content" Value="Установка..."/>
+                                                <Setter Property="Content" Value="{Binding Loc[Cable_Installing]}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -526,7 +563,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="80"/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox Grid.Column="0" Content="Мониторинг" 
+                        <CheckBox Grid.Column="0" Content="{Binding Loc[Routing_Monitor]}" 
                                   IsChecked="{Binding MonitorEnabled, Mode=TwoWay}" 
                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding MonitorDevices}" 
@@ -536,7 +573,7 @@
                         <Slider Grid.Column="2" Minimum="0.0" Maximum="1.0" 
                                 Value="{Binding MonitorVolume, Mode=TwoWay}" 
                                 IsEnabled="{Binding MonitorEnabled}"
-                                ToolTip="Громкость самопрослушивания"/>
+                                ToolTip="{Binding Loc[Routing_MonitorVolume]}"/>
                     </Grid>
                 </Grid>
             </Border>
@@ -552,10 +589,10 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock Text="ИНДИКАТОРЫ УРОВНЯ" FontSize="11" FontWeight="Bold" Foreground="#8b92a4"/>
+                        <TextBlock Text="{Binding Loc[Card_Meters]}" FontSize="11" FontWeight="Bold" Foreground="#8b92a4"/>
                         <Border HorizontalAlignment="Right" Background="#242630" CornerRadius="4" Padding="6,1">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="GATE: " FontSize="10.5" FontWeight="SemiBold" Foreground="#8b92a4"/>
+                                <TextBlock Text="{Binding Loc[Meters_Gate]}" FontSize="10.5" FontWeight="SemiBold" Foreground="#8b92a4" Margin="0,0,3,0"/>
                                 <TextBlock Text="{Binding GateStatusText}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding GateStatusColor}"/>
                             </StackPanel>
                         </Border>
@@ -568,7 +605,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,3">
-                            <TextBlock Text="Вход (Микрофон)" FontSize="11" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Meters_Input]}" FontSize="11" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding InputPeakDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold" Foreground="#10b981"/>
                         </Grid>
                         <Border Grid.Row="1" Background="#16171d" Height="10" CornerRadius="5">
@@ -584,7 +621,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,3">
-                            <TextBlock Text="Сжатие компрессора (GR)" FontSize="11" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Meters_GR]}" FontSize="11" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding GainReductionDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold" Foreground="#f59e0b"/>
                         </Grid>
                         <Border Grid.Row="1" Background="#16171d" Height="10" CornerRadius="5">
@@ -600,7 +637,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,3">
-                            <TextBlock Text="Выход (В эфир)" FontSize="11" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Meters_Output]}" FontSize="11" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding OutputPeakDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
                         <Border Grid.Row="1" Background="#16171d" Height="10" CornerRadius="5">
@@ -626,28 +663,28 @@
             <Border Grid.Column="0" Style="{StaticResource CardPanel}">
                 <StackPanel>
                     <Grid Margin="0,0,0,12">
-                        <TextBlock Text="NOISE GATE" FontSize="12" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Loc[Card_Gate]}" FontSize="12" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
                         <CheckBox IsChecked="{Binding GateEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
 
                     <!-- Threshold -->
                     <StackPanel Margin="0,0,0,14">
                         <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Порог (Threshold)" FontSize="12" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Gate_Threshold]}" FontSize="12" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding GateThresholdDb, StringFormat={}{0:F0} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
                         <Slider Minimum="-60" Maximum="-20" Value="{Binding GateThresholdDb, Mode=TwoWay}" IsEnabled="{Binding GateEnabled}"
-                                ToolTip="Уровень громкости, ниже которого микрофон автоматически глушится"/>
+                                ToolTip="{Binding Loc[Gate_Threshold_Tip]}"/>
                     </StackPanel>
 
                     <!-- Release -->
                     <StackPanel Margin="0,0,0,10">
                         <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Затухание (Release)" FontSize="12" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Gate_Release]}" FontSize="12" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding GateReleaseMs, StringFormat={}{0:F0} ms}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
                         <Slider Minimum="20" Maximum="400" Value="{Binding GateReleaseMs, Mode=TwoWay}" IsEnabled="{Binding GateEnabled}"
-                                ToolTip="Время плавного закрытия гейта (сохраняет тихие окончания слов)"/>
+                                ToolTip="{Binding Loc[Gate_Release_Tip]}"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -656,38 +693,38 @@
             <Border Grid.Column="2" Style="{StaticResource CardPanel}">
                 <StackPanel>
                     <Grid Margin="0,0,0,12">
-                        <TextBlock Text="COMPRESSOR" FontSize="12" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Loc[Card_Compressor]}" FontSize="12" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
                         <CheckBox IsChecked="{Binding CompressorEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
 
                     <!-- Threshold -->
                     <StackPanel Margin="0,0,0,10">
                         <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Порог (Threshold)" FontSize="12" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Comp_Threshold]}" FontSize="12" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding CompressorThresholdDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
                         <Slider Minimum="-40" Maximum="0" Value="{Binding CompressorThresholdDb, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"
-                                ToolTip="Громкость, выше которой сигнал начинает сжиматься"/>
+                                ToolTip="{Binding Loc[Comp_Threshold_Tip]}"/>
                     </StackPanel>
 
                     <!-- Ratio -->
                     <StackPanel Margin="0,0,0,10">
                         <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Сжатие (Ratio)" FontSize="12" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Comp_Ratio]}" FontSize="12" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding CompressorRatio, StringFormat={}{0:F1}:1}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
                         <Slider Minimum="1.5" Maximum="10.0" Value="{Binding CompressorRatio, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"
-                                ToolTip="Степень подавления громких звуков"/>
+                                ToolTip="{Binding Loc[Comp_Ratio_Tip]}"/>
                     </StackPanel>
 
                     <!-- Makeup Gain -->
                     <StackPanel Margin="0,0,0,10">
                         <Grid Margin="0,0,0,2">
-                            <TextBlock Text="Усиление (Makeup Gain)" FontSize="12" Foreground="#c5cad6"/>
+                            <TextBlock Text="{Binding Loc[Comp_Makeup]}" FontSize="12" Foreground="#c5cad6"/>
                             <TextBlock Text="{Binding CompressorMakeupGainDb, StringFormat=+{0:F1} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#10b981"/>
                         </Grid>
                         <Slider Minimum="0" Maximum="18" Value="{Binding CompressorMakeupGainDb, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"
-                                ToolTip="Компенсация общей громкости после сжатия"/>
+                                ToolTip="{Binding Loc[Comp_Makeup_Tip]}"/>
                     </StackPanel>
 
                     <!-- Attack & Release Grid -->
@@ -700,7 +737,7 @@
 
                         <StackPanel Grid.Column="0">
                             <Grid Margin="0,0,0,2">
-                                <TextBlock Text="Атака" FontSize="11.5" Foreground="#8b92a4"/>
+                                <TextBlock Text="{Binding Loc[Comp_Attack]}" FontSize="11.5" Foreground="#8b92a4"/>
                                 <TextBlock Text="{Binding CompressorAttackMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
                             </Grid>
                             <Slider Minimum="1" Maximum="40" Value="{Binding CompressorAttackMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
@@ -708,7 +745,7 @@
 
                         <StackPanel Grid.Column="2">
                             <Grid Margin="0,0,0,2">
-                                <TextBlock Text="Спад" FontSize="11.5" Foreground="#8b92a4"/>
+                                <TextBlock Text="{Binding Loc[Comp_Release]}" FontSize="11.5" Foreground="#8b92a4"/>
                                 <TextBlock Text="{Binding CompressorReleaseMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
                             </Grid>
                             <Slider Minimum="30" Maximum="400" Value="{Binding CompressorReleaseMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
@@ -720,14 +757,14 @@
             <!-- MODULE 3: MASTER & FX -->
             <Border Grid.Column="4" Style="{StaticResource CardPanel}">
                 <StackPanel>
-                    <TextBlock Text="MASTER &amp; FX" FontSize="12" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding Loc[Card_Master]}" FontSize="12" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,12"/>
 
                     <!-- Low-Cut Filter -->
                     <Border Background="#22242c" BorderBrush="#2e313c" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
                         <Grid>
-                            <TextBlock Text="Low-Cut 80 Hz (Срез гула)" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Loc[FX_LowCut]}" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff" VerticalAlignment="Center"/>
                             <CheckBox IsChecked="{Binding HighPassEnabled, Mode=TwoWay}" HorizontalAlignment="Right"
-                                      ToolTip="Срезает низкочастотный гул микрофона и удары по столу"/>
+                                      ToolTip="{Binding Loc[FX_LowCut_Tip]}"/>
                         </Grid>
                     </Border>
 
@@ -735,8 +772,8 @@
                     <Border Background="#22242c" BorderBrush="#2e313c" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
                         <Grid>
                             <StackPanel>
-                                <TextBlock Text="Пик-лимитер (-1.0 dB)" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff"/>
-                                <TextBlock Text="Защита от клиппинга и хрипа" FontSize="10.5" Foreground="#8b92a4"/>
+                                <TextBlock Text="{Binding Loc[FX_Limiter]}" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff"/>
+                                <TextBlock Text="{Binding Loc[FX_Limiter_Sub]}" FontSize="10.5" Foreground="#8b92a4"/>
                             </StackPanel>
                             <CheckBox IsChecked="{Binding LimiterEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </Grid>
@@ -746,10 +783,10 @@
                     <Border Background="#2a1f24" BorderBrush="#4f2f39" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
                         <StackPanel>
                             <Grid Margin="0,0,0,3">
-                                <TextBlock Text="Перегруз (Meme)" FontSize="12" FontWeight="Bold" Foreground="#f87171"/>
+                                <TextBlock Text="{Binding Loc[FX_Meme]}" FontSize="12" FontWeight="Bold" Foreground="#f87171"/>
                                 <CheckBox IsChecked="{Binding DestroyedMicMemeMode, Mode=TwoWay}" HorizontalAlignment="Right"/>
                             </Grid>
-                            <TextBlock Text="В Discord отключите Krisp (иначе звук заглушится)" 
+                            <TextBlock Text="{Binding Loc[FX_Meme_Notice]}" 
                                        FontSize="10.5" FontWeight="SemiBold" Foreground="#fbbf24" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
@@ -757,10 +794,10 @@
                     <!-- Preferences -->
                     <Border Background="#16171d" BorderBrush="#2a2c37" BorderThickness="1" CornerRadius="6" Padding="10,8">
                         <StackPanel>
-                            <CheckBox Content="Автозапуск с Windows" 
+                            <CheckBox Content="{Binding Loc[Pref_AutoStart]}" 
                                       IsChecked="{Binding AutoStartWithWindows, Mode=TwoWay}" 
                                       Margin="0,0,0,6" FontSize="11.5"/>
-                            <CheckBox Content="Сворачивать в трей на [X]" 
+                            <CheckBox Content="{Binding Loc[Pref_MinimizeClose]}" 
                                       IsChecked="{Binding MinimizeToTrayOnClose, Mode=TwoWay}" 
                                       FontSize="11.5"/>
                         </StackPanel>
@@ -772,11 +809,11 @@
         <!-- 4. CLEAN STATUS FOOTER -->
         <Grid Grid.Row="3" Margin="0,12,0,0">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="SimpleMicCompressor • Low-Latency Audio Engine" FontSize="11" Foreground="#555a6d" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Loc[Footer_Engine]}" FontSize="11" Foreground="#555a6d" VerticalAlignment="Center"/>
                 <TextBlock Text="{Binding StatusNotification}" FontSize="11" FontWeight="SemiBold" Foreground="#38bdf8" Margin="14,0,0,0" VerticalAlignment="Center"/>
             </StackPanel>
             <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#555a6d" VerticalAlignment="Center">
-                <Run Text="Выход: "/>
+                <Run Text="{Binding Loc[Footer_Output], Mode=OneWay}"/>
                 <Run Text="{Binding SelectedOutputDevice.Name, Mode=OneWay}" Foreground="#8b92a4"/>
             </TextBlock>
         </Grid>
@@ -791,11 +828,11 @@
                     <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.6"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="Новый профиль" FontSize="15" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,6"/>
-                    <TextBlock Text="Введите название для сохранения текущих настроек компрессора, гейта и фильтров:" 
+                    <TextBlock Text="{Binding Loc[Modal_NewProfile_Title]}" FontSize="15" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding Loc[Modal_NewProfile_Desc]}" 
                                FontSize="12" Foreground="#8b92a4" TextWrapping="Wrap" Margin="0,0,0,16" LineHeight="16"/>
 
-                    <TextBlock Text="НАЗВАНИЕ ПРОФИЛЯ" FontSize="10" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding Loc[Modal_NewProfile_Field]}" FontSize="10" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,0,4"/>
                     <TextBox x:Name="NewProfileTextBox"
                              Text="{Binding ProfileNameInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              Background="#252731" Foreground="#ffffff" BorderBrush="#3b82f6" BorderThickness="1.5"
@@ -811,7 +848,7 @@
                             <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="Отмена" Command="{Binding CancelSaveProfileCommand}"
+                        <Button Grid.Column="0" Content="{Binding Loc[Modal_Cancel]}" Command="{Binding CancelSaveProfileCommand}"
                                 IsCancel="True"
                                 Height="34" Background="#262833" Foreground="#c5cad6" FontSize="12" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand">
                             <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
@@ -826,7 +863,7 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Grid.Column="2" Content="Сохранить" Command="{Binding ConfirmSaveProfileCommand}"
+                        <Button Grid.Column="2" Content="{Binding Loc[Modal_Save]}" Command="{Binding ConfirmSaveProfileCommand}"
                                 IsDefault="True"
                                 Height="34" Background="#2563eb" Foreground="#ffffff" FontSize="12" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
                             <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
@@ -839,6 +876,107 @@
                                     </Style.Triggers>
                                 </Style>
                             </Button.Style>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 6. MODAL: GLOBAL HOTKEYS DIALOG OVERLAY -->
+        <Grid Grid.Row="0" Grid.RowSpan="4"
+              Visibility="{Binding IsHotkeysDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="#99000000" Panel.ZIndex="300" Margin="-18">
+            <Border Background="#1b1c22" BorderBrush="#353846" BorderThickness="1.5" CornerRadius="10"
+                    Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="22">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.6"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="{Binding Loc[Modal_Hotkeys_Title]}" FontSize="15" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding Loc[Modal_Hotkeys_Desc]}" 
+                               FontSize="12" Foreground="#8b92a4" TextWrapping="Wrap" Margin="0,0,0,16" LineHeight="16"/>
+
+                    <CheckBox Content="{Binding Loc[Modal_Hotkeys_Enable]}"
+                              IsChecked="{Binding HotkeysEnabled, Mode=TwoWay}"
+                              Margin="0,0,0,14" FontSize="12.5" FontWeight="SemiBold"/>
+
+                    <!-- Hotkey 1: Bypass -->
+                    <Border Background="#22242c" BorderBrush="#2e313c" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                                <TextBlock Text="{Binding Loc[Hotkeys_Bypass]}" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding HotkeyBypass.Enabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" IsEnabled="{Binding HotkeyBypass.Enabled}">
+                                <CheckBox Content="Ctrl" IsChecked="{Binding HotkeyBypass.Ctrl, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <CheckBox Content="Shift" IsChecked="{Binding HotkeyBypass.Shift, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <CheckBox Content="Alt" IsChecked="{Binding HotkeyBypass.Alt, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <ComboBox Width="75" Height="28" ItemsSource="{Binding AvailableHotkeyKeys}" SelectedItem="{Binding HotkeyBypass.Key, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Hotkey 2: Meme Mode -->
+                    <Border Background="#22242c" BorderBrush="#2e313c" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                                <TextBlock Text="{Binding Loc[Hotkeys_Meme]}" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding HotkeyMeme.Enabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" IsEnabled="{Binding HotkeyMeme.Enabled}">
+                                <CheckBox Content="Ctrl" IsChecked="{Binding HotkeyMeme.Ctrl, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <CheckBox Content="Shift" IsChecked="{Binding HotkeyMeme.Shift, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <CheckBox Content="Alt" IsChecked="{Binding HotkeyMeme.Alt, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <ComboBox Width="75" Height="28" ItemsSource="{Binding AvailableHotkeyKeys}" SelectedItem="{Binding HotkeyMeme.Key, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Hotkey 3: Mute -->
+                    <Border Background="#22242c" BorderBrush="#2e313c" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                                <TextBlock Text="{Binding Loc[Hotkeys_Mute]}" FontSize="12" FontWeight="SemiBold" Foreground="#ffffff" VerticalAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding HotkeyMute.Enabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" IsEnabled="{Binding HotkeyMute.Enabled}">
+                                <CheckBox Content="Ctrl" IsChecked="{Binding HotkeyMute.Ctrl, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <CheckBox Content="Shift" IsChecked="{Binding HotkeyMute.Shift, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <CheckBox Content="Alt" IsChecked="{Binding HotkeyMute.Alt, Mode=TwoWay}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#8b92a4" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <ComboBox Width="75" Height="28" ItemsSource="{Binding AvailableHotkeyKeys}" SelectedItem="{Binding HotkeyMute.Key, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="{Binding Loc[Modal_Reset]}" Command="{Binding ResetHotkeysCommand}"
+                                Height="34" Padding="12,0" Background="#262833" Foreground="#c5cad6" FontSize="11.5" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                        </Button>
+                        <Button Grid.Column="2" Content="{Binding Loc[Modal_Close]}" Command="{Binding CloseHotkeysDialogCommand}"
+                                IsDefault="True"
+                                Height="34" Padding="16,0" Background="#2563eb" Foreground="#ffffff" FontSize="12" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
                         </Button>
                     </Grid>
                 </StackPanel>

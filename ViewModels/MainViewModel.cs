@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Threading;
 using MicCompressor.Audio;
 using MicCompressor.Audio.Dsp;
+using MicCompressor.Localization;
 using MicCompressor.Models;
 using MicCompressor.Utils;
 
@@ -16,6 +17,28 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private readonly AudioEngine _engine;
     private readonly AudioSettings _settings;
     private readonly DispatcherTimer _meterTimer;
+
+    public LocalizationService Loc => LocalizationService.Instance;
+    public IReadOnlyList<LanguageOption> AvailableLanguages => LocalizationService.SupportedLanguages;
+
+    public LanguageOption SelectedLanguage
+    {
+        get => Loc.CurrentLanguageOption;
+        set
+        {
+            if (value != null && value.Code != Loc.CurrentLanguage)
+            {
+                Loc.SetLanguage(value.Code);
+                _settings.Language = value.Code;
+                _settings.Save();
+                OnPropertyChanged(nameof(SelectedLanguage));
+                OnPropertyChanged(nameof(SaveButtonToolTip));
+                OnPropertyChanged(nameof(DeleteToolTip));
+                UpdateEngineStatusDisplay();
+                RefreshPresetsList();
+            }
+        }
+    }
 
     private DeviceInfo? _selectedInputDevice;
     private DeviceInfo? _selectedOutputDevice;
@@ -50,13 +73,21 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public RelayCommand ConfirmSaveProfileCommand { get; }
     public RelayCommand CancelSaveProfileCommand { get; }
     public RelayCommand DeleteProfileCommand { get; }
+    public RelayCommand OpenHotkeysDialogCommand { get; }
+    public RelayCommand CloseHotkeysDialogCommand { get; }
+    public RelayCommand ResetHotkeysCommand { get; }
+    public RelayCommand ToggleMuteCommand { get; }
     public Action? RequestMinimizeToTray { get; set; }
+    public Action? RequestUpdateHotkeys { get; set; }
+
+    public IReadOnlyList<string> AvailableHotkeyKeys => HotkeySetting.AvailableKeys;
 
     private string? _installerStatus;
     private bool _isInstalling = false;
     private string _profileNameInput = "";
     private bool _isCustomProfileSelected = false;
     private bool _isSaveProfileDialogVisible = false;
+    private bool _isHotkeysDialogVisible = false;
     private bool _hasUnsavedProfileChanges = false;
     private string _statusNotification = "";
     private DispatcherTimer? _statusNotificationTimer;
@@ -85,6 +116,70 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         set => SetField(ref _isSaveProfileDialogVisible, value);
     }
 
+    public bool IsHotkeysDialogVisible
+    {
+        get => _isHotkeysDialogVisible;
+        set => SetField(ref _isHotkeysDialogVisible, value);
+    }
+
+    public bool HotkeysEnabled
+    {
+        get => _settings.HotkeysEnabled;
+        set
+        {
+            if (_settings.HotkeysEnabled != value)
+            {
+                _settings.HotkeysEnabled = value;
+                _settings.Save();
+                OnPropertyChanged();
+                RequestUpdateHotkeys?.Invoke();
+            }
+        }
+    }
+
+    public HotkeySetting HotkeyBypass => _settings.HotkeyBypass;
+    public HotkeySetting HotkeyMeme => _settings.HotkeyMeme;
+    public HotkeySetting HotkeyMute => _settings.HotkeyMute;
+
+    public bool IsMuted
+    {
+        get => _settings.IsMuted;
+        set
+        {
+            if (_settings.IsMuted != value)
+            {
+                _settings.IsMuted = value;
+                _settings.Save();
+                UpdateEngineSettings();
+                OnPropertyChanged();
+                ShowStatusNotification(value ? Loc["Msg_Mute_On"] : Loc["Msg_Mute_Off"]);
+            }
+        }
+    }
+
+    public void ToggleMute()
+    {
+        IsMuted = !IsMuted;
+    }
+
+    public void HandleHotkey(int id)
+    {
+        switch (id)
+        {
+            case GlobalHotkeyService.HotkeyIdBypass:
+                BypassAll = !BypassAll;
+                ShowStatusNotification(BypassAll ? Loc["Msg_Bypass_On"] : Loc["Msg_Bypass_Off"]);
+                break;
+            case GlobalHotkeyService.HotkeyIdMeme:
+                DestroyedMicMemeMode = !DestroyedMicMemeMode;
+                ShowStatusNotification(DestroyedMicMemeMode ? Loc["Msg_Meme_On"] : Loc["Msg_Meme_Off"]);
+                break;
+            case GlobalHotkeyService.HotkeyIdMute:
+                ToggleMute();
+                break;
+        }
+    }
+
     public bool IsCustomProfileSelected
     {
         get => _isCustomProfileSelected;
@@ -111,10 +206,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             {
                 string name = NormalizePresetName(_settings.SelectedPresetName);
                 return _hasUnsavedProfileChanges
-                    ? $"Сохранить изменения в профиль «{name}»"
-                    : $"Профиль «{name}» сохранен. Нажмите для обновления";
+                    ? Loc.Get("Msg_Profile_Updated", name)
+                    : Loc.Get("Msg_Profile_Saved", name);
             }
-            return "Сохранить текущие настройки как профиль...";
+            return Loc["Action_Save"];
         }
     }
 
@@ -123,7 +218,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         get
         {
             string name = NormalizePresetName(_settings.SelectedPresetName);
-            return $"Удалить профиль «{name}»";
+            return Loc.Get("Msg_Delete_Confirm", name);
         }
     }
 
@@ -138,6 +233,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public MainViewModel()
     {
         _settings = AudioSettings.Load();
+
+        if (!string.IsNullOrEmpty(_settings.Language))
+        {
+            Loc.SetLanguage(_settings.Language);
+        }
+
         _engine = new AudioEngine(_settings);
         _engine.StateChanged += OnEngineStateChanged;
 
@@ -152,6 +253,49 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         CancelSaveProfileCommand = new RelayCommand(CancelSaveProfile);
         DeleteProfileCommand = new RelayCommand(DeleteCurrentProfile);
 
+        OpenHotkeysDialogCommand = new RelayCommand(() => IsHotkeysDialogVisible = true);
+        CloseHotkeysDialogCommand = new RelayCommand(() =>
+        {
+            IsHotkeysDialogVisible = false;
+            _settings.Save();
+            RequestUpdateHotkeys?.Invoke();
+            ShowStatusNotification(Loc["Msg_Hotkeys_Saved"]);
+        });
+        ResetHotkeysCommand = new RelayCommand(() =>
+        {
+            _settings.HotkeyBypass.Enabled = true;
+            _settings.HotkeyBypass.Ctrl = true;
+            _settings.HotkeyBypass.Shift = true;
+            _settings.HotkeyBypass.Alt = false;
+            _settings.HotkeyBypass.Key = "B";
+
+            _settings.HotkeyMeme.Enabled = true;
+            _settings.HotkeyMeme.Ctrl = true;
+            _settings.HotkeyMeme.Shift = true;
+            _settings.HotkeyMeme.Alt = false;
+            _settings.HotkeyMeme.Key = "M";
+
+            _settings.HotkeyMute.Enabled = true;
+            _settings.HotkeyMute.Ctrl = true;
+            _settings.HotkeyMute.Shift = true;
+            _settings.HotkeyMute.Alt = false;
+            _settings.HotkeyMute.Key = "X";
+
+            _settings.HotkeysEnabled = true;
+            _settings.Save();
+
+            OnPropertyChanged(nameof(HotkeyBypass));
+            OnPropertyChanged(nameof(HotkeyMeme));
+            OnPropertyChanged(nameof(HotkeyMute));
+            OnPropertyChanged(nameof(HotkeysEnabled));
+
+            RequestUpdateHotkeys?.Invoke();
+            ShowStatusNotification(Loc["Msg_Hotkeys_Saved"]);
+        });
+
+        ToggleMuteCommand = new RelayCommand(ToggleMute);
+
+        UpdateEngineStatusDisplay();
         RefreshPresetsList();
         RefreshDevices();
 
@@ -365,38 +509,40 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _engine.Stop();
     }
 
+    public void UpdateEngineStatusDisplay()
+    {
+        switch (_engine.State)
+        {
+            case EngineState.Running:
+                IsRunning = true;
+                EngineStatusText = Loc["Engine_Active"];
+                EngineStatusColor = "#57f287"; // Discord Green
+                StartStopButtonText = Loc["Action_Stop"];
+                break;
+            case EngineState.Starting:
+                EngineStatusText = "...";
+                EngineStatusColor = "#fee75c"; // Amber
+                break;
+            case EngineState.Error:
+                IsRunning = false;
+                EngineStatusText = $"{Loc["Engine_Error"]}: {_engine.LastErrorMessage ?? "Error"}";
+                EngineStatusColor = "#ed4245"; // Red
+                StartStopButtonText = Loc["Action_Start"];
+                break;
+            case EngineState.Stopped:
+            default:
+                IsRunning = false;
+                EngineStatusText = Loc["Engine_Stopped"];
+                EngineStatusColor = "#8e9297"; // Muted Gray
+                StartStopButtonText = Loc["Action_Start"];
+                break;
+        }
+        OnPropertyChanged(nameof(LatencyDisplay));
+    }
+
     private void OnEngineStateChanged(EngineState state, string? error)
     {
-        App.Current?.Dispatcher.Invoke(() =>
-        {
-            switch (state)
-            {
-                case EngineState.Running:
-                    IsRunning = true;
-                    EngineStatusText = "Активен (В эфире)";
-                    EngineStatusColor = "#57f287"; // Discord Green
-                    StartStopButtonText = "Остановить";
-                    break;
-                case EngineState.Starting:
-                    EngineStatusText = "Запуск...";
-                    EngineStatusColor = "#fee75c"; // Amber
-                    break;
-                case EngineState.Error:
-                    IsRunning = false;
-                    EngineStatusText = $"Ошибка: {error ?? "Сбой аудио"}";
-                    EngineStatusColor = "#ed4245"; // Red
-                    StartStopButtonText = "Повторить запуск";
-                    break;
-                case EngineState.Stopped:
-                default:
-                    IsRunning = false;
-                    EngineStatusText = "Остановлен";
-                    EngineStatusColor = "#8e9297"; // Muted Gray
-                    StartStopButtonText = "Запустить";
-                    break;
-            }
-            OnPropertyChanged(nameof(LatencyDisplay));
-        });
+        App.Current?.Dispatcher.Invoke(UpdateEngineStatusDisplay);
     }
 
     #endregion
@@ -413,9 +559,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         Presets.Add("Aggressive / Anti-Rage");
         Presets.Add("Уничтоженный микрофон (Meme)");
 
+        string prefix = Loc["Header_Profile"] + ": ";
         foreach (var p in _settings.CustomProfiles)
         {
-            Presets.Add($"Профиль: {p.Name}");
+            Presets.Add($"{prefix}{p.Name}");
         }
 
         Presets.Add("Пользовательский (Custom)");
@@ -423,7 +570,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         string current = NormalizePresetName(_settings.SelectedPresetName);
         if (_settings.CustomProfiles.Any(p => p.Name.Equals(current, StringComparison.OrdinalIgnoreCase)))
         {
-            _settings.SelectedPresetName = $"Профиль: {current}";
+            _settings.SelectedPresetName = $"{prefix}{current}";
         }
 
         OnPropertyChanged(nameof(SelectedPreset));
@@ -455,10 +602,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private static string NormalizePresetName(string preset)
     {
         if (string.IsNullOrWhiteSpace(preset)) return "";
-        if (preset.StartsWith("Профиль: ")) return preset["Профиль: ".Length..].Trim();
-        if (preset.StartsWith("[Профиль] ")) return preset["[Профиль] ".Length..].Trim();
-        if (preset.StartsWith("⭐ ")) return preset[2..].Trim();
-        if (preset.StartsWith("🎙️ ")) return preset["🎙️ ".Length..].Trim();
+        string[] prefixes = ["Профиль: ", "Profile: ", "Profil: ", "Perfil: ", "[Профиль] ", "[Profile] ", "⭐ ", "🎙️ "];
+        foreach (var p in prefixes)
+        {
+            if (preset.StartsWith(p, StringComparison.OrdinalIgnoreCase))
+                return preset[p.Length..].Trim();
+        }
         return preset;
     }
 
@@ -477,7 +626,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             string name = NormalizePresetName(_settings.SelectedPresetName);
             _settings.SaveCustomProfile(name);
             HasUnsavedProfileChanges = false;
-            ShowStatusNotification($"✓ Настройки сохранены в профиль «{name}»");
+            ShowStatusNotification(Loc.Get("Msg_Profile_Updated", name));
         }
         else
         {
@@ -499,8 +648,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         ProfileNameInput = "";
         HasUnsavedProfileChanges = false;
         RefreshPresetsList();
-        SelectedPreset = $"Профиль: {name}";
-        ShowStatusNotification($"✓ Профиль «{name}» успешно сохранен");
+        SelectedPreset = $"{Loc["Header_Profile"]}: {name}";
+        ShowStatusNotification(Loc.Get("Msg_Profile_Saved", name));
     }
 
     private void CancelSaveProfile()
@@ -515,8 +664,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         if (string.IsNullOrWhiteSpace(name)) return;
 
         var result = System.Windows.MessageBox.Show(
-            $"Вы уверены, что хотите удалить профиль «{name}»?",
-            "Удаление профиля",
+            Loc.Get("Msg_Delete_Confirm", name),
+            Loc["Msg_Delete_Title"],
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
 
@@ -526,7 +675,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             {
                 RefreshPresetsList();
                 SelectedPreset = "Gaming & Discord";
-                ShowStatusNotification($"Профиль «{name}» удален");
+                ShowStatusNotification(Loc.Get("Msg_Profile_Deleted", name));
             }
         }
     }

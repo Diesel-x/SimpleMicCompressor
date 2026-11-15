@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Interop;
 using MicCompressor.Tray;
+using MicCompressor.Utils;
 using MicCompressor.ViewModels;
 
 namespace MicCompressor;
@@ -11,6 +13,7 @@ namespace MicCompressor;
 public partial class MainWindow : Window
 {
     private TrayManager? _trayManager;
+    private GlobalHotkeyService? _hotkeyService;
     private bool _isExplicitExit = false;
 
     public MainWindow()
@@ -43,6 +46,20 @@ public partial class MainWindow : Window
         {
             _trayManager = new TrayManager(this, vm);
             vm.RequestMinimizeToTray = MinimizeToTray;
+
+            // Initialize Global Hotkeys
+            var helper = new WindowInteropHelper(this);
+            _hotkeyService = new GlobalHotkeyService();
+            _hotkeyService.Initialize(helper.Handle);
+            _hotkeyService.UpdateHotkeys(vm.Settings);
+
+            var source = HwndSource.FromHwnd(helper.Handle);
+            source?.AddHook(HwndHook);
+
+            vm.RequestUpdateHotkeys = () =>
+            {
+                _hotkeyService?.UpdateHotkeys(vm.Settings);
+            };
 
             vm.PropertyChanged += (s, args) =>
             {
@@ -77,6 +94,19 @@ public partial class MainWindow : Window
                 string path = (idx + 1 < args.Length && !args[idx + 1].StartsWith("--")) ? args[idx + 1] : "assets/screenshot_modal.png";
                 vm.ProfileNameInput = "Стрим и Discord";
                 vm.IsSaveProfileDialogVisible = true;
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+                {
+                    CaptureAndSave(path);
+                    System.Windows.Application.Current.Shutdown();
+                }));
+                return;
+            }
+
+            if (args.Any(a => a.Equals("--screenshot-hotkeys", StringComparison.OrdinalIgnoreCase)))
+            {
+                int idx = Array.FindIndex(args, a => a.Equals("--screenshot-hotkeys", StringComparison.OrdinalIgnoreCase));
+                string path = (idx + 1 < args.Length && !args[idx + 1].StartsWith("--")) ? args[idx + 1] : "assets/screenshot_hotkeys.png";
+                vm.IsHotkeysDialogVisible = true;
                 Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
                 {
                     CaptureAndSave(path);
@@ -165,8 +195,24 @@ public partial class MainWindow : Window
         }
     }
 
+    private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_HOTKEY = 0x0312;
+        if (msg == WM_HOTKEY)
+        {
+            int id = wParam.ToInt32();
+            if (DataContext is MainViewModel vm)
+            {
+                vm.HandleHotkey(id);
+                handled = true;
+            }
+        }
+        return IntPtr.Zero;
+    }
+
     protected override void OnClosed(EventArgs e)
     {
+        _hotkeyService?.Dispose();
         _trayManager?.Dispose();
         (DataContext as MainViewModel)?.Dispose();
         base.OnClosed(e);
