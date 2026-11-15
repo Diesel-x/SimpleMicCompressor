@@ -151,6 +151,15 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Action_Language"] = "Язык",
         ["Badge_Muted"] = "МИКРОФОН ЗАГЛУШЕН",
 
+        // Presets
+        ["Preset_Gaming"] = "🎮 Гейминг и Discord",
+        ["Preset_Default"] = "🎙️ Стандартный / Баланс",
+        ["Preset_Podcast"] = "📻 Радио / Подкаст",
+        ["Preset_Whisper"] = "🤫 Шепот / Тихая ночь",
+        ["Preset_AntiRage"] = "⚡ Анти-Рейдж / Агрессивный",
+        ["Preset_Meme"] = "🔊 Уничтоженный микрофон (Meme)",
+        ["Preset_Custom"] = "Пользовательский",
+
         // Audio Routing
         ["Card_Routing"] = "МАРШРУТИЗАЦИЯ ЗВУКА",
         ["Routing_Refresh"] = "Обновить",
@@ -205,6 +214,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Footer
         ["Footer_Engine"] = "SimpleMicCompressor • Low-Latency Audio Engine",
+        ["Footer_Developer"] = "Разработчик: ",
         ["Footer_Output"] = "Выход: ",
 
         // Modal New Profile
@@ -266,6 +276,15 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Action_Language"] = "Language",
         ["Badge_Muted"] = "MICROPHONE MUTED",
 
+        // Presets
+        ["Preset_Gaming"] = "🎮 Gaming & Discord",
+        ["Preset_Default"] = "🎙️ Default / Balanced",
+        ["Preset_Podcast"] = "📻 Radio / Podcast",
+        ["Preset_Whisper"] = "🤫 Whisper / Quiet Night",
+        ["Preset_AntiRage"] = "⚡ Aggressive / Anti-Rage",
+        ["Preset_Meme"] = "🔊 Destroyed Mic (Meme)",
+        ["Preset_Custom"] = "Custom",
+
         // Audio Routing
         ["Card_Routing"] = "AUDIO ROUTING",
         ["Routing_Refresh"] = "Refresh",
@@ -320,6 +339,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Footer
         ["Footer_Engine"] = "SimpleMicCompressor • Low-Latency Audio Engine",
+        ["Footer_Developer"] = "Developer: ",
         ["Footer_Output"] = "Output: ",
 
         // Modal New Profile
@@ -381,6 +401,15 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Action_Language"] = "Sprache",
         ["Badge_Muted"] = "MIKROFON STUMMGESCHALTET",
 
+        // Presets
+        ["Preset_Gaming"] = "🎮 Gaming & Discord",
+        ["Preset_Default"] = "🎙️ Standard / Ausgewogen",
+        ["Preset_Podcast"] = "📻 Radio / Podcast",
+        ["Preset_Whisper"] = "🤫 Flüstern / Leise Nacht",
+        ["Preset_AntiRage"] = "⚡ Aggressiv / Anti-Rage",
+        ["Preset_Meme"] = "🔊 Zerstörtes Mikrofon (Meme)",
+        ["Preset_Custom"] = "Benutzerdefiniert",
+
         // Audio Routing
         ["Card_Routing"] = "AUDIO-ROUTING",
         ["Routing_Refresh"] = "Aktualisieren",
@@ -435,6 +464,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Footer
         ["Footer_Engine"] = "SimpleMicCompressor • Low-Latency Audio Engine",
+        ["Footer_Developer"] = "Entwickler: ",
         ["Footer_Output"] = "Ausgang: ",
 
         // Modal New Profile
@@ -496,6 +526,15 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Action_Language"] = "Idioma",
         ["Badge_Muted"] = "MICRÓFONO SILENCIADO",
 
+        // Presets
+        ["Preset_Gaming"] = "🎮 Gaming y Discord",
+        ["Preset_Default"] = "🎙️ Estándar / Equilibrado",
+        ["Preset_Podcast"] = "📻 Radio / Pódcast",
+        ["Preset_Whisper"] = "🤫 Susurro / Noche tranquila",
+        ["Preset_AntiRage"] = "⚡ Agresivo / Anti-Rage",
+        ["Preset_Meme"] = "🔊 Micrófono destruido (Meme)",
+        ["Preset_Custom"] = "Personalizado",
+
         // Audio Routing
         ["Card_Routing"] = "ENRUTAMIENTO DE AUDIO",
         ["Routing_Refresh"] = "Actualizar",
@@ -550,6 +589,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Footer
         ["Footer_Engine"] = "SimpleMicCompressor • Low-Latency Audio Engine",
+        ["Footer_Developer"] = "Desarrollador: ",
         ["Footer_Output"] = "Salida: ",
 
         // Modal New Profile

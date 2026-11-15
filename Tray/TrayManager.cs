@@ -21,7 +21,14 @@ public sealed class TrayManager : IDisposable
 
     private void InitializeTray()
     {
-        _customIcon = CreateMicIcon();
+        if (System.IO.File.Exists("assets/app.ico"))
+        {
+            try { _customIcon = new Icon("assets/app.ico"); } catch { _customIcon = CreateMicIcon(); }
+        }
+        else
+        {
+            _customIcon = CreateMicIcon();
+        }
 
         var contextMenu = new System.Windows.Forms.ContextMenuStrip();
 

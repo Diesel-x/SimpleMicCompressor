@@ -30,12 +30,12 @@
 
 ## 📦 Two Editions Available
 
-| Parameter | 🎨 SimpleMicCompressor (GUI) | ⚡ SimpleMicCompressor Light (Rust) |
+| Parameter | 🎨 SimpleMicCompressor (GUI) | ⚡ SimpleMicCompressor Light (Rust) *(Experimental)* |
 | :--- | :--- | :--- |
-| **Language & Stack** | C# / .NET 8 / WPF | **Rust (100% native)** |
+| **Status & Stack** | Primary edition (C# / .NET 8 / WPF) | **Experimental build (Rust)** |
+| **User Interface** | Full dark GUI, real-time VU meters & visual indicators | **No GUI** *(runs silently in Windows system tray)* |
 | **RAM Consumption** | ~15–25 MB (background) | **~3–5 MB RAM** *(ultra-low footprint)* |
 | **CPU Usage** | < 0.1% (0.0% in tray) | **0.0% CPU** |
-| **User Interface** | Full dark GUI, real-time VU meters & visual indicators | Minimalist system tray icon & context menu |
 | **Preset Management**| Sliders, graphs, 1-click custom profile creation | Shared `mic_compressor_config.json` |
 | **VB-Cable Setup** | 1-click built-in installer & repair tool | Uses existing virtual cable |
 | **Binary Size** | ~850 KB (Single-File) | **~529 KB** (Standalone binary) |
@@ -55,8 +55,8 @@
 ## 🚀 Quick Start in 1 Minute
 
 1. Download your preferred edition:
-   * **[SimpleMicCompressor.exe](publish/SimpleMicCompressor.exe)** (with full GUI)
-   * **[SimpleMicCompressor_Light.exe](publish/SimpleMicCompressor_Light.exe)** (ultra-lightweight Rust edition)
+   * **[SimpleMicCompressor.exe](publish/SimpleMicCompressor.exe)** (recommended: with full GUI)
+   * **[SimpleMicCompressor_Light.exe](publish/SimpleMicCompressor_Light.exe)** (experimental headless build — controlled via tray and hotkeys)
 2. Launch the application:
    * **Input:** Select your physical microphone.
    * **Output:** Select **CABLE Input (VB-Audio Virtual Cable)**.
