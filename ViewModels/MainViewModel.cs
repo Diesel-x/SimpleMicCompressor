@@ -258,6 +258,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     #region Engine State
 
+    public string LatencyDisplay => IsRunning ? $"{_engine.EstimatedLatencyMs} мс" : "-- мс";
+
     public bool IsRunning
     {
         get => _isRunning;
@@ -334,6 +336,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                     StartStopButtonText = "Запустить";
                     break;
             }
+            OnPropertyChanged(nameof(LatencyDisplay));
         });
     }
 

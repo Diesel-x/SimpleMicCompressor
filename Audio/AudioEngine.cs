@@ -41,6 +41,11 @@ public sealed class AudioEngine : IDisposable
     private byte[] _outputBytes = new byte[65536];
     private byte[] _monitorBytes = new byte[65536];
 
+    private int _captureBufferMs = 15;
+    private int _outputLatencyMs = 20;
+
+    public int EstimatedLatencyMs => _state == EngineState.Running ? (_captureBufferMs + _outputLatencyMs) : 0;
+
     public EngineState State
     {
         get => _state;
@@ -107,11 +112,13 @@ public sealed class AudioEngine : IDisposable
 
                 try
                 {
-                    _capture = new WasapiCapture(captureDevice, useEventSync: true, audioBufferMillisecondsLength: 20);
+                    _captureBufferMs = 10;
+                    _capture = new WasapiCapture(captureDevice, useEventSync: true, audioBufferMillisecondsLength: 10);
                 }
                 catch
                 {
-                    _capture = new WasapiCapture(captureDevice, useEventSync: false, audioBufferMillisecondsLength: 25);
+                    _captureBufferMs = 15;
+                    _capture = new WasapiCapture(captureDevice, useEventSync: false, audioBufferMillisecondsLength: 15);
                 }
 
                 var capFormat = _capture.WaveFormat;
@@ -128,11 +135,13 @@ public sealed class AudioEngine : IDisposable
 
                 try
                 {
-                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: false, latency: 25);
+                    _outputLatencyMs = 15;
+                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: false, latency: 15);
                 }
                 catch
                 {
-                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 30);
+                    _outputLatencyMs = 20;
+                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 20);
                 }
 
                 _outputBuffer = new BufferedWaveProvider(_outputMixFormat)
