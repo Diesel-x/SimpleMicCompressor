@@ -22,8 +22,6 @@
 
 **SimpleMicCompressor** is an ultra-fast real-time system microphone audio processor designed for **Discord**, **streaming**, and **competitive games** (CS2, Valorant, Apex Legends, Warzone). It evens out voice volume dynamics, removes mouse clicks and background hum, dampens loud screaming, and protects against digital clipping with zero impact on gaming FPS.
 
-**Author:** [Diesel-X](https://github.com/Diesel-x)  
-**Repository:** [github.com/Diesel-x/SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)  
 **Version:** `1.0 Release`
 
 ---
