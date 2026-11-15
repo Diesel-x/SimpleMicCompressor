@@ -89,10 +89,20 @@ public sealed class TrayManager : IDisposable
         _window.Activate();
     }
 
+    [System.Runtime.InteropServices.DllImport("psapi.dll")]
+    private static extern int EmptyWorkingSet(IntPtr hwProc);
+
     public void MinimizeToTray()
     {
         _window.Hide();
-        _notifyIcon?.ShowBalloonTip(1800, "MicCompressor активен", "Программа работает в фоне и обрабатывает звук для Discord и игр.", System.Windows.Forms.ToolTipIcon.Info);
+        _notifyIcon?.ShowBalloonTip(1800, "SimpleMicCompressor", "Программа активна в трее. Обработка звука включена.", System.Windows.Forms.ToolTipIcon.Info);
+        try
+        {
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true, true);
+            GC.WaitForPendingFinalizers();
+            EmptyWorkingSet(System.Diagnostics.Process.GetCurrentProcess().Handle);
+        }
+        catch { }
     }
 
     private static Icon CreateMicIcon()
