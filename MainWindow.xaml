@@ -8,7 +8,7 @@
         Title="SimpleMicCompressor"
         Icon="assets/app.ico"
         Height="780" Width="1160"
-        MinHeight="580" MinWidth="980"
+        MinHeight="580" MinWidth="1020"
         WindowStartupLocation="CenterScreen"
         Background="#0c0e14"
         Foreground="#f3f4f6"
@@ -87,6 +87,50 @@
                     </Setter>
                 </Trigger>
             </Style.Triggers>
+        </Style>
+
+        <!-- Studio Sleek ScrollViewer Style (Removes standard grey/white corner boxes) -->
+        <Style TargetType="ScrollViewer">
+            <Setter Property="Background" Value="#0c0e14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ScrollContentPresenter x:Name="PART_ScrollContentPresenter"
+                                                   Grid.Column="0" Grid.Row="0"
+                                                   CanContentScroll="{TemplateBinding CanContentScroll}"/>
+                            <ScrollBar x:Name="PART_VerticalScrollBar"
+                                       Grid.Column="1" Grid.Row="0"
+                                       AutomationProperties.AutomationId="VerticalScrollBar"
+                                       Cursor="Arrow"
+                                       Maximum="{TemplateBinding ScrollableHeight}"
+                                       Minimum="0"
+                                       Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                       Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                       ViewportSize="{TemplateBinding ViewportHeight}"/>
+                            <ScrollBar x:Name="PART_HorizontalScrollBar"
+                                       Grid.Column="0" Grid.Row="1"
+                                       AutomationProperties.AutomationId="HorizontalScrollBar"
+                                       Cursor="Arrow"
+                                       Maximum="{TemplateBinding ScrollableWidth}"
+                                       Minimum="0"
+                                       Orientation="Horizontal"
+                                       Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
+                                       Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                       ViewportSize="{TemplateBinding ViewportWidth}"/>
+                            <Rectangle Grid.Column="1" Grid.Row="1" Fill="#0c0e14"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Professional Studio ComboBox Toggle Button -->
@@ -259,8 +303,8 @@
 
     <Grid>
         <!-- SCROLLABLE WORKSPACE (Auto-adapts to small & large screen resolutions) -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="#0c0e14" BorderThickness="0">
-            <Grid Margin="18">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#0c0e14" BorderThickness="0">
+            <Grid Margin="16">
                 <Grid.RowDefinitions>
                     <!-- 1. Header Bar -->
                     <RowDefinition Height="Auto"/>
@@ -321,11 +365,11 @@
             <!-- Center/Right: Sound Profiles & Global Actions -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Sound Profile Selector Well -->
-                <Border Background="#151722" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="6,4" Margin="0,0,10,0">
+                <Border Background="#151722" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="6,4" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Loc[Header_Profile]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" Margin="4,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Loc[Header_Profile]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" Margin="4,0,6,0" VerticalAlignment="Center"/>
 
-                        <ComboBox Width="160" Height="30" 
+                        <ComboBox Width="135" Height="30" 
                                   ItemsSource="{Binding Presets}" 
                                   SelectedItem="{Binding SelectedPresetItem, Mode=TwoWay}"
                                   DisplayMemberPath="DisplayName"/>
@@ -333,7 +377,7 @@
                         <!-- Save Profile Button -->
                         <Button Command="{Binding SaveProfileCommand}" 
                                 ToolTip="{Binding SaveButtonToolTip}"
-                                Height="30" Padding="8,0" Margin="4,0,0,0"
+                                Height="30" Padding="7,0" Margin="4,0,0,0"
                                 Background="#2563eb" Foreground="#ffffff" FontSize="11" FontWeight="SemiBold"
                                 BorderThickness="0" Cursor="Hand">
                             <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="5"/></Style></Button.Resources>
@@ -346,7 +390,7 @@
                                 <Style TargetType="Button">
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#1d4ed8"/>
+                                             <Setter Property="Background" Value="#1d4ed8"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -356,7 +400,7 @@
                         <!-- New Profile Button (+) -->
                         <Button Command="{Binding OpenNewProfileDialogCommand}" 
                                 ToolTip="{Binding Loc[Modal_NewProfile_Title]}"
-                                Height="30" Padding="7,0" Margin="4,0,0,0"
+                                Height="30" Padding="6,0" Margin="4,0,0,0"
                                 Background="#1e2230" Foreground="#cbd5e1" FontSize="11" FontWeight="SemiBold"
                                 BorderThickness="0" Cursor="Hand">
                             <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="5"/></Style></Button.Resources>
@@ -404,7 +448,7 @@
                 <!-- Hotkeys Button -->
                 <Button Command="{Binding OpenHotkeysDialogCommand}"
                         ToolTip="{Binding Loc[Modal_Hotkeys_Title]}"
-                        Height="34" Padding="8,0" Margin="0,0,5,0"
+                        Height="34" Padding="7,0" Margin="0,0,4,0"
                         Background="#151722" Foreground="#cbd5e1" FontSize="11.5" FontWeight="SemiBold"
                         BorderBrush="#232738" BorderThickness="1" Cursor="Hand">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
@@ -429,7 +473,7 @@
                 <!-- Settings Button -->
                 <Button Command="{Binding OpenSettingsDialogCommand}"
                         ToolTip="{Binding Loc[Modal_Settings_Title]}"
-                        Height="34" Padding="8,0" Margin="0,0,5,0"
+                        Height="34" Padding="7,0" Margin="0,0,4,0"
                         Background="#151722" Foreground="#cbd5e1" FontSize="11.5" FontWeight="SemiBold"
                         BorderBrush="#232738" BorderThickness="1" Cursor="Hand">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
@@ -454,7 +498,7 @@
                 <!-- Minimize to Tray Button -->
                 <Button Content="{Binding Loc[Action_ToTray]}" 
                         Click="OnMinimizeToTrayClicked"
-                        Height="34" Padding="8,0" Margin="0,0,6,0"
+                        Height="34" Padding="7,0" Margin="0,0,4,0"
                         FontSize="11.5" FontWeight="SemiBold" Cursor="Hand"
                         Foreground="#cbd5e1" Background="#151722" BorderBrush="#232738" BorderThickness="1">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
@@ -474,7 +518,7 @@
                 <!-- Primary Start / Stop Engine Button -->
                 <Button Content="{Binding StartStopButtonText}" 
                         Command="{Binding ToggleEngineCommand}"
-                        Width="102" Height="34" 
+                        Width="96" Height="34" 
                         FontSize="11.5" FontWeight="Bold" Cursor="Hand"
                         Foreground="#ffffff" BorderThickness="0">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
