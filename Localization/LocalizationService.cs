@@ -256,7 +256,11 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_ToggleEngine"] = "Запустить / Остановить",
         ["Tray_Exit"] = "Закрыть приложение",
         ["Tray_Active_Balloon"] = "Программа активна в трее. Обработка звука включена.",
-        ["Telemetry_Ms"] = "мс"
+        ["Telemetry_Ms"] = "мс",
+
+        // Updates
+        ["Update_Available_Title"] = "Доступно обновление",
+        ["Update_Available_Message"] = "Доступна новая версия SimpleMicCompressor ({0}).\n\nХотите перейти на страницу релизов на GitHub для скачивания?"
     };
 
     private static readonly Dictionary<string, string> StringsEn = new()
@@ -385,7 +389,11 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_ToggleEngine"] = "Start / Stop",
         ["Tray_Exit"] = "Exit Application",
         ["Tray_Active_Balloon"] = "Application active in tray. Audio processing enabled.",
-        ["Telemetry_Ms"] = "ms"
+        ["Telemetry_Ms"] = "ms",
+
+        // Updates
+        ["Update_Available_Title"] = "Update Available",
+        ["Update_Available_Message"] = "A new version of SimpleMicCompressor ({0}) is available.\n\nWould you like to open the GitHub releases page to download it?"
     };
 
     private static readonly Dictionary<string, string> StringsDe = new()
@@ -514,7 +522,11 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_ToggleEngine"] = "Starten / Stoppen",
         ["Tray_Exit"] = "Beenden",
         ["Tray_Active_Balloon"] = "Anwendung im Infobereich aktiv. Audioverarbeitung aktiviert.",
-        ["Telemetry_Ms"] = "ms"
+        ["Telemetry_Ms"] = "ms",
+
+        // Updates
+        ["Update_Available_Title"] = "Update verfügbar",
+        ["Update_Available_Message"] = "Eine neue Version von SimpleMicCompressor ({0}) ist verfügbar.\n\nMöchten Sie die GitHub-Releases-Seite öffnen, um sie herunterzuladen?"
     };
 
     private static readonly Dictionary<string, string> StringsEs = new()
@@ -643,7 +655,11 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_ToggleEngine"] = "Iniciar / Detener",
         ["Tray_Exit"] = "Salir",
         ["Tray_Active_Balloon"] = "Aplicación activa en la bandeja. Procesamiento de audio activado.",
-        ["Telemetry_Ms"] = "ms"
+        ["Telemetry_Ms"] = "ms",
+
+        // Updates
+        ["Update_Available_Title"] = "Actualización disponible",
+        ["Update_Available_Message"] = "Una nueva versión de SimpleMicCompressor ({0}) está disponible.\n\n¿Desea abrir la página de lanzamientos de GitHub para descargarla?"
     };
 
     #endregion

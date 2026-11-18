@@ -44,25 +44,11 @@ unsafe extern "system" fn keyboard_hook_proc(n_code: i32, wparam: WPARAM, lparam
                 if let Some(ref b) = GLOBAL_BYPASS {
                     let cur = b.load(Ordering::Relaxed);
                     b.store(!cur, Ordering::Relaxed);
-                    if GLOBAL_HWND != 0 {
-                        show_tray_notification(
-                            GLOBAL_HWND,
-                            "SimpleMicCompressor (Light)",
-                            if !cur { "Байпас: ВКЛЮЧЕН (Оригинал)" } else { "Байпас: ВЫКЛЮЧЕН (Обработка)" },
-                        );
-                    }
                 }
             } else if vk == 'M' as u32 {
                 if let Some(ref m) = GLOBAL_MEME {
                     let cur = m.load(Ordering::Relaxed);
                     m.store(!cur, Ordering::Relaxed);
-                    if GLOBAL_HWND != 0 {
-                        show_tray_notification(
-                            GLOBAL_HWND,
-                            "SimpleMicCompressor (Light)",
-                            if !cur { "Мемный режим: ВКЛЮЧЕН" } else { "Мемный режим: ВЫКЛЮЧЕН" },
-                        );
-                    }
                 }
             } else if vk == 'X' as u32 {
                 if let Some(ref mute) = GLOBAL_MUTE {
