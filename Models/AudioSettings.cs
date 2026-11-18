@@ -8,8 +8,11 @@ public class AudioSettings
 {
     // Audio Routing
     public string? InputDeviceId { get; set; }
+    public string? InputDeviceName { get; set; }
     public string? OutputDeviceId { get; set; }
+    public string? OutputDeviceName { get; set; }
     public string? MonitorDeviceId { get; set; }
+    public string? MonitorDeviceName { get; set; }
     public bool MonitorEnabled { get; set; } = false;
     public float MonitorVolume { get; set; } = 1.0f;
 

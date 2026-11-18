@@ -23,4 +23,11 @@
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
+  <!-- Keep the standalone test harness out of the WPF application build. -->
+  <ItemGroup>
+    <Compile Remove="tests\**\*.cs" />
+    <Page Remove="tests\**\*.xaml" />
+    <ApplicationDefinition Remove="tests\**\*.xaml" />
+  </ItemGroup>
+
 </Project>

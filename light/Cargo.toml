@@ -2,9 +2,9 @@
 name = "simple-mic-compressor-light"
 version = "1.1.0"
 edition = "2021"
-authors = ["Diesel-X <https://github.com/Diesel-x/Simple_Mic_Compressor>"]
+authors = ["Diesel-X <https://github.com/Diesel-x/SimpleMicCompressor>"]
 description = "SimpleMicCompressor (Light) v1.1 by Diesel-X - Ultra-lightweight background mic compressor (~3-5 MB RAM, 0% CPU)"
-repository = "https://github.com/Diesel-x/Simple_Mic_Compressor"
+repository = "https://github.com/Diesel-x/SimpleMicCompressor"
 license = "MIT"
 
 [[bin]]

@@ -23,28 +23,48 @@ pub struct AudioEngineHandle {
 pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> {
     let host = cpal::default_host();
 
-    // 1. Find input device
-    let input_device = if let Some(ref name) = cfg.input_device_id {
-        host.input_devices()
-            .map_err(|e| e.to_string())?
-            .find(|d| d.name().map(|n| n.contains(name)).unwrap_or(false))
-            .or_else(|| host.default_input_device())
-    } else {
-        host.default_input_device()
-    }.ok_or("No input audio device found")?;
+    let match_device = |dev: &cpal::Device, id_opt: &Option<String>, name_opt: &Option<String>| -> bool {
+        if let Ok(dev_name) = dev.name() {
+            let dev_name_lower = dev_name.to_lowercase();
+            if let Some(ref target) = name_opt {
+                if !target.is_empty() && (dev_name.contains(target) || dev_name_lower.contains(&target.to_lowercase())) {
+                    return true;
+                }
+            }
+            if let Some(ref target) = id_opt {
+                if !target.is_empty() && (dev_name.contains(target) || dev_name_lower.contains(&target.to_lowercase())) {
+                    return true;
+                }
+            }
+        }
+        false
+    };
 
-    // 2. Find output device (prefer "CABLE Input" for VB-Audio Virtual Cable)
-    let output_device = if let Some(ref name) = cfg.output_device_id {
-        host.output_devices()
-            .map_err(|e| e.to_string())?
-            .find(|d| d.name().map(|n| n.contains(name)).unwrap_or(false))
-            .or_else(|| host.default_output_device())
-    } else {
-        host.output_devices()
-            .map_err(|e| e.to_string())?
-            .find(|d| d.name().map(|n| n.contains("CABLE Input")).unwrap_or(false))
-            .or_else(|| host.default_output_device())
-    }.ok_or("No output audio device found")?;
+    // 1. Find input device
+    let input_device = host
+        .input_devices()
+        .map_err(|e| e.to_string())?
+        .find(|d| match_device(d, &cfg.input_device_id, &cfg.input_device_name))
+        .or_else(|| host.default_input_device())
+        .ok_or("No input audio device found")?;
+
+    // 2. Find output device (prefer configured output, then "CABLE Input", then default)
+    let output_device = host
+        .output_devices()
+        .map_err(|e| e.to_string())?
+        .find(|d| match_device(d, &cfg.output_device_id, &cfg.output_device_name))
+        .or_else(|| {
+            host.output_devices().ok().and_then(|mut devs| {
+                devs.find(|d| {
+                    d.name().map(|n| {
+                        let nl = n.to_lowercase();
+                        nl.contains("cable input") || nl.contains("vb-audio")
+                    }).unwrap_or(false)
+                })
+            })
+        })
+        .or_else(|| host.default_output_device())
+        .ok_or("No output audio device found")?;
 
     let in_config = input_device.default_input_config().map_err(|e| e.to_string())?;
     let out_config = output_device.default_output_config().map_err(|e| e.to_string())?;
@@ -106,6 +126,7 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
 
     let in_stream = match in_sample_format {
         SampleFormat::F32 => {
+            let mut resample_phase: f32 = 0.0;
             input_device.build_input_stream(
                 &in_stream_cfg,
                 move |data: &[f32], _: &cpal::InputCallbackInfo| {
@@ -130,10 +151,9 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
 
                     let in_frames = scratch_buffer.len() / in_channels;
                     let rate_ratio = in_sample_rate / out_sample_rate;
-                    let out_frames = ((in_frames as f32 * out_sample_rate / in_sample_rate).round() as usize).max(1);
+                    let mut in_pos = resample_phase;
 
-                    for out_frame in 0..out_frames {
-                        let in_pos = out_frame as f32 * rate_ratio;
+                    while in_pos < in_frames as f32 {
                         let in_frame0 = (in_pos as usize).min(in_frames.saturating_sub(1));
                         let in_frame1 = (in_frame0 + 1).min(in_frames.saturating_sub(1));
                         let frac = in_pos - in_frame0 as f32;
@@ -159,6 +179,13 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
                                 let _ = producer.push(0.0);
                             }
                         }
+
+                        in_pos += rate_ratio;
+                    }
+
+                    resample_phase = in_pos - in_frames as f32;
+                    if resample_phase < 0.0 || resample_phase >= 1.0 {
+                        resample_phase = 0.0;
                     }
                 },
                 err_fn,
@@ -166,6 +193,7 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
             ).map_err(|e| e.to_string())?
         }
         SampleFormat::I16 => {
+            let mut resample_phase: f32 = 0.0;
             input_device.build_input_stream(
                 &in_stream_cfg,
                 move |data: &[i16], _: &cpal::InputCallbackInfo| {
@@ -192,10 +220,9 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
 
                     let in_frames = scratch_buffer.len() / in_channels;
                     let rate_ratio = in_sample_rate / out_sample_rate;
-                    let out_frames = ((in_frames as f32 * out_sample_rate / in_sample_rate).round() as usize).max(1);
+                    let mut in_pos = resample_phase;
 
-                    for out_frame in 0..out_frames {
-                        let in_pos = out_frame as f32 * rate_ratio;
+                    while in_pos < in_frames as f32 {
                         let in_frame0 = (in_pos as usize).min(in_frames.saturating_sub(1));
                         let in_frame1 = (in_frame0 + 1).min(in_frames.saturating_sub(1));
                         let frac = in_pos - in_frame0 as f32;
@@ -221,6 +248,13 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
                                 let _ = producer.push(0.0);
                             }
                         }
+
+                        in_pos += rate_ratio;
+                    }
+
+                    resample_phase = in_pos - in_frames as f32;
+                    if resample_phase < 0.0 || resample_phase >= 1.0 {
+                        resample_phase = 0.0;
                     }
                 },
                 err_fn,

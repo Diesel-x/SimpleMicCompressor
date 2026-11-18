@@ -64,5 +64,6 @@ fn main() {
         engine.controls.bypass.clone(),
         engine.controls.meme_mode.clone(),
         engine.controls.is_muted.clone(),
+        &cfg,
     );
 }

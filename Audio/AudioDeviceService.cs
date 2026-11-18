@@ -142,12 +142,17 @@ public static class AudioDeviceService
         return result;
     }
 
-    public static bool IsVirtualAudioName(string name)
+    public static bool IsPreferredVirtualCable(string name)
     {
         string lower = name.ToLowerInvariant();
-        return lower.Contains("cable") ||
-               lower.Contains("vb-audio") ||
-               lower.Contains("voicemeeter") ||
+        return lower.Contains("cable") || lower.Contains("vb-audio");
+    }
+
+    public static bool IsVirtualAudioName(string name)
+    {
+        if (IsPreferredVirtualCable(name)) return true;
+        string lower = name.ToLowerInvariant();
+        return lower.Contains("voicemeeter") ||
                lower.Contains("virtual") ||
                lower.Contains("sonar") ||
                lower.Contains("vac");

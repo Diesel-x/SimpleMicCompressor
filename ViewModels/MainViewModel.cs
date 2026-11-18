@@ -341,6 +341,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                                ?? InputDevices.FirstOrDefault(d => d.IsDefault)
                                ?? InputDevices.FirstOrDefault();
         _settings.InputDeviceId = _selectedInputDevice?.Id;
+        _settings.InputDeviceName = _selectedInputDevice?.Name;
         OnPropertyChanged(nameof(SelectedInputDevice));
 
         // Restore selected output (prefer virtual cable if available)
@@ -349,6 +350,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                                 ?? OutputDevices.FirstOrDefault(d => d.IsDefault)
                                 ?? OutputDevices.FirstOrDefault();
         _settings.OutputDeviceId = _selectedOutputDevice?.Id;
+        _settings.OutputDeviceName = _selectedOutputDevice?.Name;
         OnPropertyChanged(nameof(SelectedOutputDevice));
 
         // Restore selected monitor
@@ -356,6 +358,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                                  ?? MonitorDevices.FirstOrDefault(d => !d.IsVirtualCable && d.IsDefault)
                                  ?? MonitorDevices.FirstOrDefault();
         _settings.MonitorDeviceId = _selectedMonitorDevice?.Id;
+        _settings.MonitorDeviceName = _selectedMonitorDevice?.Name;
         OnPropertyChanged(nameof(SelectedMonitorDevice));
 
         OnPropertyChanged(nameof(HasVirtualCable));
@@ -376,6 +379,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             if (SetField(ref _selectedInputDevice, value))
             {
                 _settings.InputDeviceId = value?.Id;
+                _settings.InputDeviceName = value?.Name;
                 _settings.Save();
                 if (_isRunning) _engine.Restart();
             }
@@ -390,6 +394,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             if (SetField(ref _selectedOutputDevice, value))
             {
                 _settings.OutputDeviceId = value?.Id;
+                _settings.OutputDeviceName = value?.Name;
                 _settings.Save();
                 if (_isRunning) _engine.Restart();
             }
@@ -404,6 +409,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
             if (SetField(ref _selectedMonitorDevice, value))
             {
                 _settings.MonitorDeviceId = value?.Id;
+                _settings.MonitorDeviceName = value?.Name;
                 _settings.Save();
                 UpdateEngineSettings();
             }
@@ -552,7 +558,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private void OnEngineStateChanged(EngineState state, string? error)
     {
-        App.Current?.Dispatcher.Invoke(UpdateEngineStatusDisplay);
+        App.Current?.Dispatcher.BeginInvoke(UpdateEngineStatusDisplay);
     }
 
     #endregion

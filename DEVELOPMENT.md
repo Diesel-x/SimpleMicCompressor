@@ -50,44 +50,47 @@
 ```text
 SimpleMicCompressor/
 ├── Audio/                          # Аудио-движок и математика звукового тракта (DSP)
-│   ├── AudioEngine.cs              # WASAPI Capture & Render, авторекавери при отключении USB
+│   ├── AudioEngine.cs              # WASAPI Capture & Render, авторекавери при сбоях и отключении USB
+│   ├── AudioDeviceService.cs       # Перечисление устройств WASAPI (DeviceInfo record)
 │   └── Dsp/
 │       ├── AudioChain.cs           # Конвейер обработки (LowCut -> Gate -> Comp -> Limiter -> Meme)
 │       ├── AudioMetrics.cs         # Метрики пиков в dB, Gain Reduction и статус гейта
 │       ├── BiquadHighPassFilter.cs # Фильтр среза гула 80 Hz (2-полюсный Butterworth)
 │       ├── DynamicCompressor.cs    # Студийный компрессор с мягким коленом (Soft Knee)
-│       ├── FastLimiter.cs          # Кирпичный лимитер пиков (-1.0 dBFS) с tanh-сатурацией
+│       ├── FastLimiter.cs          # Быстрый пик-лимитер (-1.0 dBFS) с soft tanh-сатурацией
 │       └── NoiseGate.cs            # Шумоподавитель с гистерезисом 2.5 dB и удержанием 60 мс
 ├── Localization/
 │   └── LocalizationService.cs      # Мультиязычность (RU, EN, DE, ES) с автодетектом языка ОС
 ├── Models/
-│   ├── AudioSettings.cs            # Модель настроек (сериализуется в mic_compressor_config.json)
-│   ├── DeviceInfo.cs               # WASAPI устройство ввода / вывода (ID, имя, статус)
+│   ├── AudioSettings.cs            # Модель настроек (%APPDATA%\SimpleMicCompressor\config.json)
 │   ├── HotkeySetting.cs            # Модель горячих клавиш (Ctrl, Shift, Alt, Key, VK коды)
 │   ├── PresetItem.cs               # Модель элементов выпадающего списка пресетов
 │   └── UserProfile.cs              # Модель сохранения пользовательских профилей
 ├── Tray/
 │   └── TrayManager.cs              # Управление треем, balloon-нотификации, EmptyWorkingSet
 ├── Utils/
+│   ├── AutoStartHelper.cs          # Добавление в автозагрузку Windows через реестр
 │   ├── GlobalHotkeyService.cs      # Низкоуровневый хук клавиатуры (WH_KEYBOARD_LL)
-│   ├── RelayCommand.cs             # Базовая реализация ICommand для MVVM
-│   └── VbCableInstaller.cs         # Автоскачивание и тихая установка VB-Audio Virtual Cable
+│   └── VbCableInstallerService.cs  # Автоскачивание и тихая установка VB-Audio Virtual Cable
 ├── ViewModels/
-│   ├── BaseViewModel.cs            # Базовый класс с реализацией INotifyPropertyChanged
-│   └── MainViewModel.cs            # Главный презентер (маршрутизация, команды, профили)
+│   ├── MainViewModel.cs            # Главный презентер (маршрутизация, команды, профили)
+│   └── RelayCommand.cs             # Базовая реализация ICommand для MVVM
 ├── light/                          # ⚡ Автономная редакция на Rust (экспериментальная / без GUI)
 │   ├── Cargo.toml                  # Зависимости cpal, ringbuf, serde, windows-sys
 │   └── src/
 │       ├── main.rs                 # Точка входа #![windows_subsystem = "windows"]
 │       ├── audio.rs                # cpal WASAPI input/output потоки через ring buffer
-│       ├── config.rs               # Совместимый парсер mic_compressor_config.json
+│       ├── config.rs               # Синхронизированный парсер конфигурации
 │       ├── dsp.rs                  # Математика Low-Cut, Gate, Compressor, Limiter, Meme
 │       └── tray.rs                 # Win32 системный трей, меню и WH_KEYBOARD_LL хук
+├── docs/
+│   └── RELEASE_NOTES.md            # Заметки к релизам (EN / RU)
 ├── assets/                         # Скриншоты и иконка приложения app.ico
 ├── .github/workflows/build.yml     # GitHub Actions CI/CD (сборка C# и Rust)
 ├── App.xaml / App.xaml.cs          # Инициализация WPF, мьютекс одиночного экземпляра
 ├── MainWindow.xaml / .cs           # Разметка окна, модальные диалоги, темная тема
-├── README.md / README_EN.md        # Документация для пользователей (RU / EN)
+├── README.md                       # Документация для пользователей (English)
+├── README_RU.md                    # Документация для пользователей (Русский)
 ├── DEVELOPMENT.md                  # Данный файл архитектурного контекста
 ├── llms.txt                        # Индекс документации по стандарту llmstxt.org
 └── SimpleMicCompressor.csproj      # Конфигурация сборки .NET 8 WPF Single-File
@@ -136,7 +139,7 @@ SimpleMicCompressor/
 3. **Безопасное обновление настроек на лету:**
    * При перемещении ползунков пользователем настройки копируются в легковесную структуру и передаются в DSP-тракт через быстрый `lock (_lock)`. Поток обработки удерживает блокировку всего на доли микросекунды (пересчет коэффициентов фильтров).
 4. **USB Watchdog (Авторекавери микрофона):**
-   * Если USB-микрофон случайно отключается или перезагружается, движок не крашится, а переходит в статус `EngineState.Starting` и раз в секунду пытается автоматически восстановить сессию без участия пользователя.
+   * Если USB-микрофон случайно отключается или возникает ошибка при старте, движок не крашится, а запускает автоматическое восстановление (`ScheduleAutoRecovery`, 8 попыток по 2.5 с) для бесшовного переподключения сессии.
 
 ### 3.3. Глобальные горячие клавиши (Low-Level Keyboard Hook)
 * Традиционный `RegisterHotKey` часто отклонялся Windows с кодом `1409 (ERROR_HOTKEY_ALREADY_REGISTERED)`, так как браузеры Chrome/Edge и другие приложения регистрируют схожие комбинации (`Ctrl+Shift+B`, `Ctrl+Shift+M`).
@@ -149,7 +152,7 @@ SimpleMicCompressor/
 
 ## 4. ⚙️ Конфигурация (Configuration Schema)
 
-Конфигурация сохраняется в файл `mic_compressor_config.json` в корневой директории приложения и разделяется между C# версией и версией на Rust:
+Конфигурация сохраняется в файл `%APPDATA%\SimpleMicCompressor\config.json` (с fallback на локальный `mic_compressor_config.json`) и полностью синхронизирована между C# GUI и Rust Light версиями:
 
 ```json
 {

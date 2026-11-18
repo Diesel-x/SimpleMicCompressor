@@ -4,8 +4,8 @@
 
 ## Documentation
 - [Developer Guide & AI Architecture Context](DEVELOPMENT.md): Full technical architecture, codebase map, DSP signal chain, memory management, hotkey hook, CI/CD pipeline, and guidelines for AI agents and LLMs.
-- [Project Readme (RU)](README.md): Russian user documentation, quick start, and feature comparison.
-- [Project Readme (EN)](README_EN.md): English user documentation and setup instructions.
+- [Project Readme (EN)](README.md): English user documentation, quick start, and feature comparison.
+- [Project Readme (RU)](README_RU.md): Russian user documentation, quick start, and feature comparison.
 
 ## Key Facts
 - Stack: C# (.NET 8 WPF GUI) + Rust (Light headless tray service).
