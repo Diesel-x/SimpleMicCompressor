@@ -291,6 +291,10 @@ impl FastLimiter {
             self.gain_envelope = self.release_coeff * self.gain_envelope + (1.0 - self.release_coeff);
         }
 
+        if !self.gain_envelope.is_finite() {
+            self.gain_envelope = 1.0;
+        }
+
         let mut limited = input * self.gain_envelope;
         let soft_threshold = self.ceiling_linear * 0.95;
         if limited.abs() > soft_threshold {
@@ -390,9 +394,15 @@ impl AudioChain {
                 for ch in 0..num_channels {
                     let mut ch_sample = buffer[base_idx + ch];
                     if hp_enabled {
-                        ch_sample = self.hp_filters[0].process(ch_sample);
+                        let filter_idx = ch.min(self.hp_filters.len() - 1);
+                        ch_sample = self.hp_filters[filter_idx].process(ch_sample);
                     }
-                    buffer[base_idx + ch] = (ch_sample * ratio).clamp(-1.0, 1.0);
+                    let out_val = ch_sample * ratio;
+                    buffer[base_idx + ch] = if out_val.is_finite() {
+                        out_val.clamp(-1.0, 1.0)
+                    } else {
+                        0.0
+                    };
                 }
                 continue;
             }
