@@ -79,6 +79,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public RelayCommand CloseHotkeysDialogCommand { get; }
     public RelayCommand ResetHotkeysCommand { get; }
     public RelayCommand ToggleMuteCommand { get; }
+    public RelayCommand FullUninstallCommand { get; }
     public Action? RequestMinimizeToTray { get; set; }
     public Action? RequestUpdateHotkeys { get; set; }
 
@@ -296,6 +297,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         });
 
         ToggleMuteCommand = new RelayCommand(ToggleMute);
+        FullUninstallCommand = new RelayCommand(UninstallerService.RequestFullUninstall);
 
         UpdateEngineStatusDisplay();
         RefreshPresetsList();

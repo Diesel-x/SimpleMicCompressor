@@ -19,6 +19,7 @@
     <Compile Include="..\..\Models\UserProfile.cs" Link="Models\%(Filename)%(Extension)" />
     <Compile Include="..\..\Localization\LocalizationService.cs" Link="Localization\%(Filename)%(Extension)" />
     <Compile Include="..\..\Utils\VersionHelper.cs" Link="Utils\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Utils\UninstallHelper.cs" Link="Utils\%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

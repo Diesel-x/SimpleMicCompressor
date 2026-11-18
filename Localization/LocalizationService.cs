@@ -260,7 +260,13 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Updates
         ["Update_Available_Title"] = "Доступно обновление",
-        ["Update_Available_Message"] = "Доступна новая версия SimpleMicCompressor ({0}).\n\nХотите перейти на страницу релизов на GitHub для скачивания?"
+        ["Update_Available_Message"] = "Доступна новая версия SimpleMicCompressor ({0}).\n\nХотите перейти на страницу релизов на GitHub для скачивания?",
+
+        // Uninstall
+        ["Pref_Uninstall"] = "Полная деинсталляция",
+        ["Pref_Uninstall_Tip"] = "Полное удаление настроек, автозапуска и исполняемого файла программы",
+        ["Uninstall_Confirm_Title"] = "Полная деинсталляция",
+        ["Uninstall_Confirm_Message"] = "Вы действительно хотите полностью удалить SimpleMicCompressor?\n\nБудут удалены:\n• Автозагрузка Windows (реестр)\n• Папка настроек и профилей (%APPDATA%\\SimpleMicCompressor)\n• Исполняемый файл приложения\n\nПриложение будет немедленно закрыто."
     };
 
     private static readonly Dictionary<string, string> StringsEn = new()
@@ -393,7 +399,13 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Updates
         ["Update_Available_Title"] = "Update Available",
-        ["Update_Available_Message"] = "A new version of SimpleMicCompressor ({0}) is available.\n\nWould you like to open the GitHub releases page to download it?"
+        ["Update_Available_Message"] = "A new version of SimpleMicCompressor ({0}) is available.\n\nWould you like to open the GitHub releases page to download it?",
+
+        // Uninstall
+        ["Pref_Uninstall"] = "Full Uninstallation",
+        ["Pref_Uninstall_Tip"] = "Completely remove settings, autostart, and the executable",
+        ["Uninstall_Confirm_Title"] = "Full Uninstallation",
+        ["Uninstall_Confirm_Message"] = "Are you sure you want to completely uninstall SimpleMicCompressor?\n\nThe following will be removed:\n• Windows autostart (registry)\n• Settings and profiles folder (%APPDATA%\\SimpleMicCompressor)\n• The application executable\n\nThe application will close immediately."
     };
 
     private static readonly Dictionary<string, string> StringsDe = new()
@@ -526,7 +538,13 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Updates
         ["Update_Available_Title"] = "Update verfügbar",
-        ["Update_Available_Message"] = "Eine neue Version von SimpleMicCompressor ({0}) ist verfügbar.\n\nMöchten Sie die GitHub-Releases-Seite öffnen, um sie herunterzuladen?"
+        ["Update_Available_Message"] = "Eine neue Version von SimpleMicCompressor ({0}) ist verfügbar.\n\nMöchten Sie die GitHub-Releases-Seite öffnen, um sie herunterzuladen?",
+
+        // Uninstall
+        ["Pref_Uninstall"] = "Vollständige Deinstallation",
+        ["Pref_Uninstall_Tip"] = "Einstellungen, Autostart und Anwendungsdatei vollständig entfernen",
+        ["Uninstall_Confirm_Title"] = "Vollständige Deinstallation",
+        ["Uninstall_Confirm_Message"] = "Möchten Sie SimpleMicCompressor wirklich vollständig deinstallieren?\n\nFolgendes wird entfernt:\n• Windows-Autostart (Registrierung)\n• Einstellungs- und Profilordner (%APPDATA%\\SimpleMicCompressor)\n• Die Anwendungsdatei\n\nDie Anwendung wird sofort beendet."
     };
 
     private static readonly Dictionary<string, string> StringsEs = new()
@@ -659,7 +677,13 @@ public sealed class LocalizationService : INotifyPropertyChanged
 
         // Updates
         ["Update_Available_Title"] = "Actualización disponible",
-        ["Update_Available_Message"] = "Una nueva versión de SimpleMicCompressor ({0}) está disponible.\n\n¿Desea abrir la página de lanzamientos de GitHub para descargarla?"
+        ["Update_Available_Message"] = "Una nueva versión de SimpleMicCompressor ({0}) está disponible.\n\n¿Desea abrir la página de lanzamientos de GitHub para descargarla?",
+
+        // Uninstall
+        ["Pref_Uninstall"] = "Desinstalación completa",
+        ["Pref_Uninstall_Tip"] = "Eliminar por completo los ajustes, el inicio automático y el ejecutable",
+        ["Uninstall_Confirm_Title"] = "Desinstalación completa",
+        ["Uninstall_Confirm_Message"] = "¿Realmente desea desinstalar SimpleMicCompressor por completo?\n\nSe eliminará lo siguiente:\n• Inicio automático de Windows (registro)\n• Carpeta de ajustes y perfiles (%APPDATA%\\SimpleMicCompressor)\n• Archivo ejecutable de la aplicación\n\nLa aplicación se cerrará inmediatamente."
     };
 
     #endregion
