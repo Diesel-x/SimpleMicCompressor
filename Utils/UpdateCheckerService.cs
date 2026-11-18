@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using MicCompressor.Localization;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 
 namespace MicCompressor.Utils;
 
@@ -45,34 +47,38 @@ public static class UpdateCheckerService
 
             if (VersionHelper.IsNewerVersion(tagName, currentVer))
             {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                var app = Application.Current;
+                if (app?.Dispatcher != null)
                 {
-                    var loc = LocalizationService.Instance;
-                    string title = loc["Update_Available_Title"];
-                    string message = loc.Get("Update_Available_Message", tagName);
-
-                    var result = MessageBox.Show(
-                        message,
-                        title,
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Information);
-
-                    if (result == MessageBoxResult.Yes)
+                    await app.Dispatcher.InvokeAsync(() =>
                     {
-                        try
-                        {
-                            Process.Start(new ProcessStartInfo(releaseUrl) { UseShellExecute = true });
-                        }
-                        catch
+                        var loc = LocalizationService.Instance;
+                        string title = loc["Update_Available_Title"];
+                        string message = loc.Get("Update_Available_Message", tagName);
+
+                        var result = MessageBox.Show(
+                            message,
+                            title,
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Information);
+
+                        if (result == MessageBoxResult.Yes)
                         {
                             try
                             {
-                                Process.Start(new ProcessStartInfo(DefaultReleasesPageUrl) { UseShellExecute = true });
+                                Process.Start(new ProcessStartInfo(releaseUrl) { UseShellExecute = true });
                             }
-                            catch { }
+                            catch
+                            {
+                                try
+                                {
+                                    Process.Start(new ProcessStartInfo(DefaultReleasesPageUrl) { UseShellExecute = true });
+                                }
+                                catch { }
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
         catch
