@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="SimpleMicCompressor"
         Icon="assets/app.ico"
-        Height="840" Width="1180"
-        MinHeight="780" MinWidth="1040"
+        Height="780" Width="1160"
+        MinHeight="580" MinWidth="980"
         WindowStartupLocation="CenterScreen"
         Background="#0c0e14"
         Foreground="#f3f4f6"
@@ -231,17 +231,20 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="18">
-        <Grid.RowDefinitions>
-            <!-- 1. Header Bar -->
-            <RowDefinition Height="Auto"/>
-            <!-- 2. Devices & VU Meters -->
-            <RowDefinition Height="Auto"/>
-            <!-- 3. Channel Strip (DSP Rack) -->
-            <RowDefinition Height="*"/>
-            <!-- 4. Status Bar -->
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Grid>
+        <!-- SCROLLABLE WORKSPACE (Auto-adapts to small & large screen resolutions) -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <Grid Margin="18">
+                <Grid.RowDefinitions>
+                    <!-- 1. Header Bar -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 2. Devices & VU Meters -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 3. Channel Strip (DSP Rack) -->
+                    <RowDefinition Height="*" MinHeight="290"/>
+                    <!-- 4. Status Bar -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
         <!-- ================================================================= -->
         <!-- 1. HEADER BAR                                                     -->
@@ -941,13 +944,14 @@
                 <Run Text="{Binding SelectedOutputDevice.Name, Mode=OneWay}" Foreground="#8b95a8"/>
             </TextBlock>
         </Grid>
+            </Grid>
+        </ScrollViewer>
 
         <!-- ================================================================= -->
         <!-- 5. MODAL: SAVE NEW PROFILE DIALOG                                 -->
         <!-- ================================================================= -->
-        <Grid Grid.Row="0" Grid.RowSpan="4"
-              Visibility="{Binding IsSaveProfileDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-              Background="#b3000000" Panel.ZIndex="300" Margin="-18">
+        <Grid Visibility="{Binding IsSaveProfileDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="#b3000000" Panel.ZIndex="300">
             <Border Background="#161822" BorderBrush="#2e354c" BorderThickness="1.5" CornerRadius="12"
                     Width="380" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="22">
                 <Border.Effect>
@@ -1011,9 +1015,8 @@
         <!-- ================================================================= -->
         <!-- 6. MODAL: GLOBAL HOTKEYS DIALOG                                   -->
         <!-- ================================================================= -->
-        <Grid Grid.Row="0" Grid.RowSpan="4"
-              Visibility="{Binding IsHotkeysDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-              Background="#b3000000" Panel.ZIndex="300" Margin="-18">
+        <Grid Visibility="{Binding IsHotkeysDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="#b3000000" Panel.ZIndex="300">
             <Border Background="#161822" BorderBrush="#2e354c" BorderThickness="1.5" CornerRadius="12"
                     Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="22">
                 <Border.Effect>
@@ -1114,9 +1117,8 @@
         <!-- ================================================================= -->
         <!-- 7. MODAL: APPLICATION SETTINGS & UNINSTALLATION DIALOG            -->
         <!-- ================================================================= -->
-        <Grid Grid.Row="0" Grid.RowSpan="4"
-              Visibility="{Binding IsSettingsDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-              Background="#b3000000" Panel.ZIndex="300" Margin="-18">
+        <Grid Visibility="{Binding IsSettingsDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="#b3000000" Panel.ZIndex="300">
             <Border Background="#161822" BorderBrush="#2e354c" BorderThickness="1.5" CornerRadius="12"
                     Width="480" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="22">
                 <Border.Effect>

@@ -134,6 +134,24 @@ public partial class MainWindow : Window
                 return;
             }
 
+            if (args.Any(a => a.Equals("--screenshot-res", StringComparison.OrdinalIgnoreCase)))
+            {
+                int idx = Array.FindIndex(args, a => a.Equals("--screenshot-res", StringComparison.OrdinalIgnoreCase));
+                double customW = 1180;
+                double customH = 800;
+                string path = "assets/screenshot_res.png";
+                if (idx + 1 < args.Length && double.TryParse(args[idx + 1], System.Globalization.CultureInfo.InvariantCulture, out double w)) customW = w;
+                if (idx + 2 < args.Length && double.TryParse(args[idx + 2], System.Globalization.CultureInfo.InvariantCulture, out double h)) customH = h;
+                if (idx + 3 < args.Length && !args[idx + 3].StartsWith("--")) path = args[idx + 3];
+
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, new Action(() =>
+                {
+                    CaptureAndSave(path, customW, customH);
+                    System.Windows.Application.Current.Shutdown();
+                }));
+                return;
+            }
+
             bool startMinimized = vm.Settings.StartMinimized || args.Any(a => a.Equals("--minimized", StringComparison.OrdinalIgnoreCase));
 
             if (startMinimized)
@@ -146,12 +164,12 @@ public partial class MainWindow : Window
         }
     }
 
-    private void CaptureAndSave(string outputPath)
+    private void CaptureAndSave(string outputPath, double customWidth = 1180, double customHeight = 800)
     {
         try
         {
-            double width = 1160;
-            double height = 840;
+            double width = customWidth;
+            double height = customHeight;
 
             Width = width;
             Height = height;
@@ -163,7 +181,7 @@ public partial class MainWindow : Window
             using (var dc = dv.RenderOpen())
             {
                 var bg = new System.Windows.Media.SolidColorBrush(
-                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#131418"));
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0c0e14"));
                 dc.DrawRectangle(bg, null, new System.Windows.Rect(0, 0, width, height));
                 var vb = new System.Windows.Media.VisualBrush(this) { Stretch = System.Windows.Media.Stretch.None };
                 dc.DrawRectangle(vb, null, new System.Windows.Rect(0, 0, width, height));
