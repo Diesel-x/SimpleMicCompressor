@@ -44,6 +44,8 @@ public sealed class AudioEngine : IDisposable
     private int _captureBufferMs = 15;
     private int _outputLatencyMs = 20;
 
+    private static readonly Guid SubFormatIeeeFloat = new("00000003-0000-0010-8000-00aa00389b71");
+
     private double _outPhasePos = 0.0;
     private double _monPhasePos = 0.0;
 
@@ -289,7 +291,7 @@ public sealed class AudioEngine : IDisposable
         // 1. Convert input bytes to float samples
         // Check if format is IEEE float vs PCM integer
         bool isFloat = capFormat.Encoding == WaveFormatEncoding.IeeeFloat ||
-                       (capFormat is WaveFormatExtensible wfe && wfe.SubFormat == AudioMediaSubtypes.MEDIASUBTYPE_IEEE_FLOAT);
+                       (capFormat is WaveFormatExtensible wfe && wfe.SubFormat == SubFormatIeeeFloat);
 
         if (inBits == 32)
         {
@@ -446,7 +448,7 @@ public sealed class AudioEngine : IDisposable
     private static int WriteFloatToBytes(float[] floatBuf, int sampleCount, WaveFormat format, ref byte[] byteBuf)
     {
         bool isOutFloat = format.Encoding == WaveFormatEncoding.IeeeFloat ||
-                          (format is WaveFormatExtensible wfe && wfe.SubFormat == AudioMediaSubtypes.MEDIASUBTYPE_IEEE_FLOAT);
+                          (format is WaveFormatExtensible wfe && wfe.SubFormat == SubFormatIeeeFloat);
 
         if (format.BitsPerSample == 32)
         {
