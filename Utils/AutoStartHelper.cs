@@ -45,4 +45,19 @@ public static class AutoStartHelper
             // Ignore registry permissions errors
         }
     }
+
+    public static void RemoveAllAutoStart()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, true);
+            if (key == null) return;
+            key.DeleteValue(AppName, false);
+            key.DeleteValue("MicCompressor", false);
+        }
+        catch
+        {
+            // Ignore registry permissions errors
+        }
+    }
 }

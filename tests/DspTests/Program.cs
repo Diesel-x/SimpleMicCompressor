@@ -29,6 +29,7 @@ internal static class Program
         TestSettings();
         TestLocalization();
         TestUpdateChecker();
+        TestUninstallHelper();
 
         Console.WriteLine();
         Console.WriteLine($"TOTAL: {_passed + _failed} | PASSED: {_passed} | FAILED: {_failed}");
@@ -396,5 +397,30 @@ internal static class Program
         Check("UpdateChecker: v1.1 is not newer than 1.1", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.1", cur));
         Check("UpdateChecker: v1.0.1 is not newer than 1.1", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.0.1", cur));
         Check("UpdateChecker: empty tag is not newer", !MicCompressor.Utils.VersionHelper.IsNewerVersion("", cur));
+    }
+
+    // -------------------------------------------------------- uninstaller
+
+    private static void TestUninstallHelper()
+    {
+        string cmd = MicCompressor.Utils.UninstallHelper.BuildSelfDeleteCommandLine("C:\\app.exe", "C:\\data", "C:\\legacy");
+        Check("Uninstaller: command line contains ping delay", cmd.Contains("ping 127.0.0.1 -n 3"));
+        Check("Uninstaller: command line deletes executable", cmd.Contains("del /f /q \"C:\\app.exe\""));
+        Check("Uninstaller: command line removes data folders", cmd.Contains("rmdir /s /q \"C:\\data\"") && cmd.Contains("rmdir /s /q \"C:\\legacy\""));
+
+        string tempBase = Path.Combine(Path.GetTempPath(), "SmcUninstallTest_" + Guid.NewGuid().ToString("N"));
+        string dir1 = Path.Combine(tempBase, "dir1");
+        string dir2 = Path.Combine(tempBase, "dir2");
+        Directory.CreateDirectory(dir1);
+        Directory.CreateDirectory(dir2);
+        File.WriteAllText(Path.Combine(dir1, "test.json"), "{}");
+        File.WriteAllText(Path.Combine(dir2, "old.json"), "{}");
+
+        bool cleaned = MicCompressor.Utils.UninstallHelper.CleanDirectories(dir1, dir2);
+        Check("Uninstaller: CleanDirectories returns true on existing dirs", cleaned);
+        Check("Uninstaller: directory 1 deleted", !Directory.Exists(dir1));
+        Check("Uninstaller: directory 2 deleted", !Directory.Exists(dir2));
+
+        try { if (Directory.Exists(tempBase)) Directory.Delete(tempBase, true); } catch { }
     }
 }
