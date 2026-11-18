@@ -46,13 +46,23 @@ public sealed class BiquadHighPassFilter
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public float Process(float input)
     {
+        if (float.IsNaN(input) || float.IsInfinity(input)) input = 0f;
+
         // Direct Form I biquad difference equation
         float output = _b0 * input + _b1 * _x1 + _b2 * _x2 - _a1 * _y1 - _a2 * _y2;
 
-        _x2 = _x1;
-        _x1 = input;
-        _y2 = _y1;
-        _y1 = output;
+        if (float.IsNaN(output) || float.IsInfinity(output))
+        {
+            output = 0f;
+            _x1 = 0f; _x2 = 0f; _y1 = 0f; _y2 = 0f;
+        }
+        else
+        {
+            _x2 = _x1;
+            _x1 = input;
+            _y2 = _y1;
+            _y1 = output;
+        }
 
         return output;
     }

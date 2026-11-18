@@ -88,6 +88,10 @@ public static class VbCableInstallerService
                 if (instProc != null)
                 {
                     await instProc.WaitForExitAsync();
+                    if (instProc.ExitCode != 0)
+                    {
+                        return (false, $"Установщик завершился с кодом ошибки {instProc.ExitCode}. Возможно, установка была отменена или заблокирована.");
+                    }
                 }
             }
             catch (Exception ex)

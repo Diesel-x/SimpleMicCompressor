@@ -35,15 +35,20 @@ public sealed class FastLimiter
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public float Process(float input)
     {
+        if (float.IsNaN(input) || float.IsInfinity(input)) input = 0f;
         float absIn = MathF.Abs(input);
 
-        // Instant peak reduction
+        // Peak gain reduction with smooth release
         if (absIn > _ceilingLinear)
         {
             float targetGain = _ceilingLinear / absIn;
             if (targetGain < _gainEnvelope)
             {
                 _gainEnvelope = targetGain;
+            }
+            else
+            {
+                _gainEnvelope = _releaseCoeff * _gainEnvelope + (1.0f - _releaseCoeff) * targetGain;
             }
         }
         else
