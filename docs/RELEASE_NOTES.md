@@ -1,4 +1,4 @@
-# SimpleMicCompressor v1.0.1 Release Notes / Примечания к выпуску
+# SimpleMicCompressor v1.1 Release Notes / Примечания к выпуску
 
 [English] | [Русский]
 
@@ -7,7 +7,7 @@
 ## 🇬🇧 English
 
 ### Overview
-Version 1.0.1 delivers major stability, audio quality, and lifecycle improvements across the real-time DSP pipeline, WASAPI audio engine, UI/ViewModel layers, and system utilities. It also adds strict single-instance process enforcement for both the WPF GUI and Rust Light editions.
+Version 1.1 delivers major stability, audio quality, and lifecycle improvements across the real-time DSP pipeline, WASAPI audio engine, UI/ViewModel layers, and system utilities. It also adds strict single-instance process enforcement for both the WPF GUI and Rust Light editions.
 
 ---
 
@@ -81,7 +81,7 @@ Version 1.0.1 delivers major stability, audio quality, and lifecycle improvement
 ## 🇷🇺 Русский
 
 ### Обзор изменений
-В версии 1.0.1 проведена масштабная работа по исправлению ошибок, повышению стабильности и качества звука в DSP-пайплайне, WASAPI аудио-движке, интерфейсе пользователя и системном трее. Реализован строгий запуск приложения в единственном экземпляре для C# WPF и Rust Light версий.
+В версии 1.1 проведена масштабная работа по исправлению ошибок, повышению стабильности и качества звука в DSP-пайплайне, WASAPI аудио-движке, интерфейсе пользователя и системном трее. Реализован строгий запуск приложения в единственном экземпляре для C# WPF и Rust Light версий.
 
 ---
 
