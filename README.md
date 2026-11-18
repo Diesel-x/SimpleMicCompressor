@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.0%20Release-brightgreen?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/Release-v1.1-brightgreen?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/Author-Diesel--X-blue?style=flat-square&logo=github" alt="Author" />
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-informational?style=flat-square&logo=windows" alt="Platform" />
   <img src="https://img.shields.io/badge/Audio-WASAPI%20Shared%20Mode-success?style=flat-square" alt="Audio" />
@@ -22,7 +22,7 @@
 
 **SimpleMicCompressor** is an ultra-fast real-time system microphone audio processor designed for **Discord**, **streaming**, and **competitive games** (CS2, Valorant, Apex Legends, Warzone). It evens out voice volume dynamics, removes mouse clicks and background hum, dampens loud screaming, and protects against digital clipping with zero impact on gaming FPS.
 
-**Version:** `1.0 Release`
+**Version:** `1.1`
 
 ---
 
@@ -37,7 +37,7 @@
 | **Preset Management**| Sliders, graphs, 1-click custom profile creation | Shared `mic_compressor_config.json` |
 | **VB-Cable Setup** | 1-click built-in installer & repair tool | Uses existing virtual cable |
 | **Binary Size** | ~850 KB (Single-File) | **~529 KB** (Standalone binary) |
-| **Download Release** | [📥 **Download SimpleMicCompressor.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor.exe) | [⚡ **Download Light (Rust)**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor_Light.exe) |
+| **Download Release** | [📥 **GitHub Releases**](https://github.com/Diesel-x/SimpleMicCompressor/releases) | [⚡ **GitHub Releases**](https://github.com/Diesel-x/SimpleMicCompressor/releases) |
 
 ---
 
@@ -52,9 +52,9 @@
 
 ## 🚀 Quick Start in 1 Minute
 
-1. Download either edition from the [Releases page (v1.0)](https://github.com/Diesel-x/SimpleMicCompressor/releases/tag/v1.0):
-   * [**SimpleMicCompressor.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor.exe) (recommended: with full dark GUI)
-   * [**SimpleMicCompressor_Light.exe**](https://github.com/Diesel-x/SimpleMicCompressor/releases/download/v1.0/SimpleMicCompressor_Light.exe) (experimental headless build — controlled via tray and hotkeys)
+1. Download either edition from the [Releases page](https://github.com/Diesel-x/SimpleMicCompressor/releases):
+   * **SimpleMicCompressor.exe** (recommended: with full dark GUI)
+   * **SimpleMicCompressor_Light.exe** (experimental headless build — controlled via tray and hotkeys)
 2. Launch the application:
    * **Input:** Select your physical microphone.
    * **Output:** Select **CABLE Input (VB-Audio Virtual Cable)**.

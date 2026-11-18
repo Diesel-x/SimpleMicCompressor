@@ -186,7 +186,7 @@ unsafe fn show_context_menu(hwnd: HWND) {
         return;
     }
 
-    let title_w = to_wide("SimpleMicCompressor (Light) v1.0 Release");
+    let title_w = to_wide("SimpleMicCompressor (Light) v1.1");
     AppendMenuW(menu, MF_STRING | MF_DISABLED, ID_TITLE, title_w.as_ptr());
 
     let author_w = to_wide("Author: Diesel-X");
@@ -328,7 +328,7 @@ pub fn run_tray_loop(
         nid.uCallbackMessage = WM_TRAY_CALLBACK;
         nid.hIcon = icon;
 
-        let tip = to_wide("SimpleMicCompressor (Light) v1.0 by Diesel-X");
+        let tip = to_wide("SimpleMicCompressor (Light) v1.1 by Diesel-X");
         for (i, &c) in tip.iter().enumerate().take(127) {
             nid.szTip[i] = c;
         }
