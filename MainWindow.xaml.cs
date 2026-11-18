@@ -121,6 +121,19 @@ public partial class MainWindow : Window
                 return;
             }
 
+            if (args.Any(a => a.Equals("--screenshot-settings", StringComparison.OrdinalIgnoreCase)))
+            {
+                int idx = Array.FindIndex(args, a => a.Equals("--screenshot-settings", StringComparison.OrdinalIgnoreCase));
+                string path = (idx + 1 < args.Length && !args[idx + 1].StartsWith("--")) ? args[idx + 1] : "assets/screenshot_settings.png";
+                vm.IsSettingsDialogVisible = true;
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, new Action(() =>
+                {
+                    CaptureAndSave(path);
+                    System.Windows.Application.Current.Shutdown();
+                }));
+                return;
+            }
+
             bool startMinimized = vm.Settings.StartMinimized || args.Any(a => a.Equals("--minimized", StringComparison.OrdinalIgnoreCase));
 
             if (startMinimized)

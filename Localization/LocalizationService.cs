@@ -266,7 +266,16 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Pref_Uninstall"] = "Полная деинсталляция",
         ["Pref_Uninstall_Tip"] = "Полное удаление настроек, автозапуска и исполняемого файла программы",
         ["Uninstall_Confirm_Title"] = "Полная деинсталляция",
-        ["Uninstall_Confirm_Message"] = "Вы действительно хотите полностью удалить SimpleMicCompressor?\n\nБудут удалены:\n• Автозагрузка Windows (реестр)\n• Папка настроек и профилей (%APPDATA%\\SimpleMicCompressor)\n• Исполняемый файл приложения\n\nПриложение будет немедленно закрыто."
+        ["Uninstall_Confirm_Message"] = "Вы действительно хотите полностью удалить SimpleMicCompressor?\n\nБудут удалены:\n• Автозагрузка Windows (реестр)\n• Папка настроек и профилей (%APPDATA%\\SimpleMicCompressor)\n• Исполняемый файл приложения\n\nПриложение будет немедленно закрыто.",
+
+        // Settings Modal
+        ["Action_Settings"] = "Настройки",
+        ["Modal_Settings_Title"] = "Настройки приложения",
+        ["Settings_General"] = "ОСНОВНЫЕ ПАРАМЕТРЫ",
+        ["Settings_Hotkeys"] = "ГОРЯЧИЕ КЛАВИШИ",
+        ["Settings_DangerZone"] = "ЗОНА УДАЛЕНИЯ",
+        ["FX_Bypass_Desc"] = "Прямой сигнал без обработки",
+        ["FX_Mute_Desc"] = "Быстрое заглушение микрофона"
     };
 
     private static readonly Dictionary<string, string> StringsEn = new()
@@ -405,7 +414,16 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Pref_Uninstall"] = "Full Uninstallation",
         ["Pref_Uninstall_Tip"] = "Completely remove settings, autostart, and the executable",
         ["Uninstall_Confirm_Title"] = "Full Uninstallation",
-        ["Uninstall_Confirm_Message"] = "Are you sure you want to completely uninstall SimpleMicCompressor?\n\nThe following will be removed:\n• Windows autostart (registry)\n• Settings and profiles folder (%APPDATA%\\SimpleMicCompressor)\n• The application executable\n\nThe application will close immediately."
+        ["Uninstall_Confirm_Message"] = "Are you sure you want to completely uninstall SimpleMicCompressor?\n\nThe following will be removed:\n• Windows autostart (registry)\n• Settings and profiles folder (%APPDATA%\\SimpleMicCompressor)\n• The application executable\n\nThe application will close immediately.",
+
+        // Settings Modal
+        ["Action_Settings"] = "Settings",
+        ["Modal_Settings_Title"] = "Application Settings",
+        ["Settings_General"] = "GENERAL PREFERENCES",
+        ["Settings_Hotkeys"] = "GLOBAL HOTKEYS",
+        ["Settings_DangerZone"] = "DANGER ZONE",
+        ["FX_Bypass_Desc"] = "Direct dry microphone passthrough",
+        ["FX_Mute_Desc"] = "Quick microphone mute"
     };
 
     private static readonly Dictionary<string, string> StringsDe = new()
@@ -544,7 +562,16 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Pref_Uninstall"] = "Vollständige Deinstallation",
         ["Pref_Uninstall_Tip"] = "Einstellungen, Autostart und Anwendungsdatei vollständig entfernen",
         ["Uninstall_Confirm_Title"] = "Vollständige Deinstallation",
-        ["Uninstall_Confirm_Message"] = "Möchten Sie SimpleMicCompressor wirklich vollständig deinstallieren?\n\nFolgendes wird entfernt:\n• Windows-Autostart (Registrierung)\n• Einstellungs- und Profilordner (%APPDATA%\\SimpleMicCompressor)\n• Die Anwendungsdatei\n\nDie Anwendung wird sofort beendet."
+        ["Uninstall_Confirm_Message"] = "Möchten Sie SimpleMicCompressor wirklich vollständig deinstallieren?\n\nFolgendes wird entfernt:\n• Windows-Autostart (Registrierung)\n• Einstellungs- und Profilordner (%APPDATA%\\SimpleMicCompressor)\n• Die Anwendungsdatei\n\nDie Anwendung wird sofort beendet.",
+
+        // Settings Modal
+        ["Action_Settings"] = "Einstellungen",
+        ["Modal_Settings_Title"] = "Programmeinstellungen",
+        ["Settings_General"] = "ALLGEMEINE EINSTELLUNGEN",
+        ["Settings_Hotkeys"] = "GLOBALE HOTKEYS",
+        ["Settings_DangerZone"] = "GEFAHRENZONE",
+        ["FX_Bypass_Desc"] = "Direktes Mikrofon-Signal",
+        ["FX_Mute_Desc"] = "Mikrofon schnell stummschalten"
     };
 
     private static readonly Dictionary<string, string> StringsEs = new()
@@ -683,7 +710,16 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Pref_Uninstall"] = "Desinstalación completa",
         ["Pref_Uninstall_Tip"] = "Eliminar por completo los ajustes, el inicio automático y el ejecutable",
         ["Uninstall_Confirm_Title"] = "Desinstalación completa",
-        ["Uninstall_Confirm_Message"] = "¿Realmente desea desinstalar SimpleMicCompressor por completo?\n\nSe eliminará lo siguiente:\n• Inicio automático de Windows (registro)\n• Carpeta de ajustes y perfiles (%APPDATA%\\SimpleMicCompressor)\n• Archivo ejecutable de la aplicación\n\nLa aplicación se cerrará inmediatamente."
+        ["Uninstall_Confirm_Message"] = "¿Realmente desea desinstalar SimpleMicCompressor por completo?\n\nSe eliminará lo siguiente:\n• Inicio automático de Windows (registro)\n• Carpeta de ajustes y perfiles (%APPDATA%\\SimpleMicCompressor)\n• Archivo ejecutable de la aplicación\n\nLa aplicación se cerrará inmediatamente.",
+
+        // Settings Modal
+        ["Action_Settings"] = "Ajustes",
+        ["Modal_Settings_Title"] = "Ajustes de la aplicación",
+        ["Settings_General"] = "PREFERENCIAS GENERALES",
+        ["Settings_Hotkeys"] = "TECLAS DE ACCESO RÁPIDO",
+        ["Settings_DangerZone"] = "ZONA DE PELIGRO",
+        ["FX_Bypass_Desc"] = "Señal de micrófono directa",
+        ["FX_Mute_Desc"] = "Silenciar micrófono rápidamente"
     };
 
     #endregion

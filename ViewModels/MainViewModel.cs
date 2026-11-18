@@ -80,6 +80,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public RelayCommand ResetHotkeysCommand { get; }
     public RelayCommand ToggleMuteCommand { get; }
     public RelayCommand FullUninstallCommand { get; }
+    public RelayCommand OpenSettingsDialogCommand { get; }
+    public RelayCommand CloseSettingsDialogCommand { get; }
     public Action? RequestMinimizeToTray { get; set; }
     public Action? RequestUpdateHotkeys { get; set; }
 
@@ -91,6 +93,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private bool _isCustomProfileSelected = false;
     private bool _isSaveProfileDialogVisible = false;
     private bool _isHotkeysDialogVisible = false;
+    private bool _isSettingsDialogVisible = false;
     private bool _hasUnsavedProfileChanges = false;
     private string _statusNotification = "";
     private DispatcherTimer? _statusNotificationTimer;
@@ -123,6 +126,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _isHotkeysDialogVisible;
         set => SetField(ref _isHotkeysDialogVisible, value);
+    }
+
+    public bool IsSettingsDialogVisible
+    {
+        get => _isSettingsDialogVisible;
+        set => SetField(ref _isSettingsDialogVisible, value);
     }
 
     public bool HotkeysEnabled
@@ -298,6 +307,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
         ToggleMuteCommand = new RelayCommand(ToggleMute);
         FullUninstallCommand = new RelayCommand(UninstallerService.RequestFullUninstall);
+        OpenSettingsDialogCommand = new RelayCommand(() => IsSettingsDialogVisible = true);
+        CloseSettingsDialogCommand = new RelayCommand(() => IsSettingsDialogVisible = false);
 
         UpdateEngineStatusDisplay();
         RefreshPresetsList();
