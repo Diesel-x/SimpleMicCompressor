@@ -179,11 +179,6 @@ public sealed class TrayManager : IDisposable
             return SystemIcons.Application;
         }
     }
-        catch
-        {
-            return SystemIcons.Application;
-        }
-    }
 
     public void Dispose()
     {
