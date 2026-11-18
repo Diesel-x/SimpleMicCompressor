@@ -390,12 +390,13 @@ internal static class Program
 
     private static void TestUpdateChecker()
     {
-        var cur = new Version(1, 1, 0, 0);
-        Check("UpdateChecker: v1.2 is newer than 1.1", MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.2", cur));
-        Check("UpdateChecker: v1.1.1 is newer than 1.1", MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.1.1", cur));
-        Check("UpdateChecker: v2.0.0 is newer than 1.1", MicCompressor.Utils.VersionHelper.IsNewerVersion("v2.0.0", cur));
-        Check("UpdateChecker: v1.1 is not newer than 1.1", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.1", cur));
-        Check("UpdateChecker: v1.0.1 is not newer than 1.1", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.0.1", cur));
+        var cur = new Version(1, 2, 0, 0);
+        Check("UpdateChecker: v1.3 is newer than 1.2", MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.3", cur));
+        Check("UpdateChecker: v1.2.1 is newer than 1.2", MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.2.1", cur));
+        Check("UpdateChecker: v2.0.0 is newer than 1.2", MicCompressor.Utils.VersionHelper.IsNewerVersion("v2.0.0", cur));
+        Check("UpdateChecker: v1.2 is not newer than 1.2", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.2", cur));
+        Check("UpdateChecker: v1.1 is not newer than 1.2", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.1", cur));
+        Check("UpdateChecker: v1.0.1 is not newer than 1.2", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.0.1", cur));
         Check("UpdateChecker: empty tag is not newer", !MicCompressor.Utils.VersionHelper.IsNewerVersion("", cur));
     }
 
