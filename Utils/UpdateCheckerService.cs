@@ -43,7 +43,7 @@ public static class UpdateCheckerService
                 ? u
                 : DefaultReleasesPageUrl;
 
-            var currentVer = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 1, 0, 0);
+            var currentVer = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 2, 0, 0);
 
             if (VersionHelper.IsNewerVersion(tagName, currentVer))
             {

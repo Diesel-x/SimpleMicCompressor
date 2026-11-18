@@ -336,7 +336,7 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="{Binding Loc[App_Title]}" FontSize="14" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,8,0"/>
                         <Border Background="#1f2334" BorderBrush="#2e354c" BorderThickness="1" CornerRadius="4" Padding="5,0" VerticalAlignment="Center">
-                            <TextBlock Text="v1.1" FontSize="10" FontWeight="Bold" Foreground="#94a3b8"/>
+                            <TextBlock Text="v1.2" FontSize="10" FontWeight="Bold" Foreground="#94a3b8"/>
                         </Border>
                     </StackPanel>
 
