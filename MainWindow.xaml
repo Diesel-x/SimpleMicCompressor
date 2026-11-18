@@ -821,7 +821,7 @@
                                                 <Setter Property="BorderBrush" Value="#7f1d1d"/>
                                             </Trigger>
                                         </Style.Triggers>
-                                    </Style.Triggers>
+                                    </Style>
                                 </Button.Style>
                             </Button>
                         </StackPanel>
