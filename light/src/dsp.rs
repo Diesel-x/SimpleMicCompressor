@@ -57,7 +57,20 @@ impl BiquadHighPassFilter {
 
     #[inline(always)]
     pub fn process(&mut self, input: f32) -> f32 {
-        let output = self.b0 * input + self.b1 * self.x1 + self.b2 * self.x2 - self.a1 * self.y1 - self.a2 * self.y2;
+        // Mirror of the C# implementation: never let a non-finite sample poison the delay line.
+        let input = if input.is_finite() { input } else { 0.0 };
+
+        let output = self.b0 * input + self.b1 * self.x1 + self.b2 * self.x2
+            - self.a1 * self.y1 - self.a2 * self.y2;
+
+        if !output.is_finite() {
+            self.x1 = 0.0;
+            self.x2 = 0.0;
+            self.y1 = 0.0;
+            self.y2 = 0.0;
+            return 0.0;
+        }
+
         self.x2 = self.x1;
         self.x1 = input;
         self.y2 = self.y1;
@@ -116,9 +129,13 @@ impl NoiseGate {
 
     #[inline(always)]
     pub fn compute_gain(&mut self, detector_sample: f32) -> f32 {
+        let detector_sample = if detector_sample.is_finite() { detector_sample } else { 0.0 };
         let abs_in = detector_sample.abs();
         const DETECTOR_ALPHA: f32 = 0.05;
         self.envelope = (1.0 - DETECTOR_ALPHA) * self.envelope + DETECTOR_ALPHA * abs_in;
+        if !self.envelope.is_finite() {
+            self.envelope = 0.0;
+        }
         let env_db = 8.6858896 * self.envelope.max(1e-6).ln();
 
         let close_threshold_db = self.threshold_db - self.hysteresis_db;
@@ -199,10 +216,15 @@ impl DynamicCompressor {
 
     #[inline(always)]
     pub fn compute_gain(&mut self, detector_sample: f32) -> f32 {
+        let detector_sample = if detector_sample.is_finite() { detector_sample } else { 0.0 };
         let abs_in = detector_sample.abs();
         const DETECTOR_ALPHA: f32 = 0.04;
         self.detector_envelope = (1.0 - DETECTOR_ALPHA) * self.detector_envelope + DETECTOR_ALPHA * abs_in;
+        if !self.detector_envelope.is_finite() {
+            self.detector_envelope = 0.0;
+        }
         let input_db = 8.6858896 * self.detector_envelope.max(1e-6).ln();
+        let input_db = if input_db.is_finite() { input_db } else { -120.0 };
 
         let half_knee = self.knee_db * 0.5;
         let gr_db = if input_db <= self.threshold_db - half_knee {
@@ -218,6 +240,9 @@ impl DynamicCompressor {
             self.gain_reduction_envelope = self.attack_coeff * self.gain_reduction_envelope + (1.0 - self.attack_coeff) * gr_db;
         } else {
             self.gain_reduction_envelope = self.release_coeff * self.gain_reduction_envelope + (1.0 - self.release_coeff) * gr_db;
+        }
+        if !self.gain_reduction_envelope.is_finite() {
+            self.gain_reduction_envelope = 0.0;
         }
 
         (-self.gain_reduction_envelope * 0.11512925).exp() * self.makeup_factor
@@ -255,6 +280,7 @@ impl FastLimiter {
 
     #[inline(always)]
     pub fn process(&mut self, input: f32) -> f32 {
+        let input = if input.is_finite() { input } else { 0.0 };
         let abs_in = input.abs();
         if abs_in > self.ceiling_linear {
             let target_gain = self.ceiling_linear / abs_in;
@@ -405,8 +431,168 @@ impl AudioChain {
                     let lim_idx = ch.min(self.limiters.len() - 1);
                     sample = self.limiters[lim_idx].process(sample);
                 }
-                buffer[base_idx + ch] = sample.clamp(-1.0, 1.0);
+                // Final safety net: the output buffer must never contain NaN/Inf.
+                buffer[base_idx + ch] = if sample.is_finite() {
+                    sample.clamp(-1.0, 1.0)
+                } else {
+                    0.0
+                };
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SR: f32 = 48000.0;
+
+    fn sine(amplitude: f32, freq: f32, index: usize) -> f32 {
+        amplitude * (2.0 * std::f32::consts::PI * freq * index as f32 / SR).sin()
+    }
+
+    #[test]
+    fn hpf_blocks_dc() {
+        let mut hp = BiquadHighPassFilter::new(80.0, SR);
+        let mut last = 0.0;
+        for _ in 0..48000 {
+            last = hp.process(1.0);
+        }
+        assert!(last.abs() < 1e-3, "DC leaked through HPF: {last}");
+    }
+
+    #[test]
+    fn hpf_passes_1khz() {
+        let mut hp = BiquadHighPassFilter::new(80.0, SR);
+        let mut sum = 0.0f64;
+        let mut n = 0usize;
+        for i in 0..48000 {
+            let y = hp.process(sine(0.5, 1000.0, i));
+            if i >= 38000 {
+                sum += (y * y) as f64;
+                n += 1;
+            }
+        }
+        let rms = (sum / n as f64).sqrt();
+        assert!((rms - 0.3536).abs() < 0.02, "passband RMS={rms}");
+    }
+
+    #[test]
+    fn gate_opens_on_signal_and_closes_on_silence() {
+        let mut gate = NoiseGate::new(-40.0, 4.0, 120.0, 60.0, SR);
+
+        let mut g = 0.0;
+        for _ in 0..24000 {
+            g = gate.compute_gain(0.0);
+        }
+        assert!(g < 0.001, "gate gain on silence={g}");
+
+        for i in 0..9600 {
+            g = gate.compute_gain(sine(0.5, 200.0, i));
+        }
+        assert!(g > 0.99, "gate gain on loud signal={g}");
+
+        for _ in 0..24000 {
+            g = gate.compute_gain(0.0);
+        }
+        assert!(g < 0.05, "gate gain after silence={g}");
+    }
+
+    #[test]
+    fn compressor_reduces_gain_by_expected_amount() {
+        let mut comp = DynamicCompressor::new(-20.0, 4.0, 5.0, 100.0, 0.0, 4.0, SR);
+        let mut gain = 1.0;
+        for _ in 0..96000 {
+            gain = comp.compute_gain(0.5);
+        }
+        // 0.5 => -6.02 dB, threshold -20 dB, ratio 4 => GR ~= 10.49 dB => gain ~= 0.299
+        assert!((gain - 0.299).abs() < 0.05, "compressor gain={gain}");
+    }
+
+    #[test]
+    fn limiter_respects_ceiling() {
+        let mut lim = FastLimiter::new(-1.0, 40.0, SR);
+        let mut max_abs = 0.0f32;
+        for _ in 0..4800 {
+            let y = lim.process(2.0);
+            assert!(y.is_finite(), "limiter produced non-finite output");
+            max_abs = max_abs.max(y.abs());
+        }
+        assert!(max_abs <= 0.8913 + 1e-3, "limiter exceeded ceiling: {max_abs}");
+        assert!(max_abs >= 0.85, "limiter never reached ceiling region: {max_abs}");
+    }
+
+    #[test]
+    fn chain_mutes_and_bypasses_exactly() {
+        let mut chain = AudioChain::new(SR);
+
+        let mut muted = vec![0.5f32; 960 * 2];
+        chain.process_block(&mut muted, 2, false, false, true, true, true, true, true);
+        assert!(muted.iter().all(|v| *v == 0.0), "mute must zero the buffer");
+
+        let mut input = vec![0.0f32; 960 * 2];
+        for i in 0..input.len() {
+            input[i] = sine(0.4, 440.0, i);
+        }
+        let mut work = input.clone();
+        chain.process_block(&mut work, 2, true, false, false, true, true, true, true);
+        assert_eq!(work, input, "bypass must be bit-exact");
+    }
+
+    #[test]
+    fn chain_keeps_output_finite_for_non_finite_input() {
+        let mut chain = AudioChain::new(SR);
+        let mut buf = vec![0.1f32; 960 * 2];
+        buf[10] = f32::NAN;
+        buf[11] = f32::INFINITY;
+
+        chain.process_block(&mut buf, 2, false, false, false, true, true, true, true);
+
+        assert!(
+            buf.iter().all(|v| v.is_finite()),
+            "non-finite value leaked into output buffer"
+        );
+    }
+
+    #[test]
+    fn chain_recovers_after_non_finite_input() {
+        let mut chain = AudioChain::new(SR);
+
+        let mut poisoned = vec![0.1f32; 960 * 2];
+        poisoned[10] = f32::NAN;
+        poisoned[11] = f32::INFINITY;
+        chain.process_block(&mut poisoned, 2, false, false, false, true, true, true, true);
+
+        let mut clean = vec![0.0f32; 960 * 2];
+        for i in 0..clean.len() {
+            clean[i] = sine(0.4, 440.0, i);
+        }
+        chain.process_block(&mut clean, 2, false, false, false, true, true, true, true);
+
+        assert!(
+            clean.iter().all(|v| v.is_finite()),
+            "filter state stayed poisoned after a non-finite sample"
+        );
+    }
+
+    #[test]
+    fn hpf_recovers_from_nan_input() {
+        let mut hp = BiquadHighPassFilter::new(80.0, SR);
+        assert!(hp.process(f32::NAN).is_finite(), "HPF passed NaN through");
+    }
+
+    #[test]
+    fn limiter_sanitizes_nan_input() {
+        let mut lim = FastLimiter::new(-1.0, 40.0, SR);
+        assert!(lim.process(f32::NAN).is_finite(), "limiter passed NaN through");
+    }
+
+    #[test]
+    fn chain_supports_six_channels_without_panicking() {
+        let mut chain = AudioChain::new(SR);
+        let mut buf = vec![0.1f32; 480 * 6];
+        chain.process_block(&mut buf, 6, false, false, false, true, true, true, true);
+        assert!(buf.iter().all(|v| v.is_finite()));
     }
 }

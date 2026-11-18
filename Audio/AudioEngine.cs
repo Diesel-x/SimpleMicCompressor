@@ -17,6 +17,10 @@ public enum EngineState
 public sealed class AudioEngine : IDisposable
 {
     private readonly object _lock = new();
+    private MMDevice? _activeCaptureDevice;
+    private MMDevice? _activeOutputDevice;
+    private MMDevice? _activeMonitorDevice;
+
     private WasapiCapture? _capture;
     private WasapiOut? _output;
     private BufferedWaveProvider? _outputBuffer;
@@ -116,6 +120,7 @@ public sealed class AudioEngine : IDisposable
                 {
                     throw new InvalidOperationException("Микрофон не найден. Проверьте подключение.");
                 }
+                _activeCaptureDevice = captureDevice;
 
                 try
                 {
@@ -137,6 +142,7 @@ public sealed class AudioEngine : IDisposable
                 {
                     throw new InvalidOperationException("Устройство вывода не найдено.");
                 }
+                _activeOutputDevice = outputDevice;
 
                 _outputMixFormat = outputDevice.AudioClient.MixFormat;
 
@@ -180,6 +186,7 @@ public sealed class AudioEngine : IDisposable
                 _lastErrorMessage = ex.Message;
                 CleanUp();
                 State = EngineState.Error;
+                ScheduleAutoRecovery();
             }
         }
     }
@@ -211,6 +218,7 @@ public sealed class AudioEngine : IDisposable
             using var enumerator = new MMDeviceEnumerator();
             var monDevice = ResolveDeviceById(enumerator, DataFlow.Render, _settings.MonitorDeviceId);
             if (monDevice == null) return;
+            _activeMonitorDevice = monDevice;
 
             _monitorMixFormat = monDevice.AudioClient.MixFormat;
             _monitorBuffer = new BufferedWaveProvider(_monitorMixFormat)
@@ -269,6 +277,8 @@ public sealed class AudioEngine : IDisposable
             _monitor = null;
             _monitorBuffer = null;
             _monitorMixFormat = null;
+            try { _activeMonitorDevice?.Dispose(); } catch { }
+            _activeMonitorDevice = null;
         }
     }
 
@@ -636,6 +646,26 @@ public sealed class AudioEngine : IDisposable
         if (dev != null) return dev;
 
         var all = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+        // 1. Prioritize official VB-Audio Cable Input
+        foreach (var d in all)
+        {
+            if (string.IsNullOrWhiteSpace(d.FriendlyName)) continue;
+            if (AudioDeviceService.IsPreferredVirtualCable(d.FriendlyName))
+            {
+                return d;
+            }
+        }
+
+        // 2. Fall back to system default render endpoint
+        try
+        {
+            var def = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            if (def != null && !string.IsNullOrWhiteSpace(def.FriendlyName)) return def;
+        }
+        catch { }
+
+        // 3. Fall back to other virtual devices (e.g. Voicemeeter, VAC)
         foreach (var d in all)
         {
             if (string.IsNullOrWhiteSpace(d.FriendlyName)) continue;
@@ -645,13 +675,7 @@ public sealed class AudioEngine : IDisposable
             }
         }
 
-        try
-        {
-            var def = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            if (def != null && !string.IsNullOrWhiteSpace(def.FriendlyName)) return def;
-        }
-        catch { }
-
+        // 4. Any available render device
         foreach (var d in all)
         {
             if (!string.IsNullOrWhiteSpace(d.FriendlyName)) return d;
@@ -680,7 +704,12 @@ public sealed class AudioEngine : IDisposable
             }
         }
         catch { }
-        finally { _capture = null; }
+        finally
+        {
+            _capture = null;
+            try { _activeCaptureDevice?.Dispose(); } catch { }
+            _activeCaptureDevice = null;
+        }
 
         try
         {
@@ -693,6 +722,8 @@ public sealed class AudioEngine : IDisposable
             _output = null;
             _outputBuffer = null;
             _outputMixFormat = null;
+            try { _activeOutputDevice?.Dispose(); } catch { }
+            _activeOutputDevice = null;
         }
 
         StopMonitorInternal();

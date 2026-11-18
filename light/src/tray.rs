@@ -89,46 +89,6 @@ fn to_wide(s: &str) -> Vec<u16> {
 
 unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     match msg {
-        WM_HOTKEY => {
-            let id = wparam as i32;
-            match id {
-                HOTKEY_BYPASS_ID => {
-                    if let Some(ref b) = GLOBAL_BYPASS {
-                        let cur = b.load(Ordering::Relaxed);
-                        b.store(!cur, Ordering::Relaxed);
-                        show_tray_notification(
-                            hwnd,
-                            "SimpleMicCompressor (Light)",
-                            if !cur { "Байпас: ВКЛЮЧЕН (обработка звука выключена)" } else { "Байпас: ВЫКЛЮЧЕН (обработка звука активна)" },
-                        );
-                    }
-                }
-                HOTKEY_MEME_ID => {
-                    if let Some(ref m) = GLOBAL_MEME {
-                        let cur = m.load(Ordering::Relaxed);
-                        m.store(!cur, Ordering::Relaxed);
-                        show_tray_notification(
-                            hwnd,
-                            "SimpleMicCompressor (Light)",
-                            if !cur { "Мемный режим (Перегруз): ВКЛЮЧЕН" } else { "Мемный режим: ВЫКЛЮЧЕН" },
-                        );
-                    }
-                }
-                HOTKEY_MUTE_ID => {
-                    if let Some(ref mute) = GLOBAL_MUTE {
-                        let cur = mute.load(Ordering::Relaxed);
-                        mute.store(!cur, Ordering::Relaxed);
-                        show_tray_notification(
-                            hwnd,
-                            "SimpleMicCompressor (Light)",
-                            if !cur { "🔇 МИКРОФОН ЗАГЛУШЕН" } else { "🎙️ Микрофон активен (звук включен)" },
-                        );
-                    }
-                }
-                _ => {}
-            }
-            0
-        }
         WM_TRAY_CALLBACK => {
             let event = lparam as u32;
             if event == WM_RBUTTONUP || event == WM_CONTEXTMENU {
@@ -211,7 +171,7 @@ unsafe fn show_context_menu(hwnd: HWND) {
     let config_text = to_wide("Открыть файл настроек (config.json)");
     AppendMenuW(menu, MF_STRING, ID_OPEN_CONFIG, config_text.as_ptr());
 
-    let github_text = to_wide("GitHub: Diesel-x/Simple_Mic_Compressor");
+    let github_text = to_wide("GitHub: Diesel-x/SimpleMicCompressor");
     AppendMenuW(menu, MF_STRING, ID_OPEN_GITHUB, github_text.as_ptr());
 
     AppendMenuW(menu, MF_SEPARATOR, 0, std::ptr::null());
@@ -235,7 +195,7 @@ fn open_config_file() {
 
 fn open_github_page() {
     let _ = std::process::Command::new("cmd")
-        .args(["/c", "start", "https://github.com/Diesel-x/Simple_Mic_Compressor"])
+        .args(["/c", "start", "https://github.com/Diesel-x/SimpleMicCompressor"])
         .spawn();
 }
 
@@ -263,6 +223,7 @@ pub fn run_tray_loop(
     bypass: Arc<AtomicBool>,
     meme_mode: Arc<AtomicBool>,
     is_muted: Arc<AtomicBool>,
+    config: &crate::config::AppConfig,
 ) -> Result<(), String> {
     unsafe {
         GLOBAL_BYPASS = Some(bypass);
@@ -311,13 +272,11 @@ pub fn run_tray_loop(
         }
 
         GLOBAL_HWND = hwnd;
-        GLOBAL_HOOK = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook_proc), 0, 0);
 
-        // Register Global Hotkeys as fallback
-        let mod_keys = MOD_CONTROL | MOD_SHIFT | 0x4000;
-        RegisterHotKey(hwnd, HOTKEY_BYPASS_ID, mod_keys, 'B' as u32);
-        RegisterHotKey(hwnd, HOTKEY_MEME_ID, mod_keys, 'M' as u32);
-        RegisterHotKey(hwnd, HOTKEY_MUTE_ID, mod_keys, 'X' as u32);
+        // Register low-level hook exclusively to avoid double-triggering with RegisterHotKey
+        if config.hotkeys_enabled {
+            GLOBAL_HOOK = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook_proc), 0, 0);
+        }
 
         // Add System Tray Icon
         let mut nid: NOTIFYICONDATAW = std::mem::zeroed();

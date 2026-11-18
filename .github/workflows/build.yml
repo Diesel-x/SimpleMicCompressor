@@ -29,6 +29,15 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
+      - name: Run C# Unit Tests
+        run: |
+          dotnet run --project tests/DspTests/DspTests.csproj -c Release
+
+      - name: Run Rust Unit Tests
+        working-directory: ./light
+        run: |
+          cargo test
+
       - name: Build C# WPF GUI Release
         run: |
           dotnet publish -c Release -r win-x64 --no-self-contained -p:PublishSingleFile=true -o ./publish

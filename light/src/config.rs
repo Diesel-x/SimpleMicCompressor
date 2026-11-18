@@ -30,7 +30,11 @@ pub struct AppConfig {
     #[serde(default)]
     pub input_device_id: Option<String>,
     #[serde(default)]
+    pub input_device_name: Option<String>,
+    #[serde(default)]
     pub output_device_id: Option<String>,
+    #[serde(default)]
+    pub output_device_name: Option<String>,
 
     #[serde(default = "default_true")]
     pub high_pass_enabled: bool,
@@ -120,7 +124,9 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             input_device_id: None,
+            input_device_name: None,
             output_device_id: None,
+            output_device_name: None,
             high_pass_enabled: default_true(),
             high_pass_cutoff_hz: default_high_pass_cutoff(),
             gate_enabled: default_true(),
@@ -152,19 +158,38 @@ impl Default for AppConfig {
 
 impl AppConfig {
     pub fn config_path() -> PathBuf {
-        let exe_dir = std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-            .unwrap_or_else(|| PathBuf::from("."));
-        let p = exe_dir.join("mic_compressor_config.json");
-        if p.exists() {
-            return p;
+        // 1. Check shared %APPDATA%\SimpleMicCompressor\config.json
+        if let Ok(appdata) = std::env::var("APPDATA") {
+            let appdata_p = PathBuf::from(&appdata).join("SimpleMicCompressor").join("config.json");
+            if appdata_p.exists() {
+                return appdata_p;
+            }
         }
+
+        // 2. Check local mic_compressor_config.json next to exe
+        if let Ok(exe_p) = std::env::current_exe() {
+            if let Some(parent) = exe_p.parent() {
+                let p = parent.join("mic_compressor_config.json");
+                if p.exists() {
+                    return p;
+                }
+            }
+        }
+
+        // 3. Check current directory
         let local_p = PathBuf::from("mic_compressor_config.json");
         if local_p.exists() {
             return local_p;
         }
-        p
+
+        // Default: prefer %APPDATA%\SimpleMicCompressor\config.json
+        if let Ok(appdata) = std::env::var("APPDATA") {
+            let appdata_dir = PathBuf::from(appdata).join("SimpleMicCompressor");
+            let _ = fs::create_dir_all(&appdata_dir);
+            return appdata_dir.join("config.json");
+        }
+
+        local_p
     }
 
     pub fn load() -> Self {
@@ -183,7 +208,82 @@ impl AppConfig {
 
     pub fn save(&self) -> std::io::Result<()> {
         let path = Self::config_path();
+        if let Some(parent) = path.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
         let json = serde_json::to_string_pretty(self).unwrap_or_default();
         fs::write(path, json)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn defaults_match_documented_values() {
+        let cfg = AppConfig::default();
+        assert!(cfg.high_pass_enabled);
+        assert_eq!(cfg.high_pass_cutoff_hz, 80.0);
+        assert_eq!(cfg.gate_threshold_db, -42.0);
+        assert_eq!(cfg.gate_hold_ms, 60.0);
+        assert_eq!(cfg.compressor_ratio, 4.0);
+        assert_eq!(cfg.compressor_knee_db, 4.0);
+        assert_eq!(cfg.limiter_ceiling_db, -1.0);
+        assert!(cfg.hotkeys_enabled);
+    }
+
+    #[test]
+    fn parses_pascal_case_schema_from_development_md() {
+        let json = r#"{
+          "InputDeviceId": null,
+          "OutputDeviceId": null,
+          "HighPassEnabled": true,
+          "HighPassCutoffHz": 80.0,
+          "GateEnabled": true,
+          "GateThresholdDb": -42.0,
+          "GateAttackMs": 4.0,
+          "GateReleaseMs": 120.0,
+          "GateHoldMs": 60.0,
+          "CompressorEnabled": true,
+          "CompressorThresholdDb": -20.0,
+          "CompressorRatio": 4.0,
+          "CompressorAttackMs": 10.0,
+          "CompressorReleaseMs": 150.0,
+          "CompressorMakeupGainDb": 5.0,
+          "CompressorKneeDb": 4.0,
+          "LimiterEnabled": true,
+          "LimiterCeilingDb": -1.0,
+          "LimiterReleaseMs": 40.0,
+          "BypassAll": false,
+          "DestroyedMicMemeMode": false,
+          "IsMuted": false,
+          "HotkeysEnabled": true,
+          "HotkeyBypass": { "Enabled": true, "Ctrl": true, "Shift": true, "Alt": false, "Key": "B" },
+          "HotkeyMeme": { "Enabled": true, "Ctrl": true, "Shift": true, "Alt": false, "Key": "M" },
+          "HotkeyMute": { "Enabled": true, "Ctrl": true, "Shift": true, "Alt": false, "Key": "X" },
+          "Language": "ru",
+          "CustomProfiles": []
+        }"#;
+
+        let cfg: AppConfig = serde_json::from_str(json).expect("documented schema must parse");
+        assert_eq!(cfg.compressor_ratio, 4.0);
+        assert_eq!(cfg.hotkey_bypass.key, "B");
+        assert_eq!(cfg.language.as_deref(), Some("ru"));
+    }
+
+    #[test]
+    fn ignores_gui_only_fields() {
+        let json = r#"{ "MonitorEnabled": true, "MonitorVolume": 0.5, "MonitorDeviceId": "x", "AutoStartEngine": true }"#;
+        let cfg: AppConfig = serde_json::from_str(json).expect("unknown fields must be ignored");
+        assert!(cfg.high_pass_enabled);
+        assert!(cfg.input_device_id.is_none());
+    }
+
+    #[test]
+    fn serializes_back_to_pascal_case() {
+        let json = serde_json::to_string(&AppConfig::default()).expect("must serialize");
+        assert!(json.contains("\"HighPassEnabled\""), "unexpected casing: {json}");
+        assert!(json.contains("\"CompressorRatio\""));
     }
 }

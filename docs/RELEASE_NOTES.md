@@ -41,6 +41,13 @@ Version 1.1 delivers major stability, audio quality, and lifecycle improvements 
   - Added continuous fractional phase accumulation in the linear resampler across buffer chunks, completely eliminating buffer-boundary clicks and pops during sample rate conversion (e.g. 44.1 kHz microphone to 48 kHz virtual cable).
 - **COM & Stream Resource Leak Fixes**:
   - Fixed resource disposal in `ScheduleAutoRecovery` and `OnRecordingStopped`.
+  - Added deterministic disposal of active `MMDevice` COM instances in `CleanUp()` and `StopMonitorInternal()`.
+- **Startup Auto-Recovery Watchdog**:
+  - Catch block in `Start()` now invokes `ScheduleAutoRecovery()` so temporary device disconnection during Windows startup automatically triggers reconnect attempts.
+- **Enhanced Virtual Cable Heuristics**:
+  - Audio output resolution strictly prioritizes official VB-Audio Cable Input over generic virtual sinks (e.g. SteelSeries Sonar).
+- **Deadlock Prevention**:
+  - Switched UI state dispatching from synchronous `Invoke` to asynchronous `BeginInvoke` in `MainViewModel.cs`, preventing UI/AudioEngine thread deadlocks.
 - **Audio Device Service (`AudioDeviceService.cs`)**:
   - Guaranteed disposal of `MMDevice` and `AudioClient` COM instances via `using` and `finally` blocks.
   - Localized device identification strings.
@@ -72,8 +79,12 @@ Version 1.1 delivers major stability, audio quality, and lifecycle improvements 
 ---
 
 ### 5. Rust Light Edition Improvements
+- **Fixed Hotkey Double-Trigger**: Removed duplicate `RegisterHotKey` calls that fought with low-level `WH_KEYBOARD_LL` hook, preventing state toggle rollbacks and double notifications.
+- **Shared Configuration Path**: Points to unified `%APPDATA%\SimpleMicCompressor\config.json`, sharing live settings with GUI and preventing Access Denied in `Program Files`.
+- **Friendly Device Matching**: Synchronizes `InputDeviceName` and `OutputDeviceName` with GUI selection so Light accurately binds to the physical mic and virtual cable.
+- **Continuous Phase Accumulation Resampling**: Preserves sub-sample fractional phase across buffer boundaries, eliminating clicks/pops on sample rate mismatch.
 - Fixed mono-to-stereo channel desync and 2x chipmunk audio speedup when capturing from mono microphones to stereo output.
-- Integrated linear sample rate conversion for sample rate matching.
+- **Automated CI Tests**: Added Rust unit tests (`cargo test`) and C# unit tests (`DspTests.csproj`) directly to GitHub Actions CI workflow.
 
 ---
 ---
@@ -114,6 +125,13 @@ Version 1.1 delivers major stability, audio quality, and lifecycle improvements 
   - Внедрено непрерывное накопление дробной фазы в линейном ресемплере между чанками буфера, полностью устранив щелчки на стыках блоков при конвертации частот (например, микрофон 44.1 кГц -> виртуальный кабель 48 кГц).
 - **Устранение утечек ресурсов COM и потоков**:
   - Исправлено освобождение ресурсов в `ScheduleAutoRecovery` и `OnRecordingStopped`.
+  - Добавлено детерминированное освобождение активных COM-экземпляров `MMDevice` в `CleanUp()` и `StopMonitorInternal()`.
+- **Автовосстановление при сбое на старте (Watchdog)**:
+  - Ошибка в `Start()` теперь инициирует `ScheduleAutoRecovery()`, благодаря чему временное отключение микрофона при старте Windows не переводит движок в вечный сбой, а автоматически пытается восстановить сессию.
+- **Улучшенная эвристика виртуального кабеля**:
+  - Выбор виртуального кабеля строго отдает приоритет официальному VB-Audio Virtual Cable перед сторонними виртуальными узлами (например, SteelSeries Sonar).
+- **Устранение риска Deadlock**:
+  - Обработка смены состояния движка переведена на асинхронный `Dispatcher.BeginInvoke` в `MainViewModel.cs`.
 - **Сервис аудиоустройств (`AudioDeviceService.cs`)**:
   - Гарантированное освобождение экземпляров `MMDevice` и `AudioClient` через `using` и `finally`.
   - Локализация системных названий устройств.
@@ -145,5 +163,9 @@ Version 1.1 delivers major stability, audio quality, and lifecycle improvements 
 ---
 
 ### 5. Улучшения Rust Light Edition
+- **Устранение двойного срабатывания хоткеев**: Удалена дублирующая регистрация через `RegisterHotKey`, конфликтовавшая с хуком `WH_KEYBOARD_LL`, устранив мгновенные откаты состояния и двойные уведомления.
+- **Единый путь к конфигурации**: Light теперь читает и сохраняет настройки в общий файл `%APPDATA%\SimpleMicCompressor\config.json`, обеспечивая полную синхронизацию с GUI и устраняя ошибку записи при размещении в `Program Files`.
+- **Синхронизация выбранных аудиоустройств**: В конфиг добавлены дружелюбные имена (`InputDeviceName`, `OutputDeviceName`), благодаря чему Rust Light точно находит выбранный микрофон и виртуальный кабель.
+- **Непрерывный аккумулятор фазы в ресемплере**: Устранил микрощелчки на стыках аудиобуферов при несовпадении частот дискретизации.
 - Исправлена рассинхронизация каналов моно-в-стерео и ускоренное в 2 раза воспроизведение («голос бурундука»).
-- Реализован ресемплер для согласования частот дискретизации входа и выхода.
+- **Автоматизированное CI-тестирование**: В GitHub Actions добавлены шаги прогона юнит-тестов C# (`DspTests.csproj`) и Rust (`cargo test`).
