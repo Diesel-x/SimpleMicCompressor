@@ -128,8 +128,6 @@ public sealed class TrayManager : IDisposable
     public void MinimizeToTray()
     {
         _window.Hide();
-        string balloonText = Localization.LocalizationService.Instance["Tray_Active_Balloon"];
-        _notifyIcon?.ShowBalloonTip(1800, "SimpleMicCompressor", balloonText, System.Windows.Forms.ToolTipIcon.Info);
         try
         {
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true, true);
@@ -137,6 +135,15 @@ public sealed class TrayManager : IDisposable
             EmptyWorkingSet(System.Diagnostics.Process.GetCurrentProcess().Handle);
         }
         catch { }
+    }
+
+    public void ShowImportantNotification(string title, string message, bool isError = false)
+    {
+        _notifyIcon?.ShowBalloonTip(
+            3000,
+            title,
+            message,
+            isError ? System.Windows.Forms.ToolTipIcon.Error : System.Windows.Forms.ToolTipIcon.Warning);
     }
 
     private static Icon CreateMicIcon()

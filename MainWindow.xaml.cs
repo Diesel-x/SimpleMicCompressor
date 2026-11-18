@@ -127,6 +127,9 @@ public partial class MainWindow : Window
             {
                 MinimizeToTray();
             }
+
+            // Check for updates asynchronously on interface launch (only once, non-blocking)
+            _ = Task.Run(UpdateCheckerService.CheckForUpdatesAsync);
         }
     }
 

@@ -28,6 +28,7 @@ internal static class Program
         TestDeviceHeuristics();
         TestSettings();
         TestLocalization();
+        TestUpdateChecker();
 
         Console.WriteLine();
         Console.WriteLine($"TOTAL: {_passed + _failed} | PASSED: {_passed} | FAILED: {_failed}");
@@ -382,5 +383,18 @@ internal static class Program
         Check("Localization: missing key returns the key itself", loc.Get("__missing_key__") == "__missing_key__");
         Check("Localization: format arguments applied", loc.Get("Msg_Profile_Saved", "X").Contains("X"));
         Check("Localization: malformed format string does not throw", loc.Get("Msg_Profile_Saved", "{") is not null);
+    }
+
+    // -------------------------------------------------------- update checker
+
+    private static void TestUpdateChecker()
+    {
+        var cur = new Version(1, 1, 0, 0);
+        Check("UpdateChecker: v1.2 is newer than 1.1", MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.2", cur));
+        Check("UpdateChecker: v1.1.1 is newer than 1.1", MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.1.1", cur));
+        Check("UpdateChecker: v2.0.0 is newer than 1.1", MicCompressor.Utils.VersionHelper.IsNewerVersion("v2.0.0", cur));
+        Check("UpdateChecker: v1.1 is not newer than 1.1", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.1", cur));
+        Check("UpdateChecker: v1.0.1 is not newer than 1.1", !MicCompressor.Utils.VersionHelper.IsNewerVersion("v1.0.1", cur));
+        Check("UpdateChecker: empty tag is not newer", !MicCompressor.Utils.VersionHelper.IsNewerVersion("", cur));
     }
 }
