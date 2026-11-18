@@ -474,14 +474,6 @@ public sealed class AudioEngine : IDisposable
                 return bytesNeeded;
             }
         }
-        {
-            int bytesNeeded = sampleCount * sizeof(float);
-            if (byteBuf.Length < bytesNeeded) byteBuf = new byte[bytesNeeded];
-            var floatSpan = floatBuf.AsSpan(0, sampleCount);
-            var byteSpan = MemoryMarshal.Cast<float, byte>(floatSpan);
-            byteSpan.CopyTo(byteBuf.AsSpan(0, bytesNeeded));
-            return bytesNeeded;
-        }
         else if (format.BitsPerSample == 16)
         {
             int bytesNeeded = sampleCount * 2;
