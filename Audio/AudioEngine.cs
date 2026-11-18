@@ -44,6 +44,9 @@ public sealed class AudioEngine : IDisposable
     private int _captureBufferMs = 15;
     private int _outputLatencyMs = 20;
 
+    private double _outPhasePos = 0.0;
+    private double _monPhasePos = 0.0;
+
     public int EstimatedLatencyMs => _state == EngineState.Running ? (_captureBufferMs + _outputLatencyMs) : 0;
 
     public EngineState State
@@ -96,6 +99,8 @@ public sealed class AudioEngine : IDisposable
         {
             if (_state == EngineState.Running || _state == EngineState.Starting) return;
 
+            CleanUp();
+
             State = EngineState.Starting;
             _lastErrorMessage = null;
 
@@ -133,24 +138,26 @@ public sealed class AudioEngine : IDisposable
 
                 _outputMixFormat = outputDevice.AudioClient.MixFormat;
 
-                try
-                {
-                    _outputLatencyMs = 15;
-                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: false, latency: 15);
-                }
-                catch
-                {
-                    _outputLatencyMs = 20;
-                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 20);
-                }
-
                 _outputBuffer = new BufferedWaveProvider(_outputMixFormat)
                 {
                     BufferDuration = TimeSpan.FromMilliseconds(150),
                     DiscardOnBufferOverflow = true
                 };
 
-                _output.Init(_outputBuffer);
+                try
+                {
+                    _outputLatencyMs = 15;
+                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: false, latency: 15);
+                    _output.Init(_outputBuffer);
+                }
+                catch
+                {
+                    try { _output?.Dispose(); } catch { }
+                    _outputLatencyMs = 20;
+                    _output = new WasapiOut(outputDevice, AudioClientShareMode.Shared, useEventSync: true, latency: 20);
+                    _output.Init(_outputBuffer);
+                }
+
                 _output.Play();
 
                 // 3. Monitor
@@ -221,7 +228,21 @@ public sealed class AudioEngine : IDisposable
             catch
             {
                 // Fallback to WaveOutEvent to avoid WASAPI exclusive/device conflicts
-                var waveOut = new WaveOutEvent { DesiredLatency = 40 };
+                int waveOutDev = -1;
+                for (int d = 0; d < WaveOut.DeviceCount; d++)
+                {
+                    try
+                    {
+                        var caps = WaveOut.GetCapabilities(d);
+                        if (!string.IsNullOrEmpty(caps.ProductName) && monDevice.FriendlyName.Contains(caps.ProductName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            waveOutDev = d;
+                            break;
+                        }
+                    }
+                    catch { }
+                }
+                var waveOut = new WaveOutEvent { DeviceNumber = waveOutDev, DesiredLatency = 40 };
                 waveOut.Init(_monitorBuffer);
                 waveOut.Play();
                 _monitor = waveOut;
@@ -266,12 +287,28 @@ public sealed class AudioEngine : IDisposable
         EnsureInputBuffer(inTotalSamples);
 
         // 1. Convert input bytes to float samples
-        // Check BitsPerSample == 32 (works for both IeeeFloat and WaveFormatExtensible!)
+        // Check if format is IEEE float vs PCM integer
+        bool isFloat = capFormat.Encoding == WaveFormatEncoding.IeeeFloat ||
+                       (capFormat is WaveFormatExtensible wfe && wfe.SubFormat == AudioMediaSubtypes.MEDIASUBTYPE_IEEE_FLOAT);
+
         if (inBits == 32)
         {
-            var byteSpan = e.Buffer.AsSpan(0, e.BytesRecorded);
-            var floatSpan = MemoryMarshal.Cast<byte, float>(byteSpan);
-            floatSpan.CopyTo(_inputFloatBuffer.AsSpan(0, inTotalSamples));
+            if (isFloat)
+            {
+                var byteSpan = e.Buffer.AsSpan(0, e.BytesRecorded);
+                var floatSpan = MemoryMarshal.Cast<byte, float>(byteSpan);
+                floatSpan.CopyTo(_inputFloatBuffer.AsSpan(0, inTotalSamples));
+            }
+            else
+            {
+                // 32-bit PCM integer
+                int sampleIdx = 0;
+                for (int i = 0; i < e.BytesRecorded; i += 4)
+                {
+                    int val = e.Buffer[i] | (e.Buffer[i + 1] << 8) | (e.Buffer[i + 2] << 16) | (e.Buffer[i + 3] << 24);
+                    _inputFloatBuffer[sampleIdx++] = val / 2147483648.0f;
+                }
+            }
         }
         else if (inBits == 16)
         {
@@ -308,7 +345,7 @@ public sealed class AudioEngine : IDisposable
         EnsureOutputBuffer(outTotalSamples);
 
         ResampleAndMapChannels(_inputFloatBuffer, inFrames, inChannels, inSampleRate,
-                               _outputFloatBuffer, outFrames, outChannels, outSampleRate, 1.0f);
+                               _outputFloatBuffer, outFrames, outChannels, outSampleRate, 1.0f, ref _outPhasePos);
 
         int outBytesWritten = WriteFloatToBytes(_outputFloatBuffer, outTotalSamples, _outputMixFormat, ref _outputBytes);
         _outputBuffer.AddSamples(_outputBytes, 0, outBytesWritten);
@@ -324,7 +361,7 @@ public sealed class AudioEngine : IDisposable
 
             float monVol = _settings.MonitorVolume;
             ResampleAndMapChannels(_inputFloatBuffer, inFrames, inChannels, inSampleRate,
-                                   _monitorFloatBuffer, monFrames, monChannels, monSampleRate, monVol);
+                                   _monitorFloatBuffer, monFrames, monChannels, monSampleRate, monVol, ref _monPhasePos);
 
             int monBytesWritten = WriteFloatToBytes(_monitorFloatBuffer, monTotalSamples, _monitorMixFormat, ref _monitorBytes);
             _monitorBuffer.AddSamples(_monitorBytes, 0, monBytesWritten);
@@ -334,16 +371,45 @@ public sealed class AudioEngine : IDisposable
     private static void ResampleAndMapChannels(
         float[] inBuffer, int inFrames, int inChannels, int inRate,
         float[] outBuffer, int outFrames, int outChannels, int outRate,
-        float volumeMultiplier)
+        float volumeMultiplier, ref double phasePos)
     {
+        if (inRate == outRate)
+        {
+            int frames = Math.Min(inFrames, outFrames);
+            for (int outFrame = 0; outFrame < frames; outFrame++)
+            {
+                int inBase = outFrame * inChannels;
+                int outBase = outFrame * outChannels;
+
+                float left = inBuffer[inBase] * volumeMultiplier;
+                float right = (inChannels >= 2 ? inBuffer[inBase + 1] : left);
+                if (inChannels >= 2) right *= volumeMultiplier;
+
+                outBuffer[outBase] = Math.Clamp(left, -1.0f, 1.0f);
+                if (outChannels >= 2)
+                {
+                    outBuffer[outBase + 1] = Math.Clamp(right, -1.0f, 1.0f);
+                    for (int c = 2; c < outChannels; c++)
+                    {
+                        outBuffer[outBase + c] = 0f;
+                    }
+                }
+            }
+            phasePos = 0.0;
+            return;
+        }
+
         double rateRatio = (double)inRate / outRate;
+        double currentPos = phasePos;
 
         for (int outFrame = 0; outFrame < outFrames; outFrame++)
         {
-            double inPos = outFrame * rateRatio;
+            double inPos = currentPos + outFrame * rateRatio;
             int inFrame0 = (int)inPos;
             int inFrame1 = Math.Min(inFrame0 + 1, inFrames - 1);
             float frac = (float)(inPos - inFrame0);
+
+            inFrame0 = Math.Clamp(inFrame0, 0, inFrames - 1);
 
             float left0 = inBuffer[inFrame0 * inChannels];
             float left1 = inBuffer[inFrame1 * inChannels];
@@ -372,12 +438,42 @@ public sealed class AudioEngine : IDisposable
                 }
             }
         }
+
+        phasePos = (currentPos + outFrames * rateRatio) - inFrames;
+        if (phasePos < 0.0 || phasePos >= 1.0) phasePos = 0.0;
     }
 
     private static int WriteFloatToBytes(float[] floatBuf, int sampleCount, WaveFormat format, ref byte[] byteBuf)
     {
-        // Check BitsPerSample: 32 = IEEE float in WASAPI shared mode
+        bool isOutFloat = format.Encoding == WaveFormatEncoding.IeeeFloat ||
+                          (format is WaveFormatExtensible wfe && wfe.SubFormat == AudioMediaSubtypes.MEDIASUBTYPE_IEEE_FLOAT);
+
         if (format.BitsPerSample == 32)
+        {
+            if (isOutFloat)
+            {
+                int bytesNeeded = sampleCount * sizeof(float);
+                if (byteBuf.Length < bytesNeeded) byteBuf = new byte[bytesNeeded];
+                var floatSpan = floatBuf.AsSpan(0, sampleCount);
+                var byteSpan = MemoryMarshal.Cast<float, byte>(floatSpan);
+                byteSpan.CopyTo(byteBuf.AsSpan(0, bytesNeeded));
+                return bytesNeeded;
+            }
+            else
+            {
+                int bytesNeeded = sampleCount * 4;
+                if (byteBuf.Length < bytesNeeded) byteBuf = new byte[bytesNeeded];
+                for (int i = 0; i < sampleCount; i++)
+                {
+                    int sample = (int)Math.Clamp(floatBuf[i] * 2147483647.0f, -2147483648f, 2147483647f);
+                    byteBuf[i * 4] = (byte)(sample & 0xFF);
+                    byteBuf[i * 4 + 1] = (byte)((sample >> 8) & 0xFF);
+                    byteBuf[i * 4 + 2] = (byte)((sample >> 16) & 0xFF);
+                    byteBuf[i * 4 + 3] = (byte)((sample >> 24) & 0xFF);
+                }
+                return bytesNeeded;
+            }
+        }
         {
             int bytesNeeded = sampleCount * sizeof(float);
             if (byteBuf.Length < bytesNeeded) byteBuf = new byte[bytesNeeded];
@@ -477,17 +573,21 @@ public sealed class AudioEngine : IDisposable
 
     private void OnRecordingStopped(object? sender, StoppedEventArgs e)
     {
-        if (_state == EngineState.Running)
+        lock (_lock)
         {
-            if (e.Exception != null)
+            if (_state == EngineState.Running)
             {
-                _lastErrorMessage = e.Exception.Message;
-                State = EngineState.Error;
-                ScheduleAutoRecovery();
-            }
-            else
-            {
-                State = EngineState.Stopped;
+                CleanUp();
+                if (e.Exception != null)
+                {
+                    _lastErrorMessage = e.Exception.Message;
+                    State = EngineState.Error;
+                    ScheduleAutoRecovery();
+                }
+                else
+                {
+                    State = EngineState.Stopped;
+                }
             }
         }
     }
@@ -603,6 +703,8 @@ public sealed class AudioEngine : IDisposable
 
         StopMonitorInternal();
         _chain?.Reset();
+        _outPhasePos = 0.0;
+        _monPhasePos = 0.0;
     }
 
     public void Dispose()

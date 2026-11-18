@@ -34,6 +34,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
                 OnPropertyChanged(nameof(SelectedLanguage));
                 OnPropertyChanged(nameof(SaveButtonToolTip));
                 OnPropertyChanged(nameof(DeleteToolTip));
+                OnPropertyChanged(nameof(GateStatusText));
+                OnPropertyChanged(nameof(LatencyDisplay));
                 UpdateEngineStatusDisplay();
                 RefreshPresetsList();
             }
@@ -317,6 +319,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     public void RefreshDevices()
     {
+        string? prevInId = _selectedInputDevice?.Id;
+        string? prevOutId = _selectedOutputDevice?.Id;
+
         InputDevices.Clear();
         foreach (var dev in AudioDeviceService.GetCaptureDevices())
         {
@@ -356,6 +361,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         OnPropertyChanged(nameof(HasVirtualCable));
         _settings.Save();
         UpdateEngineSettings();
+
+        if (_isRunning && (prevInId != _selectedInputDevice?.Id || prevOutId != _selectedOutputDevice?.Id))
+        {
+            _engine.Restart();
+        }
     }
 
     public DeviceInfo? SelectedInputDevice
@@ -461,7 +471,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     #region Engine State
 
-    public string LatencyDisplay => IsRunning ? $"{_engine.EstimatedLatencyMs} мс" : "-- мс";
+    public string LatencyDisplay => IsRunning ? $"{_engine.EstimatedLatencyMs} {Loc["Telemetry_Ms"]}" : $"-- {Loc["Telemetry_Ms"]}";
 
     public bool IsRunning
     {
@@ -1108,7 +1118,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         private set => SetField(ref _isGateOpen, value);
     }
 
-    public string GateStatusText => _isGateOpen ? "ОТКРЫТ" : "ЗАКРЫТ";
+    public string GateStatusText => _isGateOpen ? Loc["Gate_Open"] : Loc["Gate_Closed"];
     public string GateStatusColor => _isGateOpen ? "#57f287" : "#585b62";
 
     public void PauseMeters()
@@ -1127,6 +1137,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private void OnMeterTick(object? sender, EventArgs e)
     {
         var metrics = _engine.Metrics;
+        bool prevGate = _isGateOpen;
+
         if (metrics == null || !_isRunning)
         {
             InputPeakDb = -60f;
@@ -1145,8 +1157,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         OnPropertyChanged(nameof(InputMeterPercent));
         OnPropertyChanged(nameof(OutputMeterPercent));
         OnPropertyChanged(nameof(GainReductionMeterPercent));
-        OnPropertyChanged(nameof(GateStatusText));
-        OnPropertyChanged(nameof(GateStatusColor));
+
+        if (_isGateOpen != prevGate)
+        {
+            OnPropertyChanged(nameof(GateStatusText));
+            OnPropertyChanged(nameof(GateStatusColor));
+        }
     }
 
     private static double DbToPercent(float db)

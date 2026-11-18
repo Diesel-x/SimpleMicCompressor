@@ -1,6 +1,6 @@
 [package]
 name = "simple-mic-compressor-light"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 authors = ["Diesel-X <https://github.com/Diesel-x/Simple_Mic_Compressor>"]
 description = "SimpleMicCompressor (Light) v1.0 Release by Diesel-X - Ultra-lightweight background mic compressor (~3-5 MB RAM, 0% CPU)"

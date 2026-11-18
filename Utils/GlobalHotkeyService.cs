@@ -59,13 +59,22 @@ public sealed class GlobalHotkeyService : IDisposable
         {
             using var curProcess = Process.GetCurrentProcess();
             using var curModule = curProcess.MainModule;
-            _hookId = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, GetModuleHandle(curModule?.ModuleName), 0);
+            IntPtr hMod = GetModuleHandle(curModule?.ModuleName);
+            if (hMod == IntPtr.Zero)
+            {
+                hMod = GetModuleHandle(null);
+            }
+            _hookId = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, hMod, 0);
         }
     }
 
     public void UpdateHotkeys(AudioSettings settings)
     {
         _settings = settings;
+        lock (_downKeys)
+        {
+            _downKeys.Clear();
+        }
     }
 
     private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -77,10 +86,11 @@ public sealed class GlobalHotkeyService : IDisposable
 
             if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
             {
-                // Prevent auto-repeat while key is held down
+                // Prevent auto-repeat while key is held down; purge any keys that missed WM_KEYUP
                 bool isNewPress = false;
                 lock (_downKeys)
                 {
+                    _downKeys.RemoveWhere(k => (GetAsyncKeyState(k) & 0x8000) == 0);
                     isNewPress = _downKeys.Add(vkCode);
                 }
 

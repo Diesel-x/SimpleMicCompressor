@@ -1,5 +1,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using MicCompressor.ViewModels;
 
@@ -7,6 +9,10 @@ namespace MicCompressor.Tray;
 
 public sealed class TrayManager : IDisposable
 {
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DestroyIcon(IntPtr hIcon);
+
     private readonly Window _window;
     private readonly MainViewModel _viewModel;
     private System.Windows.Forms.NotifyIcon? _notifyIcon;
@@ -21,7 +27,14 @@ public sealed class TrayManager : IDisposable
 
     private void InitializeTray()
     {
-        if (System.IO.File.Exists("assets/app.ico"))
+        string baseDir = System.AppContext.BaseDirectory;
+        string appIconPath = Path.Combine(baseDir, "assets", "app.ico");
+
+        if (File.Exists(appIconPath))
+        {
+            try { _customIcon = new Icon(appIconPath); } catch { _customIcon = CreateMicIcon(); }
+        }
+        else if (File.Exists("assets/app.ico"))
         {
             try { _customIcon = new Icon("assets/app.ico"); } catch { _customIcon = CreateMicIcon(); }
         }
@@ -32,7 +45,7 @@ public sealed class TrayManager : IDisposable
 
         var contextMenu = new System.Windows.Forms.ContextMenuStrip();
 
-        var openItem = new System.Windows.Forms.ToolStripMenuItem("Открыть SimpleMicCompressor", null, (s, e) => ShowWindow());
+        var openItem = new System.Windows.Forms.ToolStripMenuItem(Localization.LocalizationService.Instance["Tray_Open"], null, (s, e) => ShowWindow());
         openItem.Font = new Font(openItem.Font, System.Drawing.FontStyle.Bold);
         contextMenu.Items.Add(openItem);
 
@@ -54,8 +67,21 @@ public sealed class TrayManager : IDisposable
 
         var exitItem = new System.Windows.Forms.ToolStripMenuItem(Localization.LocalizationService.Instance["Tray_Exit"], null, (s, e) =>
         {
-            _notifyIcon!.Visible = false;
-            System.Windows.Application.Current.Shutdown();
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Visible = false;
+            }
+            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+            {
+                if (_window is MainWindow mw)
+                {
+                    mw.ExitApplication();
+                }
+                else
+                {
+                    _window.Close();
+                }
+            });
         });
         contextMenu.Items.Add(exitItem);
 
@@ -71,7 +97,7 @@ public sealed class TrayManager : IDisposable
         _notifyIcon = new System.Windows.Forms.NotifyIcon
         {
             Icon = _customIcon,
-            Text = "SimpleMicCompressor — Компрессор микрофона",
+            Text = "SimpleMicCompressor",
             Visible = true,
             ContextMenuStrip = contextMenu
         };
@@ -102,7 +128,8 @@ public sealed class TrayManager : IDisposable
     public void MinimizeToTray()
     {
         _window.Hide();
-        _notifyIcon?.ShowBalloonTip(1800, "SimpleMicCompressor", "Программа активна в трее. Обработка звука включена.", System.Windows.Forms.ToolTipIcon.Info);
+        string balloonText = Localization.LocalizationService.Instance["Tray_Active_Balloon"];
+        _notifyIcon?.ShowBalloonTip(1800, "SimpleMicCompressor", balloonText, System.Windows.Forms.ToolTipIcon.Info);
         try
         {
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true, true);
@@ -137,8 +164,21 @@ public sealed class TrayManager : IDisposable
             g.DrawLine(pen, 12, 25, 20, 25);
 
             IntPtr hIcon = bmp.GetHicon();
-            return Icon.FromHandle(hIcon);
+            try
+            {
+                using var tempIcon = Icon.FromHandle(hIcon);
+                return (Icon)tempIcon.Clone();
+            }
+            finally
+            {
+                DestroyIcon(hIcon);
+            }
         }
+        catch
+        {
+            return SystemIcons.Application;
+        }
+    }
         catch
         {
             return SystemIcons.Application;

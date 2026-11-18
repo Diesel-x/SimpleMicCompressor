@@ -40,23 +40,31 @@ public static class AudioDeviceService
                     if (string.IsNullOrWhiteSpace(name)) continue;
 
                     // Test if AudioClient can be initialized without error
-                    var client = dev.AudioClient;
-                    if (client == null) continue;
-                    var fmt = client.MixFormat;
-                    if (fmt == null) continue;
+                    using (var client = dev.AudioClient)
+                    {
+                        if (client == null) continue;
+                        var fmt = client.MixFormat;
+                        if (fmt == null) continue;
+                    }
 
                     bool isDefault = defaultId != null && dev.ID == defaultId;
                     bool isVirtual = IsVirtualAudioName(name);
 
                     string displayName = name;
-                    if (isDefault) displayName += " [По умолчанию]";
-                    if (isVirtual) displayName += " [Виртуальный кабель]";
+                    string defTag = Localization.LocalizationService.Instance["Routing_Default"];
+                    string virtTag = Localization.LocalizationService.Instance["Routing_VirtualCable"];
+                    if (isDefault) displayName += $" [{defTag}]";
+                    if (isVirtual) displayName += $" [{virtTag}]";
 
                     result.Add(new DeviceInfo(dev.ID, displayName, isDefault, isVirtual));
                 }
                 catch
                 {
                     // Skip broken / ghost devices
+                }
+                finally
+                {
+                    try { dev.Dispose(); } catch { }
                 }
             }
         }
@@ -98,23 +106,31 @@ public static class AudioDeviceService
                     string name = dev.FriendlyName;
                     if (string.IsNullOrWhiteSpace(name)) continue;
 
-                    var client = dev.AudioClient;
-                    if (client == null) continue;
-                    var fmt = client.MixFormat;
-                    if (fmt == null) continue;
+                    using (var client = dev.AudioClient)
+                    {
+                        if (client == null) continue;
+                        var fmt = client.MixFormat;
+                        if (fmt == null) continue;
+                    }
 
                     bool isDefault = defaultId != null && dev.ID == defaultId;
                     bool isVirtual = IsVirtualAudioName(name);
 
                     string displayName = name;
-                    if (isDefault) displayName += " [По умолчанию]";
-                    if (isVirtual) displayName += " [Виртуальный кабель]";
+                    string defTag = Localization.LocalizationService.Instance["Routing_Default"];
+                    string virtTag = Localization.LocalizationService.Instance["Routing_VirtualCable"];
+                    if (isDefault) displayName += $" [{defTag}]";
+                    if (isVirtual) displayName += $" [{virtTag}]";
 
                     result.Add(new DeviceInfo(dev.ID, displayName, isDefault, isVirtual));
                 }
                 catch
                 {
                     // Skip broken / ghost devices
+                }
+                finally
+                {
+                    try { dev.Dispose(); } catch { }
                 }
             }
         }

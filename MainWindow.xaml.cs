@@ -180,9 +180,37 @@ public partial class MainWindow : Window
         MinimizeToTray();
     }
 
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    public void RestoreAndActivate()
+    {
+        Show();
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+        Activate();
+        Topmost = true;
+        Topmost = false;
+        Focus();
+
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd != IntPtr.Zero)
+        {
+            SetForegroundWindow(hwnd);
+        }
+    }
+
     public void MinimizeToTray()
     {
         _trayManager?.MinimizeToTray();
+    }
+
+    public void ExitApplication()
+    {
+        _isExplicitExit = true;
+        Close();
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)

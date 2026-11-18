@@ -15,6 +15,7 @@ public sealed class NoiseGate
 
     private float _attackCoeff;
     private float _releaseCoeff;
+    private float _detectorAlpha = 0.05f;
     private int _holdSamples;
     private int _holdCounter;
 
@@ -40,6 +41,7 @@ public sealed class NoiseGate
 
         _attackCoeff = MathF.Exp(-1.0f / (_attackTimeMs * 0.001f * _sampleRate));
         _releaseCoeff = MathF.Exp(-1.0f / (_releaseTimeMs * 0.001f * _sampleRate));
+        _detectorAlpha = 1.0f - MathF.Exp(-1.0f / (1.5f * 0.001f * _sampleRate));
         _holdSamples = (int)(_holdTimeMs * 0.001f * _sampleRate);
     }
 
@@ -54,13 +56,14 @@ public sealed class NoiseGate
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public float ComputeGain(float detectorSample)
     {
+        if (float.IsNaN(detectorSample) || float.IsInfinity(detectorSample)) detectorSample = 0f;
         float absIn = MathF.Abs(detectorSample);
 
-        // Fast RMS / peak tracker for detection
-        const float detectorAlpha = 0.05f;
-        _envelope = (1.0f - detectorAlpha) * _envelope + detectorAlpha * absIn;
-        float envDb = 8.6858896f * MathF.Log(MathF.Max(_envelope, 1e-6f));
+        // Fast RMS / peak tracker for detection, sample-rate scaled
+        _envelope = (1.0f - _detectorAlpha) * _envelope + _detectorAlpha * absIn;
+        if (float.IsNaN(_envelope)) _envelope = 0f;
 
+        float envDb = 8.6858896f * MathF.Log(MathF.Max(_envelope, 1e-6f));
         float closeThresholdDb = _thresholdDb - _hysteresisDb;
 
         if (envDb >= _thresholdDb)
@@ -68,16 +71,18 @@ public sealed class NoiseGate
             _isOpen = true;
             _holdCounter = _holdSamples;
         }
-        else if (envDb < closeThresholdDb)
+        else
         {
-            if (_holdCounter > 0)
+            if (_isOpen)
             {
-                _holdCounter--;
-                _isOpen = true;
-            }
-            else
-            {
-                _isOpen = false;
+                if (_holdCounter > 0)
+                {
+                    _holdCounter--;
+                }
+                else if (envDb < closeThresholdDb)
+                {
+                    _isOpen = false;
+                }
             }
         }
 

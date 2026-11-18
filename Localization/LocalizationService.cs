@@ -165,6 +165,8 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Refresh"] = "Обновить",
         ["Routing_Input"] = "Вход:",
         ["Routing_Output"] = "Выход:",
+        ["Routing_Default"] = "По умолчанию",
+        ["Routing_VirtualCable"] = "Виртуальный кабель",
         ["Routing_Monitor"] = "Мониторинг",
         ["Routing_MonitorVolume"] = "Громкость самопрослушивания в наушниках",
         ["Cable_Active"] = "Виртуальный кабель активен. В Discord выберите CABLE Output",
@@ -252,7 +254,9 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_Open"] = "Открыть SimpleMicCompressor",
         ["Tray_Bypass"] = "Режим Bypass (Оригинал)",
         ["Tray_ToggleEngine"] = "Запустить / Остановить",
-        ["Tray_Exit"] = "Закрыть приложение"
+        ["Tray_Exit"] = "Закрыть приложение",
+        ["Tray_Active_Balloon"] = "Программа активна в трее. Обработка звука включена.",
+        ["Telemetry_Ms"] = "мс"
     };
 
     private static readonly Dictionary<string, string> StringsEn = new()
@@ -290,6 +294,8 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Refresh"] = "Refresh",
         ["Routing_Input"] = "Input:",
         ["Routing_Output"] = "Output:",
+        ["Routing_Default"] = "Default",
+        ["Routing_VirtualCable"] = "Virtual Cable",
         ["Routing_Monitor"] = "Monitoring",
         ["Routing_MonitorVolume"] = "Headphone monitoring volume",
         ["Cable_Active"] = "Virtual Cable active. In Discord select CABLE Output",
@@ -377,7 +383,9 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_Open"] = "Open SimpleMicCompressor",
         ["Tray_Bypass"] = "Bypass Mode (Original)",
         ["Tray_ToggleEngine"] = "Start / Stop",
-        ["Tray_Exit"] = "Exit Application"
+        ["Tray_Exit"] = "Exit Application",
+        ["Tray_Active_Balloon"] = "Application active in tray. Audio processing enabled.",
+        ["Telemetry_Ms"] = "ms"
     };
 
     private static readonly Dictionary<string, string> StringsDe = new()
@@ -415,6 +423,8 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Refresh"] = "Aktualisieren",
         ["Routing_Input"] = "Eingang:",
         ["Routing_Output"] = "Ausgang:",
+        ["Routing_Default"] = "Standard",
+        ["Routing_VirtualCable"] = "Virtuelles Kabel",
         ["Routing_Monitor"] = "Monitoring",
         ["Routing_MonitorVolume"] = "Kopfhörer-Monitoring-Lautstärke",
         ["Cable_Active"] = "Virtuelles Kabel aktiv. In Discord CABLE Output wählen",
@@ -502,7 +512,9 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_Open"] = "SimpleMicCompressor öffnen",
         ["Tray_Bypass"] = "Bypass-Modus (Original)",
         ["Tray_ToggleEngine"] = "Starten / Stoppen",
-        ["Tray_Exit"] = "Beenden"
+        ["Tray_Exit"] = "Beenden",
+        ["Tray_Active_Balloon"] = "Anwendung im Infobereich aktiv. Audioverarbeitung aktiviert.",
+        ["Telemetry_Ms"] = "ms"
     };
 
     private static readonly Dictionary<string, string> StringsEs = new()
@@ -540,6 +552,8 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Refresh"] = "Actualizar",
         ["Routing_Input"] = "Entrada:",
         ["Routing_Output"] = "Salida:",
+        ["Routing_Default"] = "Predeterminado",
+        ["Routing_VirtualCable"] = "Cable Virtual",
         ["Routing_Monitor"] = "Monitorización",
         ["Routing_MonitorVolume"] = "Volumen de monitorización",
         ["Cable_Active"] = "Cable virtual activo. En Discord elija CABLE Output",
@@ -627,7 +641,9 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Tray_Open"] = "Abrir SimpleMicCompressor",
         ["Tray_Bypass"] = "Modo Bypass (Original)",
         ["Tray_ToggleEngine"] = "Iniciar / Detener",
-        ["Tray_Exit"] = "Salir"
+        ["Tray_Exit"] = "Salir",
+        ["Tray_Active_Balloon"] = "Aplicación activa en la bandeja. Procesamiento de audio activado.",
+        ["Telemetry_Ms"] = "ms"
     };
 
     #endregion

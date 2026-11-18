@@ -8,8 +8,9 @@ namespace MicCompressor.Audio.Dsp;
 /// </summary>
 public sealed class AudioChain
 {
-    private readonly BiquadHighPassFilter[] _hpFilters = [new(), new(), new(), new()];
-    private readonly FastLimiter[] _limiters = [new(), new(), new(), new()];
+    private readonly object _dspLock = new();
+    private BiquadHighPassFilter[] _hpFilters = [new(), new(), new(), new(), new(), new(), new(), new()];
+    private FastLimiter[] _limiters = [new(), new(), new(), new(), new(), new(), new(), new()];
     private readonly NoiseGate _gate = new();
     private readonly DynamicCompressor _compressor = new();
     private readonly AudioMetrics _metrics = new();
@@ -32,36 +33,42 @@ public sealed class AudioChain
 
     public void UpdateSettings(AudioSettings settings, float sampleRate)
     {
-        _settings = settings;
-        _sampleRate = sampleRate;
-
-        for (int i = 0; i < _hpFilters.Length; i++)
+        lock (_dspLock)
         {
-            _hpFilters[i].Configure(settings.HighPassCutoffHz, sampleRate);
-            _limiters[i].Configure(settings.LimiterCeilingDb, settings.LimiterReleaseMs, sampleRate);
-        }
+            _settings = settings;
+            _sampleRate = sampleRate;
 
-        _gate.Configure(settings.GateThresholdDb, settings.GateAttackMs, settings.GateReleaseMs, settings.GateHoldMs, sampleRate);
-        _compressor.Configure(
-            settings.CompressorThresholdDb,
-            settings.CompressorRatio,
-            settings.CompressorAttackMs,
-            settings.CompressorReleaseMs,
-            settings.CompressorMakeupGainDb,
-            settings.CompressorKneeDb,
-            sampleRate
-        );
+            for (int i = 0; i < _hpFilters.Length; i++)
+            {
+                _hpFilters[i].Configure(settings.HighPassCutoffHz, sampleRate);
+                _limiters[i].Configure(settings.LimiterCeilingDb, settings.LimiterReleaseMs, sampleRate);
+            }
+
+            _gate.Configure(settings.GateThresholdDb, settings.GateAttackMs, settings.GateReleaseMs, settings.GateHoldMs, sampleRate);
+            _compressor.Configure(
+                settings.CompressorThresholdDb,
+                settings.CompressorRatio,
+                settings.CompressorAttackMs,
+                settings.CompressorReleaseMs,
+                settings.CompressorMakeupGainDb,
+                settings.CompressorKneeDb,
+                sampleRate
+            );
+        }
     }
 
     public void Reset()
     {
-        foreach (var hp in _hpFilters) hp.Reset();
-        foreach (var lim in _limiters) lim.Reset();
-        _gate.Reset();
-        _compressor.Reset();
-        _metrics.Reset();
-        _inputPeakTracker = 0f;
-        _outputPeakTracker = 0f;
+        lock (_dspLock)
+        {
+            foreach (var hp in _hpFilters) hp.Reset();
+            foreach (var lim in _limiters) lim.Reset();
+            _gate.Reset();
+            _compressor.Reset();
+            _metrics.Reset();
+            _inputPeakTracker = 0f;
+            _outputPeakTracker = 0f;
+        }
     }
 
     /// <summary>
@@ -72,128 +79,146 @@ public sealed class AudioChain
     {
         if (sampleCount <= 0 || channels <= 0) return;
 
-        bool bypass = _settings.BypassAll;
-        bool memeMode = _settings.DestroyedMicMemeMode;
-        bool hpEnabled = _settings.HighPassEnabled;
-        bool gateEnabled = _settings.GateEnabled;
-        bool compEnabled = _settings.CompressorEnabled;
-        bool limEnabled = _settings.LimiterEnabled;
-
-        float blockInputPeak = 0f;
-        float blockOutputPeak = 0f;
-
-        int frameCount = sampleCount / channels;
-
-        for (int frame = 0; frame < frameCount; frame++)
+        lock (_dspLock)
         {
-            int baseIdx = offset + frame * channels;
-
-            // 1. Calculate raw input peak for meters
-            float rawMono = 0f;
-            for (int ch = 0; ch < channels; ch++)
+            if (_hpFilters.Length < channels)
             {
-                rawMono += buffer[baseIdx + ch];
+                int oldLen = _hpFilters.Length;
+                Array.Resize(ref _hpFilters, channels);
+                Array.Resize(ref _limiters, channels);
+                for (int i = oldLen; i < channels; i++)
+                {
+                    _hpFilters[i] = new BiquadHighPassFilter();
+                    _hpFilters[i].Configure(_settings.HighPassCutoffHz, _sampleRate);
+                    _limiters[i] = new FastLimiter();
+                    _limiters[i].Configure(_settings.LimiterCeilingDb, _settings.LimiterReleaseMs, _sampleRate);
+                }
             }
-            rawMono /= channels;
 
-            float absRaw = MathF.Abs(rawMono);
-            if (absRaw > blockInputPeak) blockInputPeak = absRaw;
+            bool bypass = _settings.BypassAll;
+            bool memeMode = _settings.DestroyedMicMemeMode;
+            bool hpEnabled = _settings.HighPassEnabled;
+            bool gateEnabled = _settings.GateEnabled;
+            bool compEnabled = _settings.CompressorEnabled;
+            bool limEnabled = _settings.LimiterEnabled;
 
-            if (_settings.IsMuted)
+            float blockInputPeak = 0f;
+            float blockOutputPeak = 0f;
+
+            int frameCount = sampleCount / channels;
+
+            for (int frame = 0; frame < frameCount; frame++)
             {
+                int baseIdx = offset + frame * channels;
+
+                // 1. Calculate raw input peak for meters
+                float rawMono = 0f;
                 for (int ch = 0; ch < channels; ch++)
                 {
-                    buffer[baseIdx + ch] = 0f;
+                    rawMono += buffer[baseIdx + ch];
                 }
-                continue;
-            }
+                rawMono /= channels;
 
-            if (bypass)
-            {
-                if (absRaw > blockOutputPeak) blockOutputPeak = absRaw;
-                continue;
-            }
+                float absRaw = MathF.Abs(rawMono);
+                if (absRaw > blockInputPeak) blockInputPeak = absRaw;
 
-            // 2. FUN MEME MODE ("Уничтоженный микрофон")
-            if (memeMode)
-            {
-                // The buggy division ratio that crushed audio into funny square waves
-                float processed = rawMono;
-                if (hpEnabled) processed = _hpFilters[0].Process(processed);
-                if (gateEnabled) processed = _gate.Process(processed);
-                if (compEnabled) processed = _compressor.Process(processed);
-                if (limEnabled) processed = _limiters[0].Process(processed);
+                if (_settings.IsMuted)
+                {
+                    for (int ch = 0; ch < channels; ch++)
+                    {
+                        buffer[baseIdx + ch] = 0f;
+                    }
+                    continue;
+                }
 
-                float ratio = MathF.Abs(rawMono) > 1e-6f ? (processed / rawMono) : 0f;
-                if (float.IsNaN(ratio) || float.IsInfinity(ratio)) ratio = 1f;
+                if (bypass)
+                {
+                    if (absRaw > blockOutputPeak) blockOutputPeak = absRaw;
+                    continue;
+                }
 
+                // 2. FUN MEME MODE ("Уничтоженный микрофон")
+                if (memeMode)
+                {
+                    // The buggy division ratio that crushed audio into funny square waves
+                    float processed = rawMono;
+                    if (gateEnabled) processed = _gate.Process(processed);
+                    if (compEnabled) processed = _compressor.Process(processed);
+                    if (limEnabled) processed = _limiters[0].Process(processed);
+
+                    float ratio = MathF.Abs(rawMono) > 1e-6f ? (processed / rawMono) : 0f;
+                    if (float.IsNaN(ratio) || float.IsInfinity(ratio)) ratio = 1f;
+
+                    for (int ch = 0; ch < channels; ch++)
+                    {
+                        int filterIdx = Math.Min(ch, _hpFilters.Length - 1);
+                        float chSample = buffer[baseIdx + ch];
+                        if (hpEnabled) chSample = _hpFilters[filterIdx].Process(chSample);
+                        float outSample = Math.Clamp(chSample * ratio, -1.0f, 1.0f);
+                        buffer[baseIdx + ch] = outSample;
+
+                        float absOut = MathF.Abs(outSample);
+                        if (absOut > blockOutputPeak) blockOutputPeak = absOut;
+                    }
+                    continue;
+                }
+
+                // 3. CLEAN STUDIO MODE (Pristine High-Pass + Clean Gate + Smooth Compression)
+                // Apply Low-Cut filter to each channel cleanly with its own filter instance
+                if (hpEnabled)
+                {
+                    for (int ch = 0; ch < channels; ch++)
+                    {
+                        int filterIdx = Math.Min(ch, _hpFilters.Length - 1);
+                        buffer[baseIdx + ch] = _hpFilters[filterIdx].Process(buffer[baseIdx + ch]);
+                    }
+                }
+
+                // Measure filtered mono signal for detector envelope analysis
+                float filteredMono = 0f;
                 for (int ch = 0; ch < channels; ch++)
                 {
-                    float chSample = buffer[baseIdx + ch];
-                    if (hpEnabled) chSample = _hpFilters[0].Process(chSample);
-                    float outSample = Math.Clamp(chSample * ratio, -1.0f, 1.0f);
-                    buffer[baseIdx + ch] = outSample;
-
-                    float absOut = MathF.Abs(outSample);
-                    if (absOut > blockOutputPeak) blockOutputPeak = absOut;
+                    filteredMono += buffer[baseIdx + ch];
                 }
-                continue;
-            }
+                filteredMono /= channels;
 
-            // 3. CLEAN STUDIO MODE (Pristine High-Pass + Clean Gate + Smooth Compression)
-            // Apply Low-Cut filter to each channel cleanly with its own filter instance
-            if (hpEnabled)
-            {
+                // Calculate smooth DSP gain multipliers
+                float gateGain = gateEnabled ? _gate.ComputeGain(filteredMono) : 1.0f;
+                float compGain = compEnabled ? _compressor.ComputeGain(filteredMono) : 1.0f;
+                float totalGain = gateGain * compGain;
+
+                // Apply gain and limiter to each channel cleanly
                 for (int ch = 0; ch < channels; ch++)
                 {
-                    int filterIdx = Math.Min(ch, _hpFilters.Length - 1);
-                    buffer[baseIdx + ch] = _hpFilters[filterIdx].Process(buffer[baseIdx + ch]);
+                    float sample = buffer[baseIdx + ch] * totalGain;
+
+                    if (limEnabled)
+                    {
+                        int limIdx = Math.Min(ch, _limiters.Length - 1);
+                        sample = _limiters[limIdx].Process(sample);
+                    }
+
+                    sample = Math.Clamp(sample, -1.0f, 1.0f);
+                    buffer[baseIdx + ch] = sample;
+
+                    float absSample = MathF.Abs(sample);
+                    if (absSample > blockOutputPeak) blockOutputPeak = absSample;
                 }
             }
 
-            // Measure filtered mono signal for detector envelope analysis
-            float filteredMono = 0f;
-            for (int ch = 0; ch < channels; ch++)
-            {
-                filteredMono += buffer[baseIdx + ch];
-            }
-            filteredMono /= channels;
+            // Time-consistent smooth meter ballistics (decay based on block duration)
+            float blockDurationSec = (float)frameCount / _sampleRate;
+            float decay = MathF.Exp(-blockDurationSec / 0.150f);
+            _inputPeakTracker = MathF.Max(blockInputPeak, _inputPeakTracker * decay);
+            _outputPeakTracker = MathF.Max(blockOutputPeak, _outputPeakTracker * decay);
 
-            // Calculate smooth DSP gain multipliers
-            float gateGain = gateEnabled ? _gate.ComputeGain(filteredMono) : 1.0f;
-            float compGain = compEnabled ? _compressor.ComputeGain(filteredMono) : 1.0f;
-            float totalGain = gateGain * compGain;
+            float inDb = _inputPeakTracker > 1e-5f ? 20.0f * MathF.Log10(_inputPeakTracker) : -60.0f;
+            float outDb = _outputPeakTracker > 1e-5f ? 20.0f * MathF.Log10(_outputPeakTracker) : -60.0f;
 
-            // Apply gain and limiter to each channel cleanly
-            for (int ch = 0; ch < channels; ch++)
-            {
-                float sample = buffer[baseIdx + ch] * totalGain;
-
-                if (limEnabled)
-                {
-                    int limIdx = Math.Min(ch, _limiters.Length - 1);
-                    sample = _limiters[limIdx].Process(sample);
-                }
-
-                sample = Math.Clamp(sample, -1.0f, 1.0f);
-                buffer[baseIdx + ch] = sample;
-
-                float absSample = MathF.Abs(sample);
-                if (absSample > blockOutputPeak) blockOutputPeak = absSample;
-            }
+            _metrics.InputPeakDb = Math.Clamp(inDb, -60.0f, 3.0f);
+            _metrics.OutputPeakDb = Math.Clamp(outDb, -60.0f, 3.0f);
+            _metrics.GainReductionDb = compEnabled && !bypass ? _compressor.CurrentGainReductionDb : 0.0f;
+            _metrics.IsGateOpen = !gateEnabled || bypass || _gate.IsOpen;
         }
-
-        // Smooth meter ballistics (decay)
-        const float decay = 0.85f;
-        _inputPeakTracker = MathF.Max(blockInputPeak, _inputPeakTracker * decay);
-        _outputPeakTracker = MathF.Max(blockOutputPeak, _outputPeakTracker * decay);
-
-        float inDb = _inputPeakTracker > 1e-5f ? 20.0f * MathF.Log10(_inputPeakTracker) : -60.0f;
-        float outDb = _outputPeakTracker > 1e-5f ? 20.0f * MathF.Log10(_outputPeakTracker) : -60.0f;
-
-        _metrics.InputPeakDb = Math.Clamp(inDb, -60.0f, 3.0f);
-        _metrics.OutputPeakDb = Math.Clamp(outDb, -60.0f, 3.0f);
-        _metrics.GainReductionDb = compEnabled && !bypass ? _compressor.CurrentGainReductionDb : 0.0f;
-        _metrics.IsGateOpen = !gateEnabled || bypass || _gate.IsOpen;
     }
 }

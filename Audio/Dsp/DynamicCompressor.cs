@@ -16,6 +16,7 @@ public sealed class DynamicCompressor
 
     private float _attackCoeff;
     private float _releaseCoeff;
+    private float _detectorAlpha = 0.04f;
     private float _makeupFactor = 1f;
 
     private float _detectorEnvelope = 0f;
@@ -57,6 +58,7 @@ public sealed class DynamicCompressor
 
         _attackCoeff = MathF.Exp(-1.0f / (_attackMs * 0.001f * _sampleRate));
         _releaseCoeff = MathF.Exp(-1.0f / (_releaseMs * 0.001f * _sampleRate));
+        _detectorAlpha = 1.0f - MathF.Exp(-1.0f / (3.0f * 0.001f * _sampleRate));
         _makeupFactor = MathF.Pow(10.0f, _makeupGainDb / 20.0f);
     }
 
@@ -69,14 +71,16 @@ public sealed class DynamicCompressor
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public float ComputeGain(float detectorSample)
     {
+        if (float.IsNaN(detectorSample) || float.IsInfinity(detectorSample)) detectorSample = 0f;
         float absIn = MathF.Abs(detectorSample);
 
-        // Fast RMS/Peak hybrid detector (5 ms averaging)
-        const float detectorAlpha = 0.04f;
-        _detectorEnvelope = (1.0f - detectorAlpha) * _detectorEnvelope + detectorAlpha * absIn;
+        // Fast RMS/Peak hybrid detector (sample-rate scaled)
+        _detectorEnvelope = (1.0f - _detectorAlpha) * _detectorEnvelope + _detectorAlpha * absIn;
+        if (float.IsNaN(_detectorEnvelope)) _detectorEnvelope = 0f;
         
         // Fast natural log -> dB conversion: 20 * log10(x) = 8.6858896 * ln(x)
         float inputDb = 8.6858896f * MathF.Log(MathF.Max(_detectorEnvelope, 1e-6f));
+        if (float.IsNaN(inputDb)) inputDb = -120f;
 
         // Soft-knee compression curve
         float halfKnee = _kneeDb * 0.5f;

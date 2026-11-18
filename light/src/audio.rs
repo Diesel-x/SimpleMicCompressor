@@ -88,8 +88,11 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
     let meme_in = meme_mode.clone();
     let mute_in = is_muted.clone();
 
+    let out_sample_rate = out_config.sample_rate().0 as f32;
+    let out_channels = out_config.channels() as usize;
+
     // Ring buffer: 1.5 seconds capacity for minimal latency and jitter absorption
-    let buffer_capacity = (in_sample_rate as usize * in_channels) * 3 / 2;
+    let buffer_capacity = (out_sample_rate as usize * out_channels) * 3 / 2;
     let ring_buffer = HeapRb::<f32>::new(buffer_capacity.max(4096));
     let (mut producer, mut consumer) = ring_buffer.split();
 
@@ -125,8 +128,37 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
                         lim_enabled,
                     );
 
-                    for &sample in &scratch_buffer {
-                        let _ = producer.push(sample);
+                    let in_frames = scratch_buffer.len() / in_channels;
+                    let rate_ratio = in_sample_rate / out_sample_rate;
+                    let out_frames = ((in_frames as f32 * out_sample_rate / in_sample_rate).round() as usize).max(1);
+
+                    for out_frame in 0..out_frames {
+                        let in_pos = out_frame as f32 * rate_ratio;
+                        let in_frame0 = (in_pos as usize).min(in_frames.saturating_sub(1));
+                        let in_frame1 = (in_frame0 + 1).min(in_frames.saturating_sub(1));
+                        let frac = in_pos - in_frame0 as f32;
+
+                        let l0 = scratch_buffer[in_frame0 * in_channels];
+                        let l1 = scratch_buffer[in_frame1 * in_channels];
+                        let left = l0 + frac * (l1 - l0);
+
+                        let right = if in_channels >= 2 {
+                            let r0 = scratch_buffer[in_frame0 * in_channels + 1];
+                            let r1 = scratch_buffer[in_frame1 * in_channels + 1];
+                            r0 + frac * (r1 - r0)
+                        } else {
+                            left
+                        };
+
+                        if out_channels == 1 {
+                            let _ = producer.push(left);
+                        } else {
+                            let _ = producer.push(left);
+                            let _ = producer.push(right);
+                            for _ in 2..out_channels {
+                                let _ = producer.push(0.0);
+                            }
+                        }
                     }
                 },
                 err_fn,
@@ -158,8 +190,37 @@ pub fn start_audio_engine(cfg: &AppConfig) -> Result<AudioEngineHandle, String> 
                         lim_enabled,
                     );
 
-                    for &sample in &scratch_buffer {
-                        let _ = producer.push(sample);
+                    let in_frames = scratch_buffer.len() / in_channels;
+                    let rate_ratio = in_sample_rate / out_sample_rate;
+                    let out_frames = ((in_frames as f32 * out_sample_rate / in_sample_rate).round() as usize).max(1);
+
+                    for out_frame in 0..out_frames {
+                        let in_pos = out_frame as f32 * rate_ratio;
+                        let in_frame0 = (in_pos as usize).min(in_frames.saturating_sub(1));
+                        let in_frame1 = (in_frame0 + 1).min(in_frames.saturating_sub(1));
+                        let frac = in_pos - in_frame0 as f32;
+
+                        let l0 = scratch_buffer[in_frame0 * in_channels];
+                        let l1 = scratch_buffer[in_frame1 * in_channels];
+                        let left = l0 + frac * (l1 - l0);
+
+                        let right = if in_channels >= 2 {
+                            let r0 = scratch_buffer[in_frame0 * in_channels + 1];
+                            let r1 = scratch_buffer[in_frame1 * in_channels + 1];
+                            r0 + frac * (r1 - r0)
+                        } else {
+                            left
+                        };
+
+                        if out_channels == 1 {
+                            let _ = producer.push(left);
+                        } else {
+                            let _ = producer.push(left);
+                            let _ = producer.push(right);
+                            for _ in 2..out_channels {
+                                let _ = producer.push(0.0);
+                            }
+                        }
                     }
                 },
                 err_fn,
