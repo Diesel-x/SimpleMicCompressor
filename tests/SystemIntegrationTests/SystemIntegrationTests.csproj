@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>SystemIntegrationTests</AssemblyName>
+    <RootNamespace>MicCompressor.Tests</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\Audio\AudioEngine.cs" Link="Audio\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Audio\AudioDeviceService.cs" Link="Audio\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Audio\Dsp\*.cs" Link="Dsp\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Models\*.cs" Link="Models\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Localization\LocalizationService.cs" Link="Localization\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Utils\AutoStartHelper.cs" Link="Utils\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Utils\UninstallHelper.cs" Link="Utils\%(Filename)%(Extension)" />
+    <Compile Include="..\..\Utils\VersionHelper.cs" Link="Utils\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+</Project>
