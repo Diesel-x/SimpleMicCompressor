@@ -46,6 +46,14 @@ public static class AutoStartHelper
         }
     }
 
+    public static void RefreshAutoStartPathIfEnabled()
+    {
+        if (IsAutoStartEnabled())
+        {
+            SetAutoStart(true);
+        }
+    }
+
     public static void RemoveAllAutoStart()
     {
         try
