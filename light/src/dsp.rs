@@ -84,6 +84,7 @@ pub struct NoiseGate {
     hysteresis_db: f32,
     attack_coeff: f32,
     release_coeff: f32,
+    detector_alpha: f32,
     hold_samples: usize,
     hold_counter: usize,
     current_gain: f32,
@@ -98,6 +99,7 @@ impl NoiseGate {
             hysteresis_db: 2.5,
             attack_coeff: 0.0,
             release_coeff: 0.0,
+            detector_alpha: 0.05,
             hold_samples: 0,
             hold_counter: 0,
             current_gain: 0.0,
@@ -117,6 +119,7 @@ impl NoiseGate {
 
         self.attack_coeff = (-1.0 / (attack * 0.001 * sr)).exp();
         self.release_coeff = (-1.0 / (release * 0.001 * sr)).exp();
+        self.detector_alpha = 1.0 - (-1.0 / (1.5 * 0.001 * sr)).exp();
         self.hold_samples = (hold * 0.001 * sr) as usize;
     }
 
@@ -131,8 +134,7 @@ impl NoiseGate {
     pub fn compute_gain(&mut self, detector_sample: f32) -> f32 {
         let detector_sample = if detector_sample.is_finite() { detector_sample } else { 0.0 };
         let abs_in = detector_sample.abs();
-        const DETECTOR_ALPHA: f32 = 0.05;
-        self.envelope = (1.0 - DETECTOR_ALPHA) * self.envelope + DETECTOR_ALPHA * abs_in;
+        self.envelope = (1.0 - self.detector_alpha) * self.envelope + self.detector_alpha * abs_in;
         if !self.envelope.is_finite() {
             self.envelope = 0.0;
         }
@@ -142,11 +144,10 @@ impl NoiseGate {
         if env_db >= self.threshold_db {
             self.is_open = true;
             self.hold_counter = self.hold_samples;
-        } else if env_db < close_threshold_db {
+        } else if self.is_open {
             if self.hold_counter > 0 {
                 self.hold_counter -= 1;
-                self.is_open = true;
-            } else {
+            } else if env_db < close_threshold_db {
                 self.is_open = false;
             }
         }
@@ -174,6 +175,7 @@ pub struct DynamicCompressor {
     knee_db: f32,
     attack_coeff: f32,
     release_coeff: f32,
+    detector_alpha: f32,
     makeup_factor: f32,
     detector_envelope: f32,
     gain_reduction_envelope: f32,
@@ -187,6 +189,7 @@ impl DynamicCompressor {
             knee_db: 4.0,
             attack_coeff: 0.0,
             release_coeff: 0.0,
+            detector_alpha: 0.04,
             makeup_factor: 1.0,
             detector_envelope: 0.0,
             gain_reduction_envelope: 0.0,
@@ -206,6 +209,7 @@ impl DynamicCompressor {
 
         self.attack_coeff = (-1.0 / (attack * 0.001 * sr)).exp();
         self.release_coeff = (-1.0 / (release * 0.001 * sr)).exp();
+        self.detector_alpha = 1.0 - (-1.0 / (3.0 * 0.001 * sr)).exp();
         self.makeup_factor = 10.0f32.powf(makeup / 20.0);
     }
 
@@ -218,8 +222,7 @@ impl DynamicCompressor {
     pub fn compute_gain(&mut self, detector_sample: f32) -> f32 {
         let detector_sample = if detector_sample.is_finite() { detector_sample } else { 0.0 };
         let abs_in = detector_sample.abs();
-        const DETECTOR_ALPHA: f32 = 0.04;
-        self.detector_envelope = (1.0 - DETECTOR_ALPHA) * self.detector_envelope + DETECTOR_ALPHA * abs_in;
+        self.detector_envelope = (1.0 - self.detector_alpha) * self.detector_envelope + self.detector_alpha * abs_in;
         if !self.detector_envelope.is_finite() {
             self.detector_envelope = 0.0;
         }
@@ -286,6 +289,9 @@ impl FastLimiter {
             let target_gain = self.ceiling_linear / abs_in;
             if target_gain < self.gain_envelope {
                 self.gain_envelope = target_gain;
+            } else {
+                self.gain_envelope =
+                    self.release_coeff * self.gain_envelope + (1.0 - self.release_coeff) * target_gain;
             }
         } else {
             self.gain_envelope = self.release_coeff * self.gain_envelope + (1.0 - self.release_coeff);
@@ -309,27 +315,54 @@ impl FastLimiter {
 }
 
 pub struct AudioChain {
-    pub hp_filters: [BiquadHighPassFilter; 2],
+    pub hp_filters: Vec<BiquadHighPassFilter>,
     pub gate: NoiseGate,
     pub compressor: DynamicCompressor,
-    pub limiters: [FastLimiter; 2],
+    pub limiters: Vec<FastLimiter>,
     pub sample_rate: f32,
+    hp_cutoff_hz: f32,
+    limiter_ceiling_db: f32,
+    limiter_release_ms: f32,
 }
 
 impl AudioChain {
     pub fn new(sample_rate: f32) -> Self {
+        let hp_cutoff_hz = 80.0;
+        let limiter_ceiling_db = -1.0;
+        let limiter_release_ms = 40.0;
         Self {
-            hp_filters: [
-                BiquadHighPassFilter::new(80.0, sample_rate),
-                BiquadHighPassFilter::new(80.0, sample_rate),
-            ],
+            hp_filters: (0..8).map(|_| BiquadHighPassFilter::new(hp_cutoff_hz, sample_rate)).collect(),
             gate: NoiseGate::new(-42.0, 4.0, 120.0, 60.0, sample_rate),
             compressor: DynamicCompressor::new(-20.0, 4.0, 10.0, 150.0, 5.0, 4.0, sample_rate),
-            limiters: [
-                FastLimiter::new(-1.0, 40.0, sample_rate),
-                FastLimiter::new(-1.0, 40.0, sample_rate),
-            ],
+            limiters: (0..8).map(|_| FastLimiter::new(limiter_ceiling_db, limiter_release_ms, sample_rate)).collect(),
             sample_rate,
+            hp_cutoff_hz,
+            limiter_ceiling_db,
+            limiter_release_ms,
+        }
+    }
+
+    pub fn configure_high_pass(&mut self, cutoff_hz: f32) {
+        self.hp_cutoff_hz = cutoff_hz;
+        for hp in &mut self.hp_filters {
+            hp.configure(cutoff_hz, self.sample_rate);
+        }
+    }
+
+    pub fn configure_limiter(&mut self, ceiling_db: f32, release_ms: f32) {
+        self.limiter_ceiling_db = ceiling_db;
+        self.limiter_release_ms = release_ms;
+        for lim in &mut self.limiters {
+            lim.configure(ceiling_db, release_ms, self.sample_rate);
+        }
+    }
+
+    pub fn ensure_channels(&mut self, channels: usize) {
+        while self.hp_filters.len() < channels {
+            self.hp_filters.push(BiquadHighPassFilter::new(self.hp_cutoff_hz, self.sample_rate));
+        }
+        while self.limiters.len() < channels {
+            self.limiters.push(FastLimiter::new(self.limiter_ceiling_db, self.limiter_release_ms, self.sample_rate));
         }
     }
 
@@ -355,6 +388,7 @@ impl AudioChain {
         }
 
         let num_channels = channels.max(1);
+        self.ensure_channels(num_channels);
         let frame_count = buffer.len() / num_channels;
 
         for frame in 0..frame_count {
@@ -368,10 +402,8 @@ impl AudioChain {
             raw_mono /= num_channels as f32;
 
             if meme_mode {
-                let mut processed = raw_mono;
-                if hp_enabled {
-                    processed = self.hp_filters[0].process(processed);
-                }
+                // Intentionally broken phase-shifted division ratio ("Destroyed Mic" meme effect)
+                let mut processed = self.hp_filters[0].process(raw_mono);
                 if gate_enabled {
                     processed = self.gate.compute_gain(processed) * processed;
                 }
@@ -394,8 +426,7 @@ impl AudioChain {
                 for ch in 0..num_channels {
                     let mut ch_sample = buffer[base_idx + ch];
                     if hp_enabled {
-                        let filter_idx = ch.min(self.hp_filters.len() - 1);
-                        ch_sample = self.hp_filters[filter_idx].process(ch_sample);
+                        ch_sample = self.hp_filters[ch].process(ch_sample);
                     }
                     let out_val = ch_sample * ratio;
                     buffer[base_idx + ch] = if out_val.is_finite() {
@@ -410,8 +441,7 @@ impl AudioChain {
             // Clean Studio Mode
             if hp_enabled {
                 for ch in 0..num_channels {
-                    let filter_idx = ch.min(self.hp_filters.len() - 1);
-                    buffer[base_idx + ch] = self.hp_filters[filter_idx].process(buffer[base_idx + ch]);
+                    buffer[base_idx + ch] = self.hp_filters[ch].process(buffer[base_idx + ch]);
                 }
             }
 
@@ -438,8 +468,7 @@ impl AudioChain {
             for ch in 0..num_channels {
                 let mut sample = buffer[base_idx + ch] * total_gain;
                 if lim_enabled {
-                    let lim_idx = ch.min(self.limiters.len() - 1);
-                    sample = self.limiters[lim_idx].process(sample);
+                    sample = self.limiters[ch].process(sample);
                 }
                 // Final safety net: the output buffer must never contain NaN/Inf.
                 buffer[base_idx + ch] = if sample.is_finite() {
@@ -604,5 +633,72 @@ mod tests {
         let mut buf = vec![0.1f32; 480 * 6];
         chain.process_block(&mut buf, 6, false, false, false, true, true, true, true);
         assert!(buf.iter().all(|v| v.is_finite()));
+    }
+
+    #[test]
+    fn meme_mode_produces_crushed_finite_output() {
+        let mut chain = AudioChain::new(SR);
+        let mut buf = vec![0.0f32; 480 * 2];
+        for f in 0..480 {
+            let s = sine(0.4, 300.0, f);
+            buf[f * 2] = s;
+            buf[f * 2 + 1] = s;
+        }
+        chain.process_block(&mut buf, 2, false, true, false, true, true, true, true);
+        assert!(buf.iter().all(|v| v.is_finite() && v.abs() <= 1.0));
+        // Phase-shifted HPF division ratio drives peaks up to saturation (+/- 1.0)
+        assert!(buf.iter().any(|v| v.abs() > 0.9), "expected crushed meme peaks near saturation");
+    }
+
+    #[test]
+    fn gate_hold_expires_even_in_hysteresis_band() {
+        // Hold = 10 ms => 480 samples at 48 kHz; threshold -40 dB, close threshold -42.5 dB
+        let mut gate = NoiseGate::new(-40.0, 1.0, 20.0, 10.0, SR);
+        // Open gate with loud signal (0.5 ~= -6 dB)
+        for _ in 0..2000 {
+            gate.compute_gain(0.5);
+        }
+        assert!(gate.is_open);
+
+        // Drop signal into hysteresis band (~ -41 dB -> amplitude 0.0089) for > hold (480 samples)
+        for _ in 0..2000 {
+            gate.compute_gain(0.0089);
+        }
+        assert!(gate.is_open, "gate should stay open inside hysteresis band");
+
+        // Now drop below close threshold: since hold already expired during hysteresis, gate must close immediately
+        gate.compute_gain(0.0);
+        // After ~1.5 ms detector decay from -41 dB to < -42.5 dB (~100 samples)
+        for _ in 0..200 {
+            gate.compute_gain(0.0);
+        }
+        assert!(!gate.is_open, "hold should not restart when dropping from hysteresis band");
+    }
+
+    #[test]
+    fn limiter_releases_toward_target_when_overload_drops() {
+        let mut lim = FastLimiter::new(-1.0, 40.0, SR);
+        // Drive hard with 4.0 -> target gain ~ 0.89125 / 4 = 0.2228
+        for _ in 0..10 {
+            lim.process(4.0);
+        }
+        // Drop to milder overload 1.5 -> target gain ~ 0.89125 / 1.5 = 0.594 (output ~ 0.88)
+        let mut last = 0.0;
+        for _ in 0..10000 {
+            last = lim.process(1.5);
+        }
+        assert!(last > 0.85, "limiter stayed stuck at heavy GR instead of releasing: last={last}");
+    }
+
+    #[test]
+    fn six_channels_have_independent_hpf_state() {
+        let mut chain = AudioChain::new(SR);
+        // Channel 0 has DC offset, channel 5 has silence
+        let mut buf = vec![0.0f32; 480 * 6];
+        for f in 0..480 {
+            buf[f * 6] = 0.5;
+        }
+        chain.process_block(&mut buf, 6, false, false, false, true, false, false, false);
+        assert!(buf.iter().skip(5).step_by(6).all(|&v| v.abs() < 1e-6));
     }
 }

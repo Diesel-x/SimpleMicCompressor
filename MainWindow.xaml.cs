@@ -82,6 +82,11 @@ public partial class MainWindow : Window
                 }
             }
 
+            if (args.Any(a => a.StartsWith("--screenshot", StringComparison.OrdinalIgnoreCase)))
+            {
+                vm.IsOnboardingVisible = false;
+            }
+
             if (args.Any(a => a.Equals("--screenshot", StringComparison.OrdinalIgnoreCase)))
             {
                 int idx = Array.FindIndex(args, a => a.Equals("--screenshot", StringComparison.OrdinalIgnoreCase));

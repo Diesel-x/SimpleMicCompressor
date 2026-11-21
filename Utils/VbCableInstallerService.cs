@@ -23,7 +23,7 @@ public static class VbCableInstallerService
 
             if (!File.Exists(setupExe))
             {
-                onStatusUpdate?.Invoke("Загрузка официального драйвера VB-Cable...");
+                onStatusUpdate?.Invoke("Загрузка драйвера SMC virtual cable...");
                 using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
                 using var response = await httpClient.GetAsync(DownloadUrl);
                 response.EnsureSuccessStatusCode();
@@ -73,7 +73,7 @@ public static class VbCableInstallerService
             }
 
             // 3. Install
-            onStatusUpdate?.Invoke("Установка драйвера виртуального кабеля (подтвердите UAC)...");
+            onStatusUpdate?.Invoke("Установка драйвера SMC virtual cable (подтвердите UAC)...");
             var instPsi = new ProcessStartInfo
             {
                 FileName = setupExe,
@@ -103,8 +103,8 @@ public static class VbCableInstallerService
             await Task.Delay(1500);
 
             return (true, isReinstall
-                ? "Виртуальный кабель успешно переустановлен! Рекомендуется перезагрузить ПК."
-                : "Виртуальный кабель успешно установлен! В выпадающем списке выберите CABLE Input.");
+                ? "SMC virtual cable успешно переустановлен! Рекомендуется перезагрузить ПК."
+                : "SMC virtual cable успешно установлен и готов к работе!");
         }
         catch (Exception ex)
         {

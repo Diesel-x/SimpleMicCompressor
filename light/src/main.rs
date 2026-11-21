@@ -47,7 +47,7 @@ fn main() {
                     .chain(std::iter::once(0))
                     .collect();
                 let msg: Vec<u16> = std::ffi::OsStr::new(&format!(
-                    "Не удалось инициализировать аудиоустройства:\n{}\n\nУбедитесь, что микрофон подключен и установлен VB-Audio Virtual Cable.",
+                    "Не удалось инициализировать аудиоустройства:\n{}\n\nУбедитесь, что микрофон подключен и установлен SMC virtual cable (VB-Audio Virtual Cable).",
                     err
                 ))
                 .encode_wide()

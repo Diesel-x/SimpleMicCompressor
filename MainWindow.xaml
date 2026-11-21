@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="SimpleMicCompressor"
         Icon="assets/app.ico"
-        Height="780" Width="1160"
-        MinHeight="580" MinWidth="1020"
+        Height="660" Width="980"
+        MinHeight="560" MinWidth="860"
         WindowStartupLocation="CenterScreen"
         Background="#0c0e14"
         Foreground="#f3f4f6"
@@ -299,27 +299,89 @@
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="14"/>
         </Style>
+
+        <!-- Studio Dark Expander for Advanced DSP Controls -->
+        <Style TargetType="Expander">
+            <Setter Property="Foreground" Value="#94a3b8"/>
+            <Setter Property="Background" Value="#10111a"/>
+            <Setter Property="BorderBrush" Value="#232738"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <StackPanel>
+                                <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                              Cursor="Hand" Background="Transparent" BorderThickness="0">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="Transparent" Padding="10,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <ContentPresenter Grid.Column="0"
+                                                                      Content="{Binding Header, RelativeSource={RelativeSource AncestorType=Expander}}"
+                                                                      TextBlock.FontSize="11"
+                                                                      TextBlock.FontWeight="SemiBold"
+                                                                      TextBlock.Foreground="#94a3b8"
+                                                                      VerticalAlignment="Center"/>
+                                                    <Path x:Name="Chevron" Grid.Column="1"
+                                                          Data="M 0 0 L 4 4 L 8 0"
+                                                          Stroke="#8b95a8" StrokeThickness="1.5"
+                                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                          VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Chevron" Property="Data" Value="M 0 4 L 4 0 L 8 4"/>
+                                                    <Setter TargetName="Chevron" Property="Stroke" Value="#3b82f6"/>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Chevron" Property="Stroke" Value="#ffffff"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                                <ContentPresenter x:Name="ExpandSite" Visibility="Collapsed" Margin="10,0,10,10"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
         <!-- SCROLLABLE WORKSPACE (Auto-adapts to small & large screen resolutions) -->
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#0c0e14" BorderThickness="0">
-            <Grid Margin="16">
+            <Grid Margin="14">
                 <Grid.RowDefinitions>
                     <!-- 1. Header Bar -->
                     <RowDefinition Height="Auto"/>
-                    <!-- 2. Devices & VU Meters -->
+                    <!-- 2. Quick Controls & VU Meters -->
                     <RowDefinition Height="Auto"/>
-                    <!-- 3. Channel Strip (DSP Rack) -->
-                    <RowDefinition Height="*" MinHeight="290"/>
+                    <!-- 3. 2-Column DSP Rack -->
+                    <RowDefinition Height="*" MinHeight="270"/>
                     <!-- 4. Status Bar -->
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
         <!-- ================================================================= -->
-        <!-- 1. HEADER BAR                                                     -->
+        <!-- 1. HEADER BAR (Clean Console Header)                              -->
         <!-- ================================================================= -->
-        <Grid Grid.Row="0" Margin="0,0,0,14">
+        <Grid Grid.Row="0" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -328,24 +390,22 @@
 
             <!-- Left: Monogram, Title, Status & Latency Badges -->
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Background="#2563eb" Width="36" Height="36" CornerRadius="8" Margin="0,0,12,0">
-                    <TextBlock Text="SMC" FontSize="13" FontWeight="ExtraBold" Foreground="#ffffff" 
+                <Border Background="#2563eb" Width="34" Height="34" CornerRadius="8" Margin="0,0,10,0">
+                    <TextBlock Text="SMC" FontSize="12.5" FontWeight="ExtraBold" Foreground="#ffffff" 
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Loc[App_Title]}" FontSize="14" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding Loc[App_Title]}" FontSize="13.5" FontWeight="Bold" Foreground="#ffffff" Margin="0,0,7,0"/>
                         <Border Background="#1f2334" BorderBrush="#2e354c" BorderThickness="1" CornerRadius="4" Padding="5,0" VerticalAlignment="Center">
-                            <TextBlock Text="v1.2" FontSize="10" FontWeight="Bold" Foreground="#94a3b8"/>
+                            <TextBlock Text="v1.3" FontSize="10" FontWeight="Bold" Foreground="#94a3b8"/>
                         </Border>
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <!-- Running state dot + text -->
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                         <Ellipse Width="8" Height="8" Fill="{Binding EngineStatusColor}" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding EngineStatusText}" FontSize="11" Foreground="{Binding EngineStatusColor}" FontWeight="Bold" Margin="0,0,10,0"/>
 
-                        <!-- Real-time Latency Indicator -->
                         <Border Background="#12141d" BorderBrush="#232738" BorderThickness="1" CornerRadius="4" Padding="6,1">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Loc[Telemetry_Latency]}" FontSize="10" FontWeight="SemiBold" Foreground="#8b95a8" Margin="0,0,4,0"/>
@@ -353,7 +413,6 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Mute Badge (visible when muted) -->
                         <Border Background="#dc2626" CornerRadius="4" Padding="7,1" Margin="8,0,0,0"
                                 Visibility="{Binding IsMuted, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <TextBlock Text="{Binding Loc[Badge_Muted]}" FontSize="10" FontWeight="Bold" Foreground="#ffffff"/>
@@ -362,19 +421,17 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Center/Right: Sound Profiles & Global Actions -->
+            <!-- Right: Profile Selector, Settings (⚙), Primary Engine Start/Stop -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                <!-- Sound Profile Selector Well -->
                 <Border Background="#151722" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="6,4" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="{Binding Loc[Header_Profile]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" Margin="4,0,6,0" VerticalAlignment="Center"/>
 
-                        <ComboBox Width="135" Height="30" 
+                        <ComboBox Width="140" Height="30" 
                                   ItemsSource="{Binding Presets}" 
                                   SelectedItem="{Binding SelectedPresetItem, Mode=TwoWay}"
                                   DisplayMemberPath="DisplayName"/>
 
-                        <!-- Save Profile Button -->
                         <Button Command="{Binding SaveProfileCommand}" 
                                 ToolTip="{Binding SaveButtonToolTip}"
                                 Height="30" Padding="7,0" Margin="4,0,0,0"
@@ -390,14 +447,13 @@
                                 <Style TargetType="Button">
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                             <Setter Property="Background" Value="#1d4ed8"/>
+                                            <Setter Property="Background" Value="#1d4ed8"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
                             </Button.Style>
                         </Button>
 
-                        <!-- New Profile Button (+) -->
                         <Button Command="{Binding OpenNewProfileDialogCommand}" 
                                 ToolTip="{Binding Loc[Modal_NewProfile_Title]}"
                                 Height="30" Padding="6,0" Margin="4,0,0,0"
@@ -422,7 +478,6 @@
                             </Button.Style>
                         </Button>
 
-                        <!-- Delete Profile Button (Custom only) -->
                         <Button Command="{Binding DeleteProfileCommand}" 
                                 Visibility="{Binding IsCustomProfileSelected, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 ToolTip="{Binding DeleteToolTip}"
@@ -445,35 +500,10 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Hotkeys Button -->
-                <Button Command="{Binding OpenHotkeysDialogCommand}"
-                        ToolTip="{Binding Loc[Modal_Hotkeys_Title]}"
-                        Height="34" Padding="7,0" Margin="0,0,4,0"
-                        Background="#151722" Foreground="#cbd5e1" FontSize="11.5" FontWeight="SemiBold"
-                        BorderBrush="#232738" BorderThickness="1" Cursor="Hand">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="M 1 3 L 13 3 C 13.5 3 14 3.5 14 4 L 14 10 C 14 10.5 13.5 11 13 11 L 1 11 C 0.5 11 0 10.5 0 10 L 0 4 C 0 3.5 0.5 3 1 3 Z M 2 5 L 3.5 5 M 5 5 L 6.5 5 M 8 5 L 9.5 5 M 11 5 L 12.5 5 M 2 7 L 3.5 7 M 5 7 L 6.5 7 M 8 7 L 9.5 7 M 11 7 L 12.5 7 M 4 9 L 10 9" 
-                              Stroke="#cbd5e1" StrokeThickness="1.1" Width="13" Height="13" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding Loc[Action_Hotkeys]}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#222738"/>
-                                    <Setter Property="Foreground" Value="#ffffff"/>
-                                    <Setter Property="BorderBrush" Value="#353d56"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
-
-                <!-- Settings Button -->
+                <!-- Settings Button (⚙) -->
                 <Button Command="{Binding OpenSettingsDialogCommand}"
                         ToolTip="{Binding Loc[Modal_Settings_Title]}"
-                        Height="34" Padding="7,0" Margin="0,0,4,0"
+                        Height="34" Padding="9,0" Margin="0,0,6,0"
                         Background="#151722" Foreground="#cbd5e1" FontSize="11.5" FontWeight="SemiBold"
                         BorderBrush="#232738" BorderThickness="1" Cursor="Hand">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
@@ -495,30 +525,10 @@
                     </Button.Style>
                 </Button>
 
-                <!-- Minimize to Tray Button -->
-                <Button Content="{Binding Loc[Action_ToTray]}" 
-                        Click="OnMinimizeToTrayClicked"
-                        Height="34" Padding="7,0" Margin="0,0,4,0"
-                        FontSize="11.5" FontWeight="SemiBold" Cursor="Hand"
-                        Foreground="#cbd5e1" Background="#151722" BorderBrush="#232738" BorderThickness="1">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#222738"/>
-                                    <Setter Property="Foreground" Value="#ffffff"/>
-                                    <Setter Property="BorderBrush" Value="#353d56"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
-
                 <!-- Primary Start / Stop Engine Button -->
                 <Button Content="{Binding StartStopButtonText}" 
                         Command="{Binding ToggleEngineCommand}"
-                        Width="96" Height="34" 
+                        Width="98" Height="34" 
                         FontSize="11.5" FontWeight="Bold" Cursor="Hand"
                         Foreground="#ffffff" BorderThickness="0">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
@@ -540,127 +550,105 @@
         </Grid>
 
         <!-- ================================================================= -->
-        <!-- 2. DEVICES & LEVEL METERS (Hardware Command Center)               -->
+        <!-- 2. QUICK CONTROLS & STUDIO METERS                                 -->
         <!-- ================================================================= -->
-        <Grid Grid.Row="1" Margin="0,0,0,14">
+        <Grid Grid.Row="1" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="1.1*"/>
                 <ColumnDefinition Width="12"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Card: Audio Routing & Hardware -->
+            <!-- Left Card: Quick Controls (Mic Input + Mute / Bypass / Monitoring) -->
             <Border Grid.Column="0" Style="{StaticResource CardPanel}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Routing Header -->
+                    <!-- Header -->
                     <Grid Grid.Row="0" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="M 6 1 L 6 7 M 4 4 L 8 4 M 3 7 C 3 9 4.5 10.5 6 10.5 C 7.5 10.5 9 9 9 7 M 6 10.5 L 6 13 M 4 13 L 8 13" 
                                   Stroke="#3b82f6" StrokeThickness="1.3" Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding Loc[Card_Routing]}" FontSize="11" FontWeight="Bold" Foreground="#8b95a8"/>
+                            <TextBlock Text="{Binding Loc[Quick_Controls]}" FontSize="11" FontWeight="Bold" Foreground="#8b95a8"/>
                         </StackPanel>
                         <Button Content="{Binding Loc[Routing_Refresh]}" Command="{Binding RefreshDevicesCommand}" 
                                 HorizontalAlignment="Right" Background="Transparent" Foreground="#3b82f6" 
                                 BorderThickness="0" Cursor="Hand" FontSize="11" FontWeight="Bold"/>
                     </Grid>
 
-                    <!-- Mic Input -->
-                    <Grid Grid.Row="1" Margin="0,0,0,7">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding Loc[Routing_Input]}" FontSize="12" FontWeight="SemiBold" Foreground="#8b95a8" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding InputDevices}" 
-                                  SelectedItem="{Binding SelectedInputDevice, Mode=TwoWay}"
-                                  DisplayMemberPath="Name" Height="30"/>
-                    </Grid>
-
-                    <!-- Output (Cable or Speakers) -->
-                    <Grid Grid.Row="2" Margin="0,0,0,9">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding Loc[Routing_Output]}" FontSize="12" FontWeight="SemiBold" Foreground="#8b95a8" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding OutputDevices}" 
-                                  SelectedItem="{Binding SelectedOutputDevice, Mode=TwoWay}"
-                                  DisplayMemberPath="Name" Height="30"/>
-                    </Grid>
-
-                    <!-- Virtual Cable Installer Strip -->
-                    <Border Grid.Row="3" Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,9">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Grid.Column="0" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="{Binding Loc[Cable_NotFound]}"/>
-                                        <Setter Property="Foreground" Value="#f59e0b"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
-                                                <Setter Property="Text" Value="{Binding Loc[Cable_Active]}"/>
-                                                <Setter Property="Foreground" Value="#10b981"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-
-                            <Button Grid.Column="1" Cursor="Hand" FontSize="10.5" FontWeight="Bold" Padding="10,4" Foreground="#ffffff" BorderThickness="0" Margin="8,0,0,0">
-                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Background" Value="#2563eb"/>
-                                        <Setter Property="Content" Value="{Binding Loc[Cable_Install]}"/>
-                                        <Setter Property="Command" Value="{Binding InstallVbCableCommand}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
-                                                <Setter Property="Background" Value="#222738"/>
-                                                <Setter Property="Content" Value="{Binding Loc[Cable_Reinstall]}"/>
-                                                <Setter Property="Command" Value="{Binding ReinstallVbCableCommand}"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding IsInstalling}" Value="True">
-                                                <Setter Property="IsEnabled" Value="False"/>
-                                                <Setter Property="Content" Value="{Binding Loc[Cable_Installing]}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                        </Grid>
-                    </Border>
-
-                    <!-- Headphone Monitor -->
-                    <Grid Grid.Row="4">
+                    <!-- Microphone Selector -->
+                    <Grid Grid.Row="1" Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="90"/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox Grid.Column="0" Content="{Binding Loc[Routing_Monitor]}" 
-                                  IsChecked="{Binding MonitorEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding MonitorDevices}" 
-                                  SelectedItem="{Binding SelectedMonitorDevice, Mode=TwoWay}"
-                                  DisplayMemberPath="Name" Height="28" FontSize="11.5"
-                                  IsEnabled="{Binding MonitorEnabled}" Margin="0,0,8,0"/>
-                        <Slider Grid.Column="2" Minimum="0.0" Maximum="1.0" 
-                                Value="{Binding MonitorVolume, Mode=TwoWay}" 
-                                IsEnabled="{Binding MonitorEnabled}"
-                                ToolTip="{Binding Loc[Routing_MonitorVolume]}"/>
+                        <TextBlock Grid.Column="0" Text="{Binding Loc[Routing_Input]}" FontSize="12" FontWeight="SemiBold" Foreground="#8b95a8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding InputDevices}" 
+                                  SelectedItem="{Binding SelectedInputDevice, Mode=TwoWay}"
+                                  DisplayMemberPath="Name" Height="32"/>
+                    </Grid>
+
+                    <!-- 3 Toggle Cards: Mute / Bypass / Monitoring -->
+                    <Grid Grid.Row="2" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="1.45*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Mute Pill -->
+                        <Border Grid.Column="0" Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,9">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0">
+                                    <TextBlock Text="Mute" FontSize="12" FontWeight="Bold" Foreground="#ef4444" VerticalAlignment="Center"/>
+                                    <CheckBox IsChecked="{Binding IsMuted, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <TextBlock Grid.Row="1" Text="{Binding Loc[FX_Mute_Desc]}" FontSize="10" Foreground="#8b95a8" TextTrimming="CharacterEllipsis" Margin="0,5,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Bypass Pill -->
+                        <Border Grid.Column="2" Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,9">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0">
+                                    <TextBlock Text="{Binding Loc[Action_Bypass]}" FontSize="12" FontWeight="Bold" Foreground="#38bdf8" VerticalAlignment="Center"/>
+                                    <CheckBox IsChecked="{Binding BypassAll, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <TextBlock Grid.Row="1" Text="{Binding Loc[FX_Bypass_Desc]}" FontSize="10" Foreground="#8b95a8" TextTrimming="CharacterEllipsis" Margin="0,5,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Monitoring Pill + Inline Volume Slider -->
+                        <Border Grid.Column="4" Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Margin="0,0,0,4">
+                                    <TextBlock Text="{Binding Loc[Routing_Monitor]}" FontSize="12" FontWeight="Bold" Foreground="#10b981" VerticalAlignment="Center"/>
+                                    <CheckBox IsChecked="{Binding MonitorEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Slider Grid.Row="1" Minimum="0.0" Maximum="1.0"
+                                        Value="{Binding MonitorVolume, Mode=TwoWay}"
+                                        IsEnabled="{Binding MonitorEnabled}"
+                                        ToolTip="{Binding Loc[Routing_MonitorVolume]}"/>
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Grid>
             </Border>
@@ -778,22 +766,20 @@
         </Grid>
 
         <!-- ================================================================= -->
-        <!-- 3. DSP PROCESSING RACK (Signal Chain: 01 Gate -> 02 Comp -> 03 FX)-->
+        <!-- 3. CLEAN 2-COLUMN DSP RACK                                        -->
         <!-- ================================================================= -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="12"/>
-                <ColumnDefinition Width="1.35*"/>
-                <ColumnDefinition Width="12"/>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1.25*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- MODULE 1: PRE-FILTER & NOISE GATE -->
+            <!-- COLUMN 0: GATE, FILTERS & FX -->
             <Border Grid.Column="0" Style="{StaticResource CardPanel}">
                 <StackPanel>
-                    <!-- Header -->
-                    <Grid Margin="0,0,0,12">
+                    <!-- Noise Gate Header -->
+                    <Grid Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Background="#10b981" Width="18" Height="18" CornerRadius="4" Margin="0,0,8,0">
                                 <TextBlock Text="1" FontSize="10" FontWeight="Bold" Foreground="#ffffff" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -803,24 +789,9 @@
                         <CheckBox IsChecked="{Binding GateEnabled, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
 
-                    <!-- Sub-Module: 80 Hz Low-Cut Filter -->
-                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Loc[FX_LowCut]}" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
-                                <TextBlock Text="{Binding Loc[FX_LowCut_Tip]}" FontSize="10" Foreground="#8b95a8" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <CheckBox Grid.Column="1" IsChecked="{Binding HighPassEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
-
                     <!-- Gate Threshold Slider -->
-                    <StackPanel Margin="0,0,0,14">
-                        <Grid Margin="0,0,0,3">
+                    <StackPanel Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,2">
                             <TextBlock Text="{Binding Loc[Gate_Threshold]}" FontSize="11.5" Foreground="#cbd5e1"/>
                             <TextBlock Text="{Binding GateThresholdDb, StringFormat={}{0:F0} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
@@ -829,8 +800,8 @@
                     </StackPanel>
 
                     <!-- Gate Release Slider -->
-                    <StackPanel Margin="0,0,0,14">
-                        <Grid Margin="0,0,0,3">
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid Margin="0,0,0,2">
                             <TextBlock Text="{Binding Loc[Gate_Release]}" FontSize="11.5" Foreground="#cbd5e1"/>
                             <TextBlock Text="{Binding GateReleaseMs, StringFormat={}{0:F0} ms}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
@@ -838,21 +809,58 @@
                                 ToolTip="{Binding Loc[Gate_Release_Tip]}"/>
                     </StackPanel>
 
-                    <!-- Gate State Status Strip -->
-                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,4,0,0">
-                        <Grid>
-                            <TextBlock Text="{Binding Loc[Meters_Gate]}" FontSize="11" FontWeight="SemiBold" Foreground="#8b95a8" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding GateStatusText}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold" Foreground="{Binding GateStatusColor}" VerticalAlignment="Center"/>
-                        </Grid>
+                    <!-- Compact FX Toggles: Low-Cut & Limiter -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Loc[FX_LowCut]}" FontSize="11" FontWeight="Bold" Foreground="#ffffff"
+                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Loc[FX_LowCut_Tip]}"/>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding HighPassEnabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="2" Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Loc[FX_Limiter]}" FontSize="11" FontWeight="Bold" Foreground="#ffffff"
+                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Loc[FX_Limiter_Sub]}"/>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding LimiterEnabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- Meme Mode Overdrive -->
+                    <Border Background="#1f1418" BorderBrush="#3f1f26" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,2">
+                                <TextBlock Text="{Binding Loc[FX_Meme]}" FontSize="11.5" FontWeight="Bold" Foreground="#f87171" VerticalAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding DestroyedMicMemeMode, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                            <TextBlock Text="{Binding Loc[FX_Meme_Notice]}" 
+                                       FontSize="10" FontWeight="SemiBold" Foreground="#fbbf24" TextWrapping="Wrap"/>
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Border>
 
-            <!-- MODULE 2: DYNAMIC COMPRESSOR -->
+            <!-- COLUMN 1: DYNAMIC COMPRESSOR -->
             <Border Grid.Column="2" Style="{StaticResource CardPanel}">
                 <StackPanel>
                     <!-- Header -->
-                    <Grid Margin="0,0,0,12">
+                    <Grid Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Border Background="#2563eb" Width="18" Height="18" CornerRadius="4" Margin="0,0,8,0">
                                 <TextBlock Text="2" FontSize="10" FontWeight="Bold" Foreground="#ffffff" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -863,8 +871,8 @@
                     </Grid>
 
                     <!-- Threshold Slider -->
-                    <StackPanel Margin="0,0,0,11">
-                        <Grid Margin="0,0,0,3">
+                    <StackPanel Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,2">
                             <TextBlock Text="{Binding Loc[Comp_Threshold]}" FontSize="11.5" Foreground="#cbd5e1"/>
                             <TextBlock Text="{Binding CompressorThresholdDb, StringFormat={}{0:F1} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
@@ -873,8 +881,8 @@
                     </StackPanel>
 
                     <!-- Ratio Slider -->
-                    <StackPanel Margin="0,0,0,11">
-                        <Grid Margin="0,0,0,3">
+                    <StackPanel Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,2">
                             <TextBlock Text="{Binding Loc[Comp_Ratio]}" FontSize="11.5" Foreground="#cbd5e1"/>
                             <TextBlock Text="{Binding CompressorRatio, StringFormat={}{0:F1}:1}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#38bdf8"/>
                         </Grid>
@@ -883,8 +891,8 @@
                     </StackPanel>
 
                     <!-- Makeup Gain Slider -->
-                    <StackPanel Margin="0,0,0,11">
-                        <Grid Margin="0,0,0,3">
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid Margin="0,0,0,2">
                             <TextBlock Text="{Binding Loc[Comp_Makeup]}" FontSize="11.5" Foreground="#cbd5e1"/>
                             <TextBlock Text="{Binding CompressorMakeupGainDb, StringFormat=+{0:F1} dB}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="#10b981"/>
                         </Grid>
@@ -892,126 +900,47 @@
                                 ToolTip="{Binding Loc[Comp_Makeup_Tip]}"/>
                     </StackPanel>
 
-                    <!-- Attack & Release Dual Faders -->
-                    <Grid Margin="0,2,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="12"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0">
-                            <Grid Margin="0,0,0,3">
-                                <TextBlock Text="{Binding Loc[Comp_Attack]}" FontSize="11" Foreground="#8b95a8"/>
-                                <TextBlock Text="{Binding CompressorAttackMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
-                            </Grid>
-                            <Slider Minimum="1" Maximum="40" Value="{Binding CompressorAttackMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2">
-                            <Grid Margin="0,0,0,3">
-                                <TextBlock Text="{Binding Loc[Comp_Release]}" FontSize="11" Foreground="#8b95a8"/>
-                                <TextBlock Text="{Binding CompressorReleaseMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
-                            </Grid>
-                            <Slider Minimum="30" Maximum="400" Value="{Binding CompressorReleaseMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <!-- MODULE 3: LIMITER & MASTER FX -->
-            <Border Grid.Column="4" Style="{StaticResource CardPanel}">
-                <StackPanel>
-                    <!-- Header -->
-                    <Grid Margin="0,0,0,12">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#f59e0b" Width="18" Height="18" CornerRadius="4" Margin="0,0,8,0">
-                                <TextBlock Text="3" FontSize="10" FontWeight="Bold" Foreground="#ffffff" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="{Binding Loc[Card_Master]}" FontSize="12" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Brickwall Limiter -->
-                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
-                        <Grid>
+                    <!-- Collapsible Advanced Attack & Release -->
+                    <Expander Header="{Binding Loc[Comp_Advanced]}" IsExpanded="False">
+                        <Grid Margin="0,4,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding Loc[FX_Limiter]}" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
-                                <TextBlock Text="{Binding Loc[FX_Limiter_Sub]}" FontSize="10" Foreground="#8b95a8" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <CheckBox Grid.Column="1" IsChecked="{Binding LimiterEnabled, Mode=TwoWay}" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
-
-                    <!-- Bypass Toggle Card -->
-                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="12"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding Loc[Action_Bypass]}" FontSize="11.5" FontWeight="Bold" Foreground="#38bdf8"/>
-                                <TextBlock Text="{Binding Loc[FX_Bypass_Desc]}" FontSize="10" Foreground="#8b95a8" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <CheckBox Grid.Column="1" IsChecked="{Binding BypassAll, Mode=TwoWay}" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
 
-                    <!-- Mute Microphone Card -->
-                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding Loc[Hotkeys_Mute]}" FontSize="11.5" FontWeight="Bold" Foreground="#ef4444"/>
-                                <TextBlock Text="{Binding Loc[FX_Mute_Desc]}" FontSize="10" Foreground="#8b95a8" Margin="0,2,0,0"/>
+                                <Grid Margin="0,0,0,2">
+                                    <TextBlock Text="{Binding Loc[Comp_Attack]}" FontSize="11" Foreground="#8b95a8"/>
+                                    <TextBlock Text="{Binding CompressorAttackMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
+                                </Grid>
+                                <Slider Minimum="1" Maximum="40" Value="{Binding CompressorAttackMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
                             </StackPanel>
-                            <CheckBox Grid.Column="1" IsChecked="{Binding IsMuted, Mode=TwoWay}" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Border>
 
-                    <!-- Meme Mode Overdrive -->
-                    <Border Background="#1f1418" BorderBrush="#3f1f26" BorderThickness="1" CornerRadius="8" Padding="10,8">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,3">
-                                <TextBlock Text="{Binding Loc[FX_Meme]}" FontSize="11.5" FontWeight="Bold" Foreground="#f87171"/>
-                                <CheckBox IsChecked="{Binding DestroyedMicMemeMode, Mode=TwoWay}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            </Grid>
-                            <TextBlock Text="{Binding Loc[FX_Meme_Notice]}" 
-                                       FontSize="10" FontWeight="SemiBold" Foreground="#fbbf24" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
+                            <StackPanel Grid.Column="2">
+                                <Grid Margin="0,0,0,2">
+                                    <TextBlock Text="{Binding Loc[Comp_Release]}" FontSize="11" Foreground="#8b95a8"/>
+                                    <TextBlock Text="{Binding CompressorReleaseMs, StringFormat={}{0:F0}ms}" HorizontalAlignment="Right" FontSize="11.5" FontWeight="Bold" Foreground="#ffffff"/>
+                                </Grid>
+                                <Slider Minimum="30" Maximum="400" Value="{Binding CompressorReleaseMs, Mode=TwoWay}" IsEnabled="{Binding CompressorEnabled}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Expander>
                 </StackPanel>
             </Border>
         </Grid>
 
         <!-- ================================================================= -->
-        <!-- 4. STATUS FOOTER                                                  -->
+        <!-- 4. MINIMAL STATUS FOOTER                                          -->
         <!-- ================================================================= -->
-        <Grid Grid.Row="3" Margin="0,12,0,0">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="{Binding Loc[Footer_Engine]}" FontSize="11" Foreground="#475569" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding StatusNotification}" FontSize="11" FontWeight="SemiBold" Foreground="#38bdf8" Margin="14,0,0,0" VerticalAlignment="Center"/>
-            </StackPanel>
+        <Grid Grid.Row="3" Margin="0,10,0,0">
+            <TextBlock Text="{Binding StatusNotification}" HorizontalAlignment="Left" FontSize="11" FontWeight="SemiBold" Foreground="#38bdf8" VerticalAlignment="Center"/>
 
-            <!-- Developer Info with GitHub Link -->
-            <TextBlock HorizontalAlignment="Center" FontSize="11" Foreground="#475569" VerticalAlignment="Center">
+            <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#475569" VerticalAlignment="Center">
                 <Run Text="{Binding Loc[Footer_Developer], Mode=OneWay}"/>
                 <Hyperlink NavigateUri="https://github.com/Diesel-x/Simple_Mic_Compressor" RequestNavigate="OnHyperlinkRequestNavigate" Foreground="#38bdf8" TextDecorations="None" Cursor="Hand">
                     <Run Text="Diesel-X" FontWeight="Bold"/>
                 </Hyperlink>
-            </TextBlock>
-
-            <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="#475569" VerticalAlignment="Center">
-                <Run Text="{Binding Loc[Footer_Output], Mode=OneWay}"/>
-                <Run Text="{Binding SelectedOutputDevice.Name, Mode=OneWay}" Foreground="#8b95a8"/>
             </TextBlock>
         </Grid>
             </Grid>
@@ -1190,86 +1119,331 @@
         <Grid Visibility="{Binding IsSettingsDialogVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
               Background="#b3000000" Panel.ZIndex="300">
             <Border Background="#161822" BorderBrush="#2e354c" BorderThickness="1.5" CornerRadius="12"
-                    Width="480" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="22">
+                    Width="500" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="28" ShadowDepth="8" Opacity="0.7"/>
                 </Border.Effect>
-                <StackPanel>
-                    <!-- Settings Title -->
-                    <Grid Margin="0,0,0,16">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Path Data="M 7 1 L 9 1 L 9.3 2.5 C 9.8 2.7 10.3 3 10.7 3.4 L 12.2 2.8 L 13.2 4.5 L 12 5.6 C 12.1 6.1 12.1 6.4 12.1 6.7 C 12.1 7 12.1 7.3 12 7.8 L 13.2 8.9 L 12.2 10.6 L 10.7 10 C 10.3 10.4 9.8 10.7 9.3 10.9 L 9 12.4 L 7 12.4 L 6.7 10.9 C 6.2 10.7 5.7 10.4 5.3 10 L 3.8 10.6 L 2.8 8.9 L 4 7.8 C 3.9 7.3 3.9 7 3.9 6.7 C 3.9 6.4 3.9 6.1 4 5.6 L 2.8 4.5 L 3.8 2.8 L 5.3 3.4 C 5.7 3 6.2 2.7 6.7 2.5 Z M 8 5 A 1.8 1.8 0 1 0 8 8.6 A 1.8 1.8 0 1 0 8 5 Z" 
-                                  Stroke="#3b82f6" StrokeThickness="1.2" Fill="Transparent" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding Loc[Modal_Settings_Title]}" FontSize="15" FontWeight="Bold" Foreground="#ffffff"/>
-                        </StackPanel>
-                        <Button Content="✕" Command="{Binding CloseSettingsDialogCommand}"
-                                HorizontalAlignment="Right" Background="Transparent" Foreground="#8b95a8" 
-                                BorderThickness="0" FontSize="14" FontWeight="Bold" Cursor="Hand"/>
-                    </Grid>
+                <ScrollViewer MaxHeight="560" VerticalScrollBarVisibility="Auto" Background="Transparent">
+                    <StackPanel Margin="0,0,4,0">
+                        <!-- Settings Title -->
+                        <Grid Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M 7 1 L 9 1 L 9.3 2.5 C 9.8 2.7 10.3 3 10.7 3.4 L 12.2 2.8 L 13.2 4.5 L 12 5.6 C 12.1 6.1 12.1 6.4 12.1 6.7 C 12.1 7 12.1 7.3 12 7.8 L 13.2 8.9 L 12.2 10.6 L 10.7 10 C 10.3 10.4 9.8 10.7 9.3 10.9 L 9 12.4 L 7 12.4 L 6.7 10.9 C 6.2 10.7 5.7 10.4 5.3 10 L 3.8 10.6 L 2.8 8.9 L 4 7.8 C 3.9 7.3 3.9 7 3.9 6.7 C 3.9 6.4 3.9 6.1 4 5.6 L 2.8 4.5 L 3.8 2.8 L 5.3 3.4 C 5.7 3 6.2 2.7 6.7 2.5 Z M 8 5 A 1.8 1.8 0 1 0 8 8.6 A 1.8 1.8 0 1 0 8 5 Z" 
+                                      Stroke="#3b82f6" StrokeThickness="1.2" Fill="Transparent" Width="15" Height="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Loc[Modal_Settings_Title]}" FontSize="15" FontWeight="Bold" Foreground="#ffffff"/>
+                            </StackPanel>
+                            <Button Content="✕" Command="{Binding CloseSettingsDialogCommand}"
+                                    HorizontalAlignment="Right" Background="Transparent" Foreground="#8b95a8" 
+                                    BorderThickness="0" FontSize="14" FontWeight="Bold" Cursor="Hand"/>
+                        </Grid>
 
-                    <!-- Section 1: General Preferences -->
-                    <TextBlock Text="{Binding Loc[Settings_General]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" Margin="0,0,0,6"/>
-                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,16">
-                        <StackPanel>
-                            <CheckBox Content="{Binding Loc[Pref_AutoStart]}" 
-                                      IsChecked="{Binding AutoStartWithWindows, Mode=TwoWay}" 
-                                      Margin="0,0,0,8" FontSize="12"/>
-                            <CheckBox Content="{Binding Loc[Pref_MinimizeClose]}" 
-                                      IsChecked="{Binding MinimizeToTrayOnClose, Mode=TwoWay}" 
-                                      Margin="0,0,0,10" FontSize="12"/>
+                        <!-- Section 1: Devices & SMC virtual cable -->
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="{Binding Loc[Settings_AudioCable]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" VerticalAlignment="Center"/>
+                            <Button Content="{Binding Loc[Routing_Refresh]}" Command="{Binding RefreshDevicesCommand}"
+                                    HorizontalAlignment="Right" Background="Transparent" Foreground="#3b82f6"
+                                    BorderThickness="0" Cursor="Hand" FontSize="10.5" FontWeight="Bold"/>
+                        </Grid>
+                        <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                            <StackPanel>
+                                <!-- Virtual Cable Status + Install/Reinstall -->
+                                <Border Background="#151722" BorderBrush="#232738" BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="{Binding Loc[Cable_NotFound]}"/>
+                                                        <Setter Property="Foreground" Value="#f59e0b"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
+                                                                <Setter Property="Text" Value="{Binding Loc[Cable_Active]}"/>
+                                                                <Setter Property="Foreground" Value="#10b981"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <Button Grid.Column="1" Cursor="Hand" FontSize="10.5" FontWeight="Bold" Padding="10,5" Foreground="#ffffff" BorderThickness="0" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#2563eb"/>
+                                                        <Setter Property="Content" Value="{Binding Loc[Cable_Install]}"/>
+                                                        <Setter Property="Command" Value="{Binding InstallVbCableCommand}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
+                                                                <Setter Property="Background" Value="#222738"/>
+                                                                <Setter Property="Content" Value="{Binding Loc[Cable_Reinstall]}"/>
+                                                                <Setter Property="Command" Value="{Binding ReinstallVbCableCommand}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsInstalling}" Value="True">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Content" Value="{Binding Loc[Cable_Installing]}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                        <TextBlock Text="{Binding InstallerStatus, TargetNullValue=''}" FontSize="10.5" Foreground="#38bdf8" TextWrapping="Wrap" Margin="0,5,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="Text" Value="">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
 
-                            <!-- Language Selector -->
+                                <!-- Virtual Output Cable Selector -->
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Loc[Routing_Output]}" FontSize="12" FontWeight="SemiBold" Foreground="#cbd5e1" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Column="1" Height="30"
+                                              ItemsSource="{Binding OutputDevices}"
+                                              SelectedItem="{Binding SelectedOutputDevice, Mode=TwoWay}"
+                                              DisplayMemberPath="Name"
+                                              IsEnabled="{Binding HasVirtualCable}"/>
+                                </Grid>
+
+                                <!-- Monitor Headphones Selector -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Loc[Routing_Monitor]}" FontSize="12" FontWeight="SemiBold" Foreground="#cbd5e1" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Column="1" Height="30"
+                                              ItemsSource="{Binding MonitorDevices}"
+                                              SelectedItem="{Binding SelectedMonitorDevice, Mode=TwoWay}"
+                                              DisplayMemberPath="Name"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Section 2: General Preferences -->
+                        <TextBlock Text="{Binding Loc[Settings_General]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" Margin="0,0,0,6"/>
+                        <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,14">
+                            <StackPanel>
+                                <CheckBox Content="{Binding Loc[Pref_AutoStart]}" 
+                                          IsChecked="{Binding AutoStartWithWindows, Mode=TwoWay}" 
+                                          Margin="0,0,0,8" FontSize="12"/>
+                                <CheckBox Content="{Binding Loc[Pref_MinimizeClose]}" 
+                                          IsChecked="{Binding MinimizeToTrayOnClose, Mode=TwoWay}" 
+                                          Margin="0,0,0,10" FontSize="12"/>
+
+                                <!-- Language Selector -->
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Loc[Action_Language]}" FontSize="12" FontWeight="SemiBold" Foreground="#cbd5e1" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Column="1" Height="30"
+                                              ItemsSource="{Binding AvailableLanguages}"
+                                              SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                                              DisplayMemberPath="DisplayName"/>
+                                </Grid>
+
+                                <!-- Hotkeys & Setup Wizard Buttons -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Content="{Binding Loc[Btn_HotkeysConfig]}" Command="{Binding OpenHotkeysDialogCommand}"
+                                            Height="32" Background="#1e2230" Foreground="#cbd5e1" FontSize="11" FontWeight="SemiBold" BorderBrush="#2b3144" BorderThickness="1" Cursor="Hand">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                    </Button>
+                                    <Button Grid.Column="2" Content="{Binding Loc[Wizard_OpenBtn]}" Command="{Binding OpenOnboardingCommand}"
+                                            Height="32" Background="#1e2230" Foreground="#cbd5e1" FontSize="11" FontWeight="SemiBold" BorderBrush="#2b3144" BorderThickness="1" Cursor="Hand">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Section 3: Danger Zone / Uninstallation -->
+                        <TextBlock Text="{Binding Loc[Settings_DangerZone]}" FontSize="10" FontWeight="Bold" Foreground="#ef4444" Margin="0,0,0,6"/>
+                        <Border Background="#1b1216" BorderBrush="#3f1f26" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding Loc[Action_Language]}" FontSize="12" FontWeight="SemiBold" Foreground="#cbd5e1" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                                <ComboBox Grid.Column="1" Height="30"
-                                          ItemsSource="{Binding AvailableLanguages}"
-                                          SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
-                                          DisplayMemberPath="DisplayName"/>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                    <TextBlock Text="{Binding Loc[Pref_Uninstall]}" FontSize="12" FontWeight="Bold" Foreground="#f87171"/>
+                                    <TextBlock Text="{Binding Loc[Pref_Uninstall_Tip]}" FontSize="10.5" Foreground="#94a3b8" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Command="{Binding FullUninstallCommand}"
+                                        Content="{Binding Loc[Pref_Uninstall]}"
+                                        Height="32" Padding="12,0" Background="#2b151a" BorderBrush="#50242d" BorderThickness="1" 
+                                        Foreground="#f87171" FontSize="11" FontWeight="Bold" Cursor="Hand">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#451a20"/>
+                                                    <Setter Property="BorderBrush" Value="#7f1d1d"/>
+                                                    <Setter Property="Foreground" Value="#ffffff"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </Grid>
+                        </Border>
+
+                        <!-- Modal Actions -->
+                        <Button Content="{Binding Loc[Modal_Close]}" Command="{Binding CloseSettingsDialogCommand}"
+                                IsDefault="True"
+                                Height="34" Background="#2563eb" Foreground="#ffffff" FontSize="12" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#1d4ed8"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ================================================================= -->
+        <!-- 8. MODAL: FIRST-RUN SETUP WIZARD                                  -->
+        <!-- ================================================================= -->
+        <Grid Visibility="{Binding IsOnboardingVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="#cc000000" Panel.ZIndex="400">
+            <Border Background="#161822" BorderBrush="#2e354c" BorderThickness="1.5" CornerRadius="12"
+                    Width="500" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="32" ShadowDepth="8" Opacity="0.75"/>
+                </Border.Effect>
+                <StackPanel>
+                    <!-- Wizard Header + Language Switcher -->
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#2563eb" Width="26" Height="26" CornerRadius="6" Margin="0,0,10,0">
+                                <TextBlock Text="SMC" FontSize="10" FontWeight="ExtraBold" Foreground="#ffffff" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="{Binding Loc[Wizard_Title]}" FontSize="16" FontWeight="Bold" Foreground="#ffffff" VerticalAlignment="Center"/>
                         </StackPanel>
+                        <ComboBox Grid.Column="1" Width="130" Height="28"
+                                  ItemsSource="{Binding AvailableLanguages}"
+                                  SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                                  DisplayMemberPath="DisplayName"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding Loc[Wizard_Subtitle]}" FontSize="12" Foreground="#8b95a8" TextWrapping="Wrap" Margin="0,0,0,16" LineHeight="17"/>
+
+                    <!-- Step 1: Microphone -->
+                    <Grid Margin="0,0,0,4">
+                        <TextBlock Text="{Binding Loc[Wizard_Step_Mic]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" VerticalAlignment="Center"/>
+                        <Button Content="{Binding Loc[Routing_Refresh]}" Command="{Binding RefreshDevicesCommand}"
+                                HorizontalAlignment="Right" Background="Transparent" Foreground="#3b82f6"
+                                BorderThickness="0" Cursor="Hand" FontSize="10.5" FontWeight="Bold"/>
+                    </Grid>
+                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,12">
+                        <ComboBox ItemsSource="{Binding InputDevices}"
+                                  SelectedItem="{Binding SelectedInputDevice, Mode=TwoWay}"
+                                  DisplayMemberPath="Name" Height="32"/>
                     </Border>
 
-                    <!-- Section 2: Danger Zone / Uninstallation -->
-                    <TextBlock Text="{Binding Loc[Settings_DangerZone]}" FontSize="10" FontWeight="Bold" Foreground="#ef4444" Margin="0,0,0,6"/>
-                    <Border Background="#1b1216" BorderBrush="#3f1f26" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,20">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
-                                <TextBlock Text="{Binding Loc[Pref_Uninstall]}" FontSize="12" FontWeight="Bold" Foreground="#f87171"/>
-                                <TextBlock Text="{Binding Loc[Pref_Uninstall_Tip]}" FontSize="10.5" Foreground="#94a3b8" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <Button Grid.Column="1" Command="{Binding FullUninstallCommand}"
-                                    Content="{Binding Loc[Pref_Uninstall]}"
-                                    Height="32" Padding="12,0" Background="#2b151a" BorderBrush="#50242d" BorderThickness="1" 
-                                    Foreground="#f87171" FontSize="11" FontWeight="Bold" Cursor="Hand">
-                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
-                                <Button.Style>
-                                    <Style TargetType="Button">
+                    <!-- Step 2: SMC virtual cable Setup -->
+                    <TextBlock Text="{Binding Loc[Wizard_Step_Cable]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" Margin="0,0,0,4"/>
+                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" FontSize="11.5" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="{Binding Loc[Cable_NotFound]}"/>
+                                            <Setter Property="Foreground" Value="#f59e0b"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
+                                                    <Setter Property="Text" Value="{Binding Loc[Cable_Active]}"/>
+                                                    <Setter Property="Foreground" Value="#10b981"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <Button Grid.Column="1" Cursor="Hand" FontSize="11" FontWeight="Bold" Padding="12,6" Foreground="#ffffff" BorderThickness="0" Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="5"/></Style></Button.Resources>
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="#2563eb"/>
+                                            <Setter Property="Content" Value="{Binding Loc[Cable_Install]}"/>
+                                            <Setter Property="Command" Value="{Binding InstallVbCableCommand}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasVirtualCable}" Value="True">
+                                                    <Setter Property="Background" Value="#222738"/>
+                                                    <Setter Property="Content" Value="{Binding Loc[Cable_Reinstall]}"/>
+                                                    <Setter Property="Command" Value="{Binding ReinstallVbCableCommand}"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsInstalling}" Value="True">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                    <Setter Property="Content" Value="{Binding Loc[Cable_Installing]}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </Grid>
+                            <TextBlock Text="{Binding InstallerStatus, TargetNullValue=''}" FontSize="10.5" Foreground="#38bdf8" TextWrapping="Wrap" Margin="0,6,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
                                         <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="#451a20"/>
-                                                <Setter Property="BorderBrush" Value="#7f1d1d"/>
-                                                <Setter Property="Foreground" Value="#ffffff"/>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                            </Button>
-                        </Grid>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
                     </Border>
 
-                    <!-- Modal Actions -->
-                    <Button Content="{Binding Loc[Modal_Close]}" Command="{Binding CloseSettingsDialogCommand}"
+                    <!-- Step 3: Monitor Headphones -->
+                    <TextBlock Text="{Binding Loc[Wizard_Step_Monitor]}" FontSize="10" FontWeight="Bold" Foreground="#8b95a8" Margin="0,0,0,4"/>
+                    <Border Background="#10111a" BorderBrush="#232738" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,18">
+                        <ComboBox ItemsSource="{Binding MonitorDevices}"
+                                  SelectedItem="{Binding SelectedMonitorDevice, Mode=TwoWay}"
+                                  DisplayMemberPath="Name" Height="32"/>
+                    </Border>
+
+                    <!-- Done Button -->
+                    <Button Content="{Binding Loc[Wizard_Done]}" Command="{Binding CompleteOnboardingCommand}"
                             IsDefault="True"
-                            Height="34" Background="#2563eb" Foreground="#ffffff" FontSize="12" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
-                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                            Height="38" Background="#2563eb" Foreground="#ffffff" FontSize="12.5" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="7"/></Style></Button.Resources>
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Style.Triggers>

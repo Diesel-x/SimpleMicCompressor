@@ -12,7 +12,6 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.2-brightgreen?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/Author-Diesel--X-blue?style=flat-square&logo=github" alt="Author" />
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-informational?style=flat-square&logo=windows" alt="Platform" />
   <img src="https://img.shields.io/badge/Audio-WASAPI%20Shared%20Mode-success?style=flat-square" alt="Audio" />
@@ -23,18 +22,7 @@
 **SimpleMicCompressor** — системный процессор микрофона в реальном времени для **Discord**, **стримов** и **соревновательных игр** (CS2, Valorant, Apex, Warzone). Выравнивает громкость голоса, срезает клики мыши и гул, предотвращает оглушающие крики и защищает от клиппинга с нулевым влиянием на FPS.
 
 **Автор:** [Diesel-X](https://github.com/Diesel-x)  
-**Репозиторий:** [github.com/Diesel-x/SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)  
-**Версия:** `1.2` &nbsp;|&nbsp; [Примечания к выпуску](docs/RELEASE_NOTES.md)
-
----
-
-## ✨ Что нового в версии 1.2
-
-* 🎨 **Профессиональный студийный дизайн (Studio Dark UI)**: Тёмная студийная палитра (`#0c0e14`), высококонтрастные VU-метры и единый центр управления устройствами.
-* 📐 **Адаптивность под любые мониторы и разрешения**: Идеальное отображение на 1080p, 1440p, 4K, ноутбуках (1366x768, 1280x720) и компактных окнах без горизонтального сдвига и обрезания кнопок.
-* 🔕 **Тихие уведомления и проверка обновлений**: Удалены назойливые всплывающие окна в трее; тихая проверка релизов при запуске окна с предложением перехода на страницу релизов.
-* 🗑️ **Полная деинсталляция в 1 клик**: Безопасная очистка в настройках приложения — завершение процессов, удаление автозапуска из реестра, очистка `%APPDATA%` и самоликвидация файла.
-* 🛡️ **Защита DSP-тракта**: Внедрение самовосстановления от NaN/Inf в Rust Light версии, полное прохождение тестов (62/62 C# и 15/15 Rust).
+**Репозиторий:** [github.com/Diesel-x/SimpleMicCompressor](https://github.com/Diesel-x/SimpleMicCompressor)
 
 ---
 

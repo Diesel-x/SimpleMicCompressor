@@ -49,12 +49,7 @@ public static class AudioDeviceService
 
                     bool isDefault = defaultId != null && dev.ID == defaultId;
                     bool isVirtual = IsVirtualAudioName(name);
-
-                    string displayName = name;
-                    string defTag = Localization.LocalizationService.Instance["Routing_Default"];
-                    string virtTag = Localization.LocalizationService.Instance["Routing_VirtualCable"];
-                    if (isDefault) displayName += $" [{defTag}]";
-                    if (isVirtual) displayName += $" [{virtTag}]";
+                    string displayName = FormatDeviceDisplayName(name, isDefault, isVirtual);
 
                     result.Add(new DeviceInfo(dev.ID, displayName, isDefault, isVirtual));
                 }
@@ -115,12 +110,7 @@ public static class AudioDeviceService
 
                     bool isDefault = defaultId != null && dev.ID == defaultId;
                     bool isVirtual = IsVirtualAudioName(name);
-
-                    string displayName = name;
-                    string defTag = Localization.LocalizationService.Instance["Routing_Default"];
-                    string virtTag = Localization.LocalizationService.Instance["Routing_VirtualCable"];
-                    if (isDefault) displayName += $" [{defTag}]";
-                    if (isVirtual) displayName += $" [{virtTag}]";
+                    string displayName = FormatDeviceDisplayName(name, isDefault, isVirtual);
 
                     result.Add(new DeviceInfo(dev.ID, displayName, isDefault, isVirtual));
                 }
@@ -142,10 +132,25 @@ public static class AudioDeviceService
         return result;
     }
 
+    private static string FormatDeviceDisplayName(string name, bool isDefault, bool isVirtual)
+    {
+        string defTag = Localization.LocalizationService.Instance["Routing_Default"];
+        if (IsPreferredVirtualCable(name))
+        {
+            return isDefault ? $"SMC virtual cable [{defTag}]" : "SMC virtual cable";
+        }
+
+        string displayName = name;
+        string virtTag = Localization.LocalizationService.Instance["Routing_VirtualCable"];
+        if (isDefault) displayName += $" [{defTag}]";
+        if (isVirtual) displayName += $" [{virtTag}]";
+        return displayName;
+    }
+
     public static bool IsPreferredVirtualCable(string name)
     {
         string lower = name.ToLowerInvariant();
-        return lower.Contains("cable") || lower.Contains("vb-audio");
+        return lower.Contains("smc virtual") || lower.Contains("cable") || lower.Contains("vb-audio");
     }
 
     public static bool IsVirtualAudioName(string name)

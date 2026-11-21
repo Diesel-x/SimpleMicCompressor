@@ -198,6 +198,7 @@ internal static class Program
         chain.ProcessInterleaved(meme, 0, meme.Length, 2);
         Check("Chain: meme mode output finite", meme.All(Finite));
         Check("Chain: meme mode output within [-1, 1]", meme.All(v => MathF.Abs(v) <= 1.0f));
+        Check("Chain: meme mode produces crushed saturation peaks", meme.Any(v => MathF.Abs(v) > 0.9f));
 
         // NaN resilience
         settings.DestroyedMicMemeMode = false;
@@ -295,6 +296,10 @@ internal static class Program
 
     private static void TestDeviceHeuristics()
     {
+        Check("Device: 'SMC virtual cable' is preferred virtual cable",
+              AudioDeviceService.IsPreferredVirtualCable("SMC virtual cable"));
+        Check("Device: 'SMC virtual cable' is virtual",
+              AudioDeviceService.IsVirtualAudioName("SMC virtual cable"));
         Check("Device: 'CABLE Input (VB-Audio Virtual Cable)' is virtual",
               AudioDeviceService.IsVirtualAudioName("CABLE Input (VB-Audio Virtual Cable)"));
         Check("Device: 'Microphone (Realtek(R) Audio)' is not virtual",

@@ -166,12 +166,12 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Input"] = "Вход:",
         ["Routing_Output"] = "Выход:",
         ["Routing_Default"] = "По умолчанию",
-        ["Routing_VirtualCable"] = "Виртуальный кабель",
+        ["Routing_VirtualCable"] = "SMC virtual cable",
         ["Routing_Monitor"] = "Мониторинг",
         ["Routing_MonitorVolume"] = "Громкость самопрослушивания в наушниках",
-        ["Cable_Active"] = "Виртуальный кабель активен. В Discord выберите CABLE Output",
-        ["Cable_NotFound"] = "Виртуальный кабель не обнаружен (нужен для Discord)",
-        ["Cable_Install"] = "Установить кабель",
+        ["Cable_Active"] = "SMC virtual cable активен. В Discord выберите SMC virtual cable (CABLE Output)",
+        ["Cable_NotFound"] = "SMC virtual cable не обнаружен (нужен для Discord)",
+        ["Cable_Install"] = "Установить SMC virtual cable",
         ["Cable_Reinstall"] = "Переустановить",
         ["Cable_Installing"] = "Установка...",
 
@@ -275,7 +275,19 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Settings_Hotkeys"] = "ГОРЯЧИЕ КЛАВИШИ",
         ["Settings_DangerZone"] = "ЗОНА УДАЛЕНИЯ",
         ["FX_Bypass_Desc"] = "Прямой сигнал без обработки",
-        ["FX_Mute_Desc"] = "Быстрое заглушение микрофона"
+        ["FX_Mute_Desc"] = "Быстрое заглушение микрофона",
+
+        // Onboarding Wizard & Redesigned Console
+        ["Wizard_Title"] = "Быстрая настройка",
+        ["Wizard_Subtitle"] = "Настройте микрофон и виртуальный кабель один раз — позже всё это можно изменить в Настройках (⚙).",
+        ["Wizard_Step_Mic"] = "1. МИКРОФОН",
+        ["Wizard_Step_Cable"] = "2. ВИРТУАЛЬНЫЙ КАБЕЛЬ (ДЛЯ DISCORD И ИГР)",
+        ["Wizard_Step_Monitor"] = "3. НАУШНИКИ ДЛЯ МОНИТОРИНГА",
+        ["Wizard_Done"] = "Готово — перейти к пульту",
+        ["Wizard_OpenBtn"] = "Запустить мастер настройки",
+        ["Settings_AudioCable"] = "УСТРОЙСТВА И SMC VIRTUAL CABLE",
+        ["Comp_Advanced"] = "Тонкая настройка (Attack / Release)",
+        ["Quick_Controls"] = "БЫСТРОЕ УПРАВЛЕНИЕ"
     };
 
     private static readonly Dictionary<string, string> StringsEn = new()
@@ -314,12 +326,12 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Input"] = "Input:",
         ["Routing_Output"] = "Output:",
         ["Routing_Default"] = "Default",
-        ["Routing_VirtualCable"] = "Virtual Cable",
+        ["Routing_VirtualCable"] = "SMC virtual cable",
         ["Routing_Monitor"] = "Monitoring",
         ["Routing_MonitorVolume"] = "Headphone monitoring volume",
-        ["Cable_Active"] = "Virtual Cable active. In Discord select CABLE Output",
-        ["Cable_NotFound"] = "Virtual Cable not detected (required for Discord)",
-        ["Cable_Install"] = "Install Cable",
+        ["Cable_Active"] = "SMC virtual cable active. In Discord select SMC virtual cable (CABLE Output)",
+        ["Cable_NotFound"] = "SMC virtual cable not detected (required for Discord)",
+        ["Cable_Install"] = "Install SMC virtual cable",
         ["Cable_Reinstall"] = "Reinstall",
         ["Cable_Installing"] = "Installing...",
 
@@ -423,7 +435,19 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Settings_Hotkeys"] = "GLOBAL HOTKEYS",
         ["Settings_DangerZone"] = "DANGER ZONE",
         ["FX_Bypass_Desc"] = "Direct dry microphone passthrough",
-        ["FX_Mute_Desc"] = "Quick microphone mute"
+        ["FX_Mute_Desc"] = "Quick microphone mute",
+
+        // Onboarding Wizard & Redesigned Console
+        ["Wizard_Title"] = "Quick Setup",
+        ["Wizard_Subtitle"] = "Configure your microphone and virtual cable once — you can always change these later in Settings (⚙).",
+        ["Wizard_Step_Mic"] = "1. MICROPHONE",
+        ["Wizard_Step_Cable"] = "2. VIRTUAL CABLE (FOR DISCORD & GAMES)",
+        ["Wizard_Step_Monitor"] = "3. HEADPHONES FOR MONITORING",
+        ["Wizard_Done"] = "Done — Open Console",
+        ["Wizard_OpenBtn"] = "Run Setup Wizard",
+        ["Settings_AudioCable"] = "DEVICES & SMC VIRTUAL CABLE",
+        ["Comp_Advanced"] = "Advanced (Attack / Release)",
+        ["Quick_Controls"] = "QUICK CONTROLS"
     };
 
     private static readonly Dictionary<string, string> StringsDe = new()
@@ -462,12 +486,12 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Input"] = "Eingang:",
         ["Routing_Output"] = "Ausgang:",
         ["Routing_Default"] = "Standard",
-        ["Routing_VirtualCable"] = "Virtuelles Kabel",
+        ["Routing_VirtualCable"] = "SMC virtual cable",
         ["Routing_Monitor"] = "Monitoring",
         ["Routing_MonitorVolume"] = "Kopfhörer-Monitoring-Lautstärke",
-        ["Cable_Active"] = "Virtuelles Kabel aktiv. In Discord CABLE Output wählen",
-        ["Cable_NotFound"] = "Kein virtuelles Kabel gefunden (für Discord benötigt)",
-        ["Cable_Install"] = "Kabel installieren",
+        ["Cable_Active"] = "SMC virtual cable aktiv. In Discord SMC virtual cable (CABLE Output) wählen",
+        ["Cable_NotFound"] = "SMC virtual cable nicht gefunden (für Discord benötigt)",
+        ["Cable_Install"] = "SMC virtual cable installieren",
         ["Cable_Reinstall"] = "Neu installieren",
         ["Cable_Installing"] = "Wird installiert...",
 
@@ -571,7 +595,19 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Settings_Hotkeys"] = "GLOBALE HOTKEYS",
         ["Settings_DangerZone"] = "GEFAHRENZONE",
         ["FX_Bypass_Desc"] = "Direktes Mikrofon-Signal",
-        ["FX_Mute_Desc"] = "Mikrofon schnell stummschalten"
+        ["FX_Mute_Desc"] = "Mikrofon schnell stummschalten",
+
+        // Onboarding Wizard & Redesigned Console
+        ["Wizard_Title"] = "Schnelleinrichtung",
+        ["Wizard_Subtitle"] = "Mikrofon und virtuelles Kabel einmalig einrichten — später jederzeit in den Einstellungen (⚙) änderbar.",
+        ["Wizard_Step_Mic"] = "1. MIKROFON",
+        ["Wizard_Step_Cable"] = "2. VIRTUELLES KABEL (FÜR DISCORD & SPIELE)",
+        ["Wizard_Step_Monitor"] = "3. KOPFHÖRER FÜR MONITORING",
+        ["Wizard_Done"] = "Fertig — Konsole öffnen",
+        ["Wizard_OpenBtn"] = "Einrichtungsassistent starten",
+        ["Settings_AudioCable"] = "GERÄTE & SMC VIRTUAL CABLE",
+        ["Comp_Advanced"] = "Erweitert (Attack / Release)",
+        ["Quick_Controls"] = "SCHNELLSTEUERUNG"
     };
 
     private static readonly Dictionary<string, string> StringsEs = new()
@@ -610,12 +646,12 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Routing_Input"] = "Entrada:",
         ["Routing_Output"] = "Salida:",
         ["Routing_Default"] = "Predeterminado",
-        ["Routing_VirtualCable"] = "Cable Virtual",
+        ["Routing_VirtualCable"] = "SMC virtual cable",
         ["Routing_Monitor"] = "Monitorización",
         ["Routing_MonitorVolume"] = "Volumen de monitorización",
-        ["Cable_Active"] = "Cable virtual activo. En Discord elija CABLE Output",
-        ["Cable_NotFound"] = "Cable virtual no detectado (necesario para Discord)",
-        ["Cable_Install"] = "Instalar cable",
+        ["Cable_Active"] = "SMC virtual cable activo. En Discord elija SMC virtual cable (CABLE Output)",
+        ["Cable_NotFound"] = "SMC virtual cable no detectado (necesario para Discord)",
+        ["Cable_Install"] = "Instalar SMC virtual cable",
         ["Cable_Reinstall"] = "Reinstalar",
         ["Cable_Installing"] = "Instalando...",
 
@@ -719,7 +755,19 @@ public sealed class LocalizationService : INotifyPropertyChanged
         ["Settings_Hotkeys"] = "TECLAS DE ACCESO RÁPIDO",
         ["Settings_DangerZone"] = "ZONA DE PELIGRO",
         ["FX_Bypass_Desc"] = "Señal de micrófono directa",
-        ["FX_Mute_Desc"] = "Silenciar micrófono rápidamente"
+        ["FX_Mute_Desc"] = "Silenciar micrófono rápidamente",
+
+        // Onboarding Wizard & Redesigned Console
+        ["Wizard_Title"] = "Configuración rápida",
+        ["Wizard_Subtitle"] = "Configure su micrófono y cable virtual una sola vez — podrá cambiarlo después en Ajustes (⚙).",
+        ["Wizard_Step_Mic"] = "1. MICRÓFONO",
+        ["Wizard_Step_Cable"] = "2. CABLE VIRTUAL (PARA DISCORD Y JUEGOS)",
+        ["Wizard_Step_Monitor"] = "3. AURICULARES PARA MONITORIZACIÓN",
+        ["Wizard_Done"] = "Listo — Abrir consola",
+        ["Wizard_OpenBtn"] = "Ejecutar asistente",
+        ["Settings_AudioCable"] = "DISPOSITIVOS Y SMC VIRTUAL CABLE",
+        ["Comp_Advanced"] = "Avanzado (Attack / Release)",
+        ["Quick_Controls"] = "CONTROL RÁPIDO"
     };
 
     #endregion

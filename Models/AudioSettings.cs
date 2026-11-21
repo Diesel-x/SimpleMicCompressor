@@ -48,6 +48,7 @@ public class AudioSettings
     public bool AutoStartWithWindows { get; set; } = false;
     public bool MinimizeToTrayOnClose { get; set; } = true;
     public bool StartMinimized { get; set; } = false;
+    public bool HasCompletedOnboarding { get; set; } = false;
     public string SelectedPresetName { get; set; } = "Gaming & Discord";
 
     // Localization
@@ -148,7 +149,7 @@ public class AudioSettings
             "Radio / Podcast" => CreatePodcastPreset(),
             "Whisper / Quiet Night" => CreateWhisperPreset(),
             "Aggressive / Anti-Rage" => CreateAntiRagePreset(),
-            "Уничтоженный микрофон (Meme)" or "🎙️ Уничтоженный микрофон (Meme)" => CreateDestroyedMicPreset(),
+            "Уничтоженный микрофон (Meme)" or "🎙️ Уничтоженный микрофон (Meme)" or "Destroyed Mic (Meme)" => CreateDestroyedMicPreset(),
             _ => this
         };
 

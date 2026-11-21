@@ -82,6 +82,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public RelayCommand FullUninstallCommand { get; }
     public RelayCommand OpenSettingsDialogCommand { get; }
     public RelayCommand CloseSettingsDialogCommand { get; }
+    public RelayCommand CompleteOnboardingCommand { get; }
+    public RelayCommand OpenOnboardingCommand { get; }
     public Action? RequestMinimizeToTray { get; set; }
     public Action? RequestUpdateHotkeys { get; set; }
 
@@ -94,6 +96,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private bool _isSaveProfileDialogVisible = false;
     private bool _isHotkeysDialogVisible = false;
     private bool _isSettingsDialogVisible = false;
+    private bool _isOnboardingVisible = false;
     private bool _hasUnsavedProfileChanges = false;
     private string _statusNotification = "";
     private DispatcherTimer? _statusNotificationTimer;
@@ -132,6 +135,12 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _isSettingsDialogVisible;
         set => SetField(ref _isSettingsDialogVisible, value);
+    }
+
+    public bool IsOnboardingVisible
+    {
+        get => _isOnboardingVisible;
+        set => SetField(ref _isOnboardingVisible, value);
     }
 
     public bool HotkeysEnabled
@@ -265,7 +274,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         CancelSaveProfileCommand = new RelayCommand(CancelSaveProfile);
         DeleteProfileCommand = new RelayCommand(DeleteCurrentProfile);
 
-        OpenHotkeysDialogCommand = new RelayCommand(() => IsHotkeysDialogVisible = true);
+        OpenHotkeysDialogCommand = new RelayCommand(() =>
+        {
+            IsSettingsDialogVisible = false;
+            IsHotkeysDialogVisible = true;
+        });
         CloseHotkeysDialogCommand = new RelayCommand(() =>
         {
             IsHotkeysDialogVisible = false;
@@ -309,10 +322,22 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         FullUninstallCommand = new RelayCommand(UninstallerService.RequestFullUninstall);
         OpenSettingsDialogCommand = new RelayCommand(() => IsSettingsDialogVisible = true);
         CloseSettingsDialogCommand = new RelayCommand(() => IsSettingsDialogVisible = false);
+        CompleteOnboardingCommand = new RelayCommand(() =>
+        {
+            _settings.HasCompletedOnboarding = true;
+            _settings.Save();
+            IsOnboardingVisible = false;
+        });
+        OpenOnboardingCommand = new RelayCommand(() =>
+        {
+            IsSettingsDialogVisible = false;
+            IsOnboardingVisible = true;
+        });
 
         UpdateEngineStatusDisplay();
         RefreshPresetsList();
         RefreshDevices();
+        _isOnboardingVisible = !_settings.HasCompletedOnboarding;
 
         // 30 FPS UI timer for meters
         _meterTimer = new DispatcherTimer(DispatcherPriority.Render)
@@ -343,10 +368,24 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
         OutputDevices.Clear();
         MonitorDevices.Clear();
-        foreach (var dev in AudioDeviceService.GetRenderDevices())
+        var renderDevices = AudioDeviceService.GetRenderDevices();
+        foreach (var dev in renderDevices)
         {
-            OutputDevices.Add(dev);
-            MonitorDevices.Add(dev);
+            if (dev.IsVirtualCable)
+            {
+                OutputDevices.Add(dev);
+            }
+            else
+            {
+                MonitorDevices.Add(dev);
+            }
+        }
+        if (MonitorDevices.Count == 0)
+        {
+            foreach (var dev in renderDevices)
+            {
+                MonitorDevices.Add(dev);
+            }
         }
 
         // Restore selected input
@@ -357,18 +396,17 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _settings.InputDeviceName = _selectedInputDevice?.Name;
         OnPropertyChanged(nameof(SelectedInputDevice));
 
-        // Restore selected output (prefer virtual cable if available)
+        // Restore selected output (virtual cables only; never route main output into physical speakers)
         _selectedOutputDevice = OutputDevices.FirstOrDefault(d => d.Id == _settings.OutputDeviceId)
-                                ?? OutputDevices.FirstOrDefault(d => d.IsVirtualCable)
-                                ?? OutputDevices.FirstOrDefault(d => d.IsDefault)
+                                ?? OutputDevices.FirstOrDefault(d => AudioDeviceService.IsPreferredVirtualCable(d.Name))
                                 ?? OutputDevices.FirstOrDefault();
         _settings.OutputDeviceId = _selectedOutputDevice?.Id;
         _settings.OutputDeviceName = _selectedOutputDevice?.Name;
         OnPropertyChanged(nameof(SelectedOutputDevice));
 
-        // Restore selected monitor
+        // Restore selected monitor (physical headphones / speakers)
         _selectedMonitorDevice = MonitorDevices.FirstOrDefault(d => d.Id == _settings.MonitorDeviceId)
-                                 ?? MonitorDevices.FirstOrDefault(d => !d.IsVirtualCable && d.IsDefault)
+                                 ?? MonitorDevices.FirstOrDefault(d => d.IsDefault)
                                  ?? MonitorDevices.FirstOrDefault();
         _settings.MonitorDeviceId = _selectedMonitorDevice?.Id;
         _settings.MonitorDeviceName = _selectedMonitorDevice?.Name;
@@ -1017,7 +1055,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         get => _settings.MonitorVolume;
         set
         {
-            if (Math.Abs(_settings.MonitorVolume - value) > 0.01f)
+            if (Math.Abs(_settings.MonitorVolume - value) > 0.001f)
             {
                 _settings.MonitorVolume = value;
                 OnSettingChanged();

@@ -12,7 +12,6 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.2-brightgreen?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/Author-Diesel--X-blue?style=flat-square&logo=github" alt="Author" />
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20(x64)-informational?style=flat-square&logo=windows" alt="Platform" />
   <img src="https://img.shields.io/badge/Audio-WASAPI%20Shared%20Mode-success?style=flat-square" alt="Audio" />
@@ -21,18 +20,6 @@
 </p>
 
 **SimpleMicCompressor** is an ultra-fast real-time system microphone audio processor designed for **Discord**, **streaming**, and **competitive games** (CS2, Valorant, Apex Legends, Warzone). It evens out voice volume dynamics, removes mouse clicks and background hum, dampens loud screaming, and protects against digital clipping with zero impact on gaming FPS.
-
-**Version:** `1.2` &nbsp;|&nbsp; [Release Notes](docs/RELEASE_NOTES.md)
-
----
-
-## ✨ What's New in v1.2
-
-* 🎨 **Studio Pro Dark UI**: Hardware-inspired dark studio aesthetic (`#0c0e14`), high-contrast VU meters, and unified Hardware Command Center.
-* 📐 **Adaptive Multi-Resolution Support**: Seamless responsiveness across 1080p, 1440p, 4K, laptops (1366x768, 1280x720) and compact split views with zero horizontal clipping.
-* 🔕 **Quiet Notifications & Startup Update Checker**: Eliminated desktop notification spam; clean update dialog displayed only on interface launch with direct link to releases.
-* 🗑️ **1-Click Complete Clean Uninstallation**: Safe self-deleting uninstaller in Application Settings removing all binaries, shortcuts, `%APPDATA%`, and registry keys.
-* 🛡️ **Hardened DSP Engine**: NaN/Infinity self-healing filter guards in Rust Light edition matching C#, 100% test coverage pass (62/62 C# tests, 15/15 Rust tests).
 
 ---
 
