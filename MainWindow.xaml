@@ -404,16 +404,9 @@
 
                     <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                         <Ellipse Width="8" Height="8" Fill="{Binding EngineStatusColor}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding EngineStatusText}" FontSize="11" Foreground="{Binding EngineStatusColor}" FontWeight="Bold" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding EngineStatusText}" FontSize="11" Foreground="{Binding EngineStatusColor}" FontWeight="Bold" Margin="0,0,8,0"/>
 
-                        <Border Background="#12141d" BorderBrush="#232738" BorderThickness="1" CornerRadius="4" Padding="6,1">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Loc[Telemetry_Latency]}" FontSize="10" FontWeight="SemiBold" Foreground="#8b95a8" Margin="0,0,4,0"/>
-                                <TextBlock Text="{Binding LatencyDisplay}" FontSize="10.5" FontWeight="Bold" Foreground="#38bdf8"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Background="#dc2626" CornerRadius="4" Padding="7,1" Margin="8,0,0,0"
+                        <Border Background="#dc2626" CornerRadius="4" Padding="7,1"
                                 Visibility="{Binding IsMuted, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <TextBlock Text="{Binding Loc[Badge_Muted]}" FontSize="10" FontWeight="Bold" Foreground="#ffffff"/>
                         </Border>
